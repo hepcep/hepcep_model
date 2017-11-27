@@ -10,6 +10,9 @@
 namespace hepcep {
 
 const std::string PERSONS_FILE = "persons.file";
+const std::string RUN = "run.number";
+const std::string OUTPUT_DIRECTORY = "output.directory";
+const std::string STATS_OUTPUT_FILE = "stats.output.file";
 
 }
 

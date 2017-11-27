@@ -11,12 +11,17 @@
 #include "chi_sim/AbstractModel.h"
 
 #include "HCPerson.h"
+#include "FileSink.h"
 
 namespace hepcep {
 
 using AbsModelT = chi_sim::AbstractModel<HCPerson, HCPlace, int>;
 
 class HCModel: public AbsModelT {
+
+private:
+    int run;
+    FileSink<double> file_sink;
 
 protected:
 

@@ -15,14 +15,15 @@ CXX_FLAGS = $(CXX_DEBUG_FLAGS) -fopenmp
 INCLUDES :=
 LIBS :=
 
-REPAST_LIB_DIR = $(HOME)/sfw/repast_hpc-2.1/lib
-REPAST_LIB = repast_hpc-2.1
-REPAST_INCLUDE = $(HOME)/sfw/repast_hpc-2.1/include
+REPAST_ROOT =  $(HOME)/sfw/repast_hpc-2.2.0
+REPAST_INCLUDE =  $(REPAST_ROOT)/include
+REPAST_LIB_DIR = $(REPAST_ROOT)/lib
+REPAST_LIB = repast_hpc-2.2.0
 
-CHISIM_VERSION = 0.2
-CHISIM_LIB_DIR = $(HOME)/sfw/chiSIM-$(CHISIM_VERSION)/lib
-CHISIM_LIB = chiSIM-$(CHISIM_VERSION)
-CHISIM_INCLUDE = $(HOME)/sfw/chiSIM-$(CHISIM_VERSION)/include
+CHISIM_ROOT =  $(HOME)/sfw/chiSIM-0.2
+CHISIM_LIB_DIR = $(CHISIM_ROOT)/lib
+CHISIM_INCLUDE = $(CHISIM_ROOT)/include
+CHISIM_LIB = chiSIM-0.2
 
 BOOST_ROOT = $(HOME)/sfw/boost/1.58
 BOOST_INCLUDE = $(BOOST_ROOT)/include

@@ -1,0 +1,24 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+*~
+.DS_Store
+
+*.d
+/.cproject
+/.project
+/.settings
+
+Debug/
+Release/
+

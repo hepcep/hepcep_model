@@ -1,0 +1,9 @@
+random.seed = 42
+
+# full week
+# stop.at = 128.1
+
+stop.at = 5
+
+# relative to where the hepcep-model executable is run 
+persons.file = ../data/persons_placeholder.csv

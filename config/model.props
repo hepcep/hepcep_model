@@ -7,6 +7,7 @@ stop.at = 5
 
 # relative to where the hepcep-model executable is run 
 persons.file = ../data/persons_placeholder.csv
+network.file = ../data/network_placeholder.txt
 
 # this will be passed in when doing sweeps
 run.number = 0;

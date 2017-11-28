@@ -12,6 +12,7 @@
 
 #include "HCPerson.h"
 #include "FileSink.h"
+#include "Network.h"
 
 namespace hepcep {
 
@@ -22,6 +23,7 @@ class HCModel: public AbsModelT {
 private:
     int run;
     FileSink<double> file_sink;
+    Network<HCPerson> network;
 
 protected:
 

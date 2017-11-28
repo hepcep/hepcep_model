@@ -7,9 +7,10 @@
 
 #include "repast_hpc/RepastProcess.h"
 
-#include "chi_sim/CSVReader.h"
+//#include "chi_sim/CSVReader.h"
 
 #include "creators.h"
+#include "SVReader.h"
 
 namespace hepcep {
 
@@ -17,7 +18,7 @@ const int ID_IDX = 0;
 const int RANK_IDX = 2;
 
 void create_persons(const std::string& filename, std::map<unsigned int, PersonPtr>& persons) {
-    chi_sim::CSVReader reader(filename);
+    SVReader reader(filename, ',');
     std::vector<std::string> line;
 
     // skip header
@@ -33,6 +34,24 @@ void create_persons(const std::string& filename, std::map<unsigned int, PersonPt
         int p_rank = std::stoi(line[RANK_IDX]);
         if (p_rank == my_rank || world_size == 1) {
             persons.emplace(id, std::make_shared<HCPerson>(id));
+        }
+    }
+}
+
+void create_network(const std::string& filename, std::map<unsigned int, PersonPtr>& persons, Network<HCPerson>& network) {
+    // add all person to the network
+    for (auto entry : persons) {
+        network.addVertex(entry.second);
+    }
+
+    // assumes an adjacency list format
+    SVReader reader(filename, ' ');
+    std::vector<std::string> line;
+
+    while (reader.next(line)) {
+        unsigned int source = std::stoul(line[0]);
+        for (size_t i = 1; i < line.size(); ++i) {
+            network.addEdge(source, std::stoul(line[i]));
         }
     }
 }

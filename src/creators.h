@@ -12,6 +12,7 @@
 #include <string>
 
 #include "HCPerson.h"
+#include "Network.h"
 
 namespace hepcep {
 
@@ -20,6 +21,8 @@ namespace hepcep {
  * Create Persons from the specified file, placing them in the specified map.
  */
 void create_persons(const std::string& filename, std::map<unsigned int, PersonPtr>& persons);
+
+void create_network(const std::string& filename, std::map<unsigned int, PersonPtr>& persons, Network<HCPerson>& network);
 
 
 }

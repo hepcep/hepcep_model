@@ -35,7 +35,7 @@ shared_ptr<ReducibleDataSet<double>> init_data_collection() {
 }
 
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : AbsModelT(moved_data_size, props),
-        run(std::stoi(props.getProperty(RUN))), file_sink(rank_, run, init_data_collection()) {
+        run(std::stoi(props.getProperty(RUN))), file_sink(rank_, run, init_data_collection()), network(true) {
 
     string output_directory = Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
     string stats_fname = output_directory + "/" + Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
@@ -46,6 +46,17 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : AbsM
 
     string persons_file = Parameters::instance()->getStringParameter(PERSONS_FILE);
     create_persons(persons_file, local_persons);
+
+    string network_file = Parameters::instance()->getStringParameter(NETWORK_FILE);
+    create_network(network_file, local_persons, network);
+
+    // check that the network loading worked
+    std::cout << network.vertexCount() << std::endl;
+    vector<EdgePtrT<HCPerson>> edges;
+    network.outEdges(local_persons.at(2), edges);
+    for (auto e : edges) {
+        std::cout << e->v1()->id() << " -> " << e->v2()->id() << std::endl;
+    }
 }
 
 HCModel::~HCModel() {}

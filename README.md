@@ -10,6 +10,7 @@
   git checkout tags/v0.2
   ```
   See the *compiling* section in `users_guide.md` for compilation instructions, and run the *install* make target.
+* gtest - google's unit testing library. https://github.com/google/googletest
 
 ## Compiling ##
 

@@ -226,9 +226,9 @@ unsigned int Network<V>::doEdgeCount(unsigned int id, EdgeList& el) {
 
 template<typename V>
 unsigned int Network<V>::outEdgeCount(const VertexPtrT<V>& vertex) {
-    unsigned int count = edge_count(vertex->id(), oel);
+    unsigned int count = doEdgeCount(vertex->id(), oel);
 	if (!directed_) {
-	    count += edge_count(vertex->id(), iel);
+	    count += doEdgeCount(vertex->id(), iel);
     }
 
     return count;
@@ -236,9 +236,9 @@ unsigned int Network<V>::outEdgeCount(const VertexPtrT<V>& vertex) {
 
 template<typename V>
 unsigned int Network<V>::inEdgeCount(const VertexPtrT<V>& vertex) {
-    unsigned int count = edge_count(vertex->id(), iel);
+    unsigned int count = doEdgeCount(vertex->id(), iel);
     if (!directed_) {
-        count += edge_count(vertex->id(), oel);
+        count += doEdgeCount(vertex->id(), oel);
     }
 
     return count;

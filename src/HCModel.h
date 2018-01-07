@@ -22,7 +22,7 @@ class HCModel: public AbsModelT {
 
 private:
     int run;
-    FileSink<double> file_sink;
+//    FileSink<double> file_sink;
     Network<HCPerson> network;
 
 protected:

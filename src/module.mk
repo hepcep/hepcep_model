@@ -1,7 +1,7 @@
 SRC = HCPlace.cpp \
 	HCPerson.cpp \
 	HCModel.cpp \
-	creators.cpp \
+	PersonCreator.cpp \
 	Statistics.cpp \
 	SVReader.cpp
 	

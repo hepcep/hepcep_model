@@ -14,7 +14,9 @@ const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";
 
-const std::string NETWORK_FILE = "network.file";
+//const std::string NETWORK_FILE = "network.file";
+const std::string ZONES_FILE = "zones.file";
+const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 
 }
 

@@ -11,8 +11,13 @@
 #include "chi_sim/AbstractModel.h"
 
 #include "HCPerson.h"
+#include "Zone.h"
 #include "FileSink.h"
 #include "Network.h"
+
+using namespace chi_sim;
+using namespace repast;
+using namespace std;
 
 namespace hepcep {
 
@@ -26,6 +31,13 @@ private:
     Network<HCPerson> network;
 
 protected:
+
+	// PersonData queue used for generating new HCPerson instances.
+	deque<HCPersonData> personData;
+	
+	map<std::string,Zone> zoneMap;
+	
+	map<Zone, map<Zone,double>> zoneDistanceMap;
 
     // not used in initial version
     void nextActSelected(PersonPtr& person, chi_sim::NextPlace<HCPlace>& next_act) override {

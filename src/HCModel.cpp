@@ -12,11 +12,9 @@
 #include "HCModel.h"
 #include "Statistics.h"
 #include "PersonCreator.h"
+#include "PersonDataLoader.h"
+#include "ZoneLoader.h"
 #include "parameters_constants.h"
-
-using namespace chi_sim;
-using namespace repast;
-using namespace std;
 
 namespace hepcep {
 
@@ -38,13 +36,16 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 			AbsModelT(moved_data_size, props),
 			run(std::stoi(props.getProperty(RUN))) , 
 //			file_sink(rank_, run, init_data_collection()) //, 
-			network(true) 
+			network(true),
+			personData(),
+			zoneMap(),
+			zoneDistanceMap()
 			{
 
     string output_directory = Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 	
-	std::cout << "HepCEP Model Initialization." << std::endl;
-	std::cout << "Output dir: " << output_directory << std::endl;
+	cout << "HepCEP Model Initialization." << endl;
+	cout << "Output dir: " << output_directory << endl;
 	
 //    string stats_fname = output_directory + "/" + Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 //    file_sink.open(insert_in_file_name(stats_fname, run));
@@ -53,9 +54,23 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     runner.scheduleEvent(1, 1, Schedule::FunctorPtr(new MethodFunctor<HCModel>(this, &HCModel::step)));
 
     string persons_file = Parameters::instance()->getStringParameter(PERSONS_FILE);
-    create_persons(persons_file, local_persons);
+    cout << "Persons file: " << persons_file << endl;
+	loadPersonData(persons_file, personData);
+	
+	// TODO initial person count
+	int personCount = 5;
+	
+	PersonCreator personCreator;
+	
+	personCreator.create_persons(local_persons, personData, personCount);
 
-	std::cout << "Persons file: " << persons_file << std::endl;
+	string zones_file = Parameters::instance()->getStringParameter(ZONES_FILE);
+    cout << "Zones file: " << zones_file << endl;
+	loadZones(zones_file, zoneMap);
+	
+	string zones_distance_file = Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
+    cout << "Zones distance file: " << zones_distance_file << endl;
+	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 	
 //    string network_file = Parameters::instance()->getStringParameter(NETWORK_FILE);
 //    create_network(network_file, local_persons, network);

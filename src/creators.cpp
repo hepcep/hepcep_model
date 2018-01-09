@@ -29,12 +29,16 @@ void create_persons(const std::string& filename, std::map<unsigned int, PersonPt
     int my_rank = repast::RepastProcess::instance()->rank();
     int world_size = repast::RepastProcess::instance()->worldSize();
 
+	unsigned int id = 0;
+	int p_rank = 0;
+	
     while (reader.next(line)) {
-        unsigned int id = std::stoul(line[ID_IDX]);
-        int p_rank = std::stoi(line[RANK_IDX]);
+//        unsigned int id = std::stoul(line[ID_IDX]);
+//        int p_rank = std::stoi(line[RANK_IDX]);
         if (p_rank == my_rank || world_size == 1) {
             persons.emplace(id, std::make_shared<HCPerson>(id));
         }
+		id++;
     }
 }
 

@@ -12,8 +12,6 @@
 
 #include "HCPerson.h"
 
-using namespace std;
-
 namespace hepcep {
 
 class PersonCreator {
@@ -28,8 +26,8 @@ public:
 	/**
 	 * Create Persons from the specified file, placing them in the specified map.
 	 */
-	void create_persons(map<unsigned int, PersonPtr>& persons,
-			deque<HCPersonData> & personData,  unsigned int person_count);
+	void create_persons(std::map<unsigned int, PersonPtr>& persons,
+			std::vector<HCPersonData> & personData,  unsigned int person_count);
 
 
 };

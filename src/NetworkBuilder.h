@@ -27,7 +27,7 @@ public:
 	 * Create Persons from the specified file, placing them in the specified map.
 	 */
 //	void create_persons(std::map<unsigned int, PersonPtr>& persons, 
-//			std::deque<HCPersonData> & personData,  unsigned int person_count);
+//			std::vector<HCPersonData> & personData,  unsigned int person_count);
 
 
 };

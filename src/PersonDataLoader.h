@@ -12,16 +12,12 @@
 
 #include "HCPerson.h"
 
-using namespace std;
-
 namespace hepcep {
-
 
 /**
  * Load person data from the specified file
  */
-void loadPersonData(const string& filename, deque<HCPersonData> & personData) ;
-
+void loadPersonData(const std::string& filename, std::vector<HCPersonData> & personData) ;
 
 }
 

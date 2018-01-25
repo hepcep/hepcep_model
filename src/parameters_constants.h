@@ -9,7 +9,8 @@
 
 namespace hepcep {
 
-const std::string PERSONS_FILE = "persons.file";
+const std::string CNEP_PLUS_FILE = "cnep_plus.file";
+const std::string CNEP_PLUS__EARLY_FILE = "cnep_plus_early.file";
 const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";
@@ -17,6 +18,9 @@ const std::string STATS_OUTPUT_FILE = "stats.output.file";
 //const std::string NETWORK_FILE = "network.file";
 const std::string ZONES_FILE = "zones.file";
 const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
+
+const std::string AB_PROB_CHRONIC = "ab_prob_chronic";
+const std::string AB_PROB_ACUTE = "ab_prob_acute";
 
 }
 

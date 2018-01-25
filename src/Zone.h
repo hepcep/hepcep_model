@@ -7,28 +7,30 @@
 #ifndef SRC_ZONE_H_
 #define SRC_ZONE_H_
 
+#include <memory>
 #include <string>
-
-using namespace std;
 
 namespace hepcep {
 
 class Zone {
 
 protected:
-	string zipcode;
+	std::string zipcode;
 	unsigned int drugMarket;
-	
+
 public:
-    Zone(string zipcode);
-	
-    virtual ~Zone();
+	Zone(std::string zipcode);
+
+	virtual ~Zone();
 
 	unsigned int getDrugMarket();
 	void setDrugMarket(unsigned int drugMarket);
-   
+
 };
 
+using ZonePtr = std::shared_ptr<Zone>;
+
 } /* namespace hepcep */
+
 
 #endif /* SRC_ZONE_H_ */

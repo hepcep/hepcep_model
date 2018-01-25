@@ -17,59 +17,74 @@
 
 #include "HCPlace.h"
 
-using namespace std;
-
 namespace hepcep {
 
 using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, int>;
 
+enum class HCV_State{susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS};
+
+
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
-	string label;
-	unsigned int drug_outDegree;
-	unsigned int drug_inDegree;
-	double fractionReceptSharing;
-	string gender;
+	//	std::string label;
+	//	unsigned int drug_outDegree;
+	//	unsigned int drug_inDegree;
+	//	double fractionReceptSharing;
+	//	std::string gender;
+	//	double ageStarted;
+	//	std::string birthDate;
+	//	std::string surveyDate;
+	//	std::string hcvState;
+	//	double injectionIntensity;
+	//	std::string zipCode;
+
+	double age;
 	double ageStarted;
-	string birthDate;
-	string surveyDate;
-	string hcvState;
+	std::string gender;
+	std::string race;
+	std::string syringeSource;
+	std::string zipCode;
+	HCV_State hcvState;
+	unsigned int drug_inDegree;
+	unsigned int drug_outDegree;
 	double injectionIntensity;
-	string zipCode;
-	
+	double fractionReceptSharing;
+
 };
 
 class HCPerson : public AbsPersonT {
 
 protected:
-	string label;
-	unsigned int drug_outDegree;
-	unsigned int drug_inDegree;
-	double fractionReceptSharing;
-	string gender;
+	std::string label;
+
+	double age;
 	double ageStarted;
-	string birthDate;
-	string surveyDate;
-	string hcvState;
+	std::string gender;
+	std::string race;
+	std::string syringeSource;
+	std::string zipCode;
+	HCV_State hcvState;
+	unsigned int drug_inDegree;
+	unsigned int drug_outDegree;
 	double injectionIntensity;
-	string zipCode;
+	double fractionReceptSharing;
 
 public:
-    HCPerson(unsigned int id);
+	HCPerson(unsigned int id);
 	HCPerson(unsigned int id, HCPersonData& data);
-	
-    virtual ~HCPerson();
 
-    // not used in initial version
-    void fillSendData(vector<int>& data) {}
+	virtual ~HCPerson();
 
-    // not used in initial version
-    void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}
+	// not used in initial version
+	void fillSendData(std::vector<int>& data) {}
 
-    void doSomething();
+	// not used in initial version
+	void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}
+
+	void doSomething();
 };
 
-using PersonPtr = shared_ptr<HCPerson>;
+using PersonPtr = std::shared_ptr<HCPerson>;
 
 } /* namespace hepcep */
 

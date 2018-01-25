@@ -8,7 +8,7 @@
 
 namespace hepcep {
 
-Zone::Zone(string zipcode){
+Zone::Zone(std::string zipcode){
 	this->zipcode = zipcode;
 }
 

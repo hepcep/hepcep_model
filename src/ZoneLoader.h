@@ -13,18 +13,16 @@
 
 #include "Zone.h"
 
-using namespace std;
-
 namespace hepcep {
 
 
 /**
  * Load zones data from the specified file
  */
-void loadZones(const string& filename, map<std::string, Zone> & zonesMap); 
+void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap);
 
-void loadZonesDistances(const string& filename, map<std::string, Zone> & zonesMap,
-		map<Zone, map<Zone,double>> & zoneDistanceMap) ;
+void loadZonesDistances(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap,
+		std::map<ZonePtr, std::map<ZonePtr,double>> & zoneDistanceMap) ;
 
 }
 

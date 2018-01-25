@@ -17,7 +17,6 @@
 
 using namespace chi_sim;
 using namespace repast;
-using namespace std;
 
 namespace hepcep {
 
@@ -32,12 +31,12 @@ private:
 
 protected:
 
-	// PersonData queue used for generating new HCPerson instances.
-	deque<HCPersonData> personData;
+	// PersonData vector used for generating new HCPerson instances.
+	std::vector<HCPersonData> personData;
 	
-	map<std::string,Zone> zoneMap;
+	std::map<std::string,ZonePtr> zoneMap;
 	
-	map<Zone, map<Zone,double>> zoneDistanceMap;
+	std::map<Zone, std::map<Zone,double>> zoneDistanceMap;
 
     // not used in initial version
     void nextActSelected(PersonPtr& person, chi_sim::NextPlace<HCPlace>& next_act) override {

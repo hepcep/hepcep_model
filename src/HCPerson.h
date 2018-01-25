@@ -16,6 +16,7 @@
 #include "chi_sim/NextPlace.h"
 
 #include "HCPlace.h"
+#include "Zone.h"
 
 namespace hepcep {
 
@@ -69,6 +70,8 @@ protected:
 	double injectionIntensity;
 	double fractionReceptSharing;
 
+	ZonePtr myZone;
+
 public:
 	HCPerson(unsigned int id);
 	HCPerson(unsigned int id, HCPersonData& data);
@@ -82,6 +85,22 @@ public:
 	void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}
 
 	void doSomething();
+
+	int getDrugReceptDegree(){
+		return drug_inDegree;
+	}
+
+	int getDrugGivingDegree(){
+		return drug_outDegree;
+	}
+
+	ZonePtr getZone(){
+		return myZone;
+	}
+
+	void setZone(ZonePtr zone){
+		myZone = zone;
+	}
 };
 
 using PersonPtr = std::shared_ptr<HCPerson>;

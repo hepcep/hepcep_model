@@ -147,6 +147,10 @@ public:
 		oel.clear();
 		iel.clear();
 	}
+
+	bool isDirected() const {
+	    return directed_;
+	}
 };
 
 template<typename V>

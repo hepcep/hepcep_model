@@ -239,9 +239,9 @@ void HCModel::zoneCensus(){
 
 		effectiveZonePopulation[zone] = myEffAgents;
 
-		if (person->canAcceptInOrOutConnection()){
-			myEffAgents.push_back(person);
-		}
+		//if (person->canAcceptInOrOutConnection()){
+		//	myEffAgents.push_back(person);
+		//}
 
 		myEffAgents.push_back(person);
 

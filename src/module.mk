@@ -7,6 +7,7 @@ SRC = HCPlace.cpp \
 	Statistics.cpp \
 	SVReader.cpp \
 	Zone.cpp \
-	ZoneLoader.cpp
+	ZoneLoader.cpp \
+	network_utils.cpp
 	
 model_src += $(SRC)

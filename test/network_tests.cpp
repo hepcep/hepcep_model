@@ -7,9 +7,11 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "boost/filesystem.hpp"
 
 #include "Network.h"
 #include "Edge.h"
+#include "network_utils.h"
 
 using namespace hepcep;
 
@@ -430,6 +432,61 @@ TEST(NetworkTests, TestRemovesByVertexIds) {
 	ASSERT_EQ(0, net.inEdgeCount(two));
 	ASSERT_EQ(0, net.inEdgeCount(three));
 	ASSERT_EQ(2, net.inEdgeCount(four));
+}
+
+TEST(NetworkTests, testSimpleWriting) {
+    std::string fname("../test_output/net.gml");
+    boost::filesystem::path filepath(fname);
+    if (boost::filesystem::exists(filepath)) {
+        boost::filesystem::remove(filepath);
+    }
+
+    Network<Agent> net(true);
+
+    AgentPtrT one = std::make_shared<Agent>(1, 1);
+    AgentPtrT two = std::make_shared<Agent>(2, 1);
+    AgentPtrT three = std::make_shared<Agent>(3, 1);
+    AgentPtrT four = std::make_shared<Agent>(4, 1);
+
+    net.addVertex(one);
+    net.addEdge(three, one);
+    net.addEdge(one, two);
+    net.addEdge(one, four);
+    net.addEdge(three, four);
+
+    write_network(fname, net);
+}
+
+
+void write_agent(Agent* agent, AttributeWriter& write) {
+    write("age", agent->age());
+}
+
+void write_edge(Edge<Agent>* edge, AttributeWriter& write) {
+    write("distance", edge->getAttribute("distance", 0));
+}
+
+TEST(NetworkTests, testAttribWriting) {
+    std::string fname("../test_output/net_2.gml");
+    boost::filesystem::path filepath(fname);
+    if (boost::filesystem::exists(filepath)) {
+        boost::filesystem::remove(filepath);
+    }
+
+    Network<Agent> net(true);
+
+    AgentPtrT one = std::make_shared<Agent>(1, 3);
+    AgentPtrT two = std::make_shared<Agent>(2, 12);
+    AgentPtrT three = std::make_shared<Agent>(3, 2);
+    AgentPtrT four = std::make_shared<Agent>(4, 15);
+
+    net.addVertex(one);
+    net.addEdge(three, one)->putAttribute("distance", 12.343);
+    net.addEdge(one, two)->putAttribute("distance", 2.343);
+    net.addEdge(one, four)->putAttribute("distance", 1832.0);
+    net.addEdge(three, four)->putAttribute("distance", 324);
+
+    write_network(fname, net, &write_agent, &write_edge);
 }
 
 

@@ -72,6 +72,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Zones file: " << zones_file << std::endl;
 	loadZones(zones_file, zoneMap);
 
+	std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
+
 	std::string zones_distance_file = Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 //	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
@@ -114,8 +116,12 @@ void HCModel::performInitialLinking(){
 	double total_recept_edge_target = 0;
 	double total_give_edge_target = 0;
 
-	for (auto iter = network.verticesBegin(); iter != network.verticesEnd(); ++iter){
-		PersonPtr person = (*iter);
+	// APK iterates over network nodes but we can just iterate over the population
+//	for (auto iter = network.verticesBegin(); iter != network.verticesEnd(); ++iter){
+//			PersonPtr person = (*iter);
+
+	for (auto entry : local_persons) {
+		PersonPtr & person = entry.second;
 
 		total_recept_edge_target += person->getDrugReceptDegree();
 		total_give_edge_target += person->getDrugGivingDegree();
@@ -221,6 +227,12 @@ double HCModel::interactionRate(ZonePtr zone1, ZonePtr zone2){
 	return 0;
 }
 
+/*
+ * Determine how many IDUs in each zones are available to form new connections
+ * - the census is stored in zone_population (all) and effective_zone_population
+ * 		(only those that can form new connections)
+ * - typically occurs once a day (linking_time_window)
+ */
 void HCModel::zoneCensus(){
 	std::cout << "Census... " ;
 
@@ -230,47 +242,47 @@ void HCModel::zoneCensus(){
 	totalIDUPopulation  = 0;
 
 	for (auto entry : local_persons) {
-		PersonPtr& person = entry.second;
+		PersonPtr & person = entry.second;
 		totalIDUPopulation += 1;
 
-		ZonePtr zone = person->getZone();
+		std::string zipcode = person->getZipcode();
 
-		std::vector<PersonPtr> myEffAgents = effectiveZonePopulation[zone];
+//		std::cout << "Person " << person << " zip: " << zipcode << std::endl;
 
-		effectiveZonePopulation[zone] = myEffAgents;
+		if (zoneMap.find(zipcode) == zoneMap.end()){
+			// TODO handle zone undefined
+
+			std::cout << "Error: zone not found: " << zipcode << std::endl;
+		}
+
+		ZonePtr & zone = zoneMap[zipcode];
+
+		std::cout << "Zone " << zone <<  std::endl;
+
+		std::vector<PersonPtr> & myEffAgents = effectiveZonePopulation[zone];
+
+		//effectiveZonePopulation[zone] = myEffAgents;
 
 		if (person->canAcceptInOrOutConnection()){
 			myEffAgents.push_back(person);
 		}
 
-		myEffAgents.push_back(person);
+		std::vector<PersonPtr> & myAgents = zonePopulation[zone];
 
+		myAgents.push_back(person);
 	}
+	std::cout << "zonePopulation " << zonePopulation.size() << std::endl;
 
-//	for(Object obj : context) {
-//		if(obj instanceof IDU) {
-//			IDU agent = (IDU) obj;
-//			total_IDU_population += 1;
-//			assert agent.isActive();
-//			ZoneAgent zone = agent.getZone();
-//			LinkedList <IDU> my_eff_agents = effective_zone_population.get(zone);
-//			if (my_eff_agents == null) {
-//				my_eff_agents = new LinkedList<IDU> ();
-//				effective_zone_population.put(zone, my_eff_agents);
-//			}
-//			if(agent.can_accept_in_or_out_connection()) {
-//				my_eff_agents.add(agent);
-//			}
-//			ArrayList <IDU> my_agents = zone_population.get(zone);
-//			if (my_agents == null) {
-//				my_agents = new ArrayList<IDU> ();
-//				zone_population.put(zone, my_agents);
-//			}
-//			my_agents.add(agent);
-//		}
-//	}
 
-	std::cout << "done." << std::endl;
+	for (auto entry : zonePopulation){
+		const ZonePtr & zone = entry.first;
+
+//		std::cout << "Zone " << zone <<  std::endl;
+
+//		std::vector<PersonPtr> & list = entry.second;
+//
+//		std::cout << "Zone " << zone->getZipcode() << " size = " << list.size() << std::endl;
+	}
 
 }
 

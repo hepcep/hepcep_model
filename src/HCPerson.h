@@ -101,6 +101,12 @@ public:
 	void setZone(ZonePtr zone){
 		myZone = zone;
 	}
+
+	std::string getZipcode(){
+		return zipCode;
+	}
+
+	bool canAcceptInOrOutConnection();
 };
 
 using PersonPtr = std::shared_ptr<HCPerson>;

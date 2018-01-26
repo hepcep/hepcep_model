@@ -26,6 +26,10 @@ public:
 	unsigned int getDrugMarket();
 	void setDrugMarket(unsigned int drugMarket);
 
+	std::string getZipcode(){
+		return zipcode;
+	}
+
 };
 
 using ZonePtr = std::shared_ptr<Zone>;

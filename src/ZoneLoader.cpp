@@ -24,17 +24,18 @@ void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zon
     reader.next(line);
 
     while (reader.next(line)) {
-    std::string zip = line[ZIPCODE_IDX];
-		unsigned int drugMarket = std::stoul(line[DRUG_MARKET_IDX]);
-		
-//		Zone zone(zip);
 
-		auto zone = std::make_shared<Zone>(zip);
+    	std::string zip = line[ZIPCODE_IDX];
+    	unsigned int drugMarket = std::stoul(line[DRUG_MARKET_IDX]);
 
-		zone->setDrugMarket(drugMarket);
+    	auto zone = std::make_shared<Zone>(zip);
 
-		zonesMap.emplace(zip, zone);
-				
+    	zone->setDrugMarket(drugMarket);
+
+    	std::cout << "A_" << zip << "_B  :" << drugMarket << std::endl;
+
+    	zonesMap[zip] = zone;
+
     }
 }
 

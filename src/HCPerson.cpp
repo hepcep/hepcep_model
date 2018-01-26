@@ -56,4 +56,11 @@ void HCPerson::doSomething() {
     // TODO increment age
 }
 
+bool HCPerson::canAcceptInOrOutConnection(){
+
+	// TODO
+
+	return true;
+}
+
 } /* namespace hepcep */

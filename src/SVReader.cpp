@@ -58,11 +58,18 @@ void SVReader::skip(int lines) {
 
 bool SVReader::next(vector<string>& vec) {
 	string line;
+
 	// read the line
 	if (getline(in, line, delim)) {
 		// tokenize the line using boost's escaped list separator
 		// which parses CSV format
-	    escaped_list_separator<char> els('\\', sep, '\"');
+
+		// Erase leading carriage return char
+		if (line[0] == '\n' || line[0] == '\r'){
+			line.erase(0,1);
+		}
+
+		escaped_list_separator<char> els('\\', sep, '\"');
 		tokenizer<escaped_list_separator<char> > tok(line, els);
 		// assign those values to the vector
 		vec.assign(tok.begin(), tok.end());

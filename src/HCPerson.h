@@ -86,15 +86,15 @@ public:
 
 	void doSomething();
 
-	unsigned int getDrugReceptDegree(){
+	unsigned int getDrugReceptDegree() const {
 		return drug_inDegree;
 	}
 
-	unsigned int getDrugGivingDegree(){
+	unsigned int getDrugGivingDegree() const {
 		return drug_outDegree;
 	}
 
-	ZonePtr getZone(){
+	ZonePtr getZone() const {
 		return myZone;
 	}
 
@@ -102,7 +102,7 @@ public:
 		myZone = zone;
 	}
 
-	std::string getZipcode(){
+	std::string getZipcode() const {
 		return zipCode;
 	}
 

@@ -26,7 +26,7 @@ public:
 	unsigned int getDrugMarket();
 	void setDrugMarket(unsigned int drugMarket);
 
-	std::string getZipcode(){
+	std::string getZipcode() const{
 		return zipcode;
 	}
 

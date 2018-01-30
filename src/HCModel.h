@@ -70,9 +70,10 @@ protected:
 
 	void performInitialLinking();
 	void performLinking();
-	double interactionRate(ZonePtr zone1, ZonePtr zone2);
+	double interactionRate(const ZonePtr& zone1, const ZonePtr& zone2);
 	void zoneCensus();
-	bool linkZones(ZonePtr zone1, ZonePtr zone2);
+	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
+	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
 
 public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);

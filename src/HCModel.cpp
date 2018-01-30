@@ -174,7 +174,7 @@ void HCModel::performInitialLinking(){
 void HCModel::performLinking(){
 
 	for (auto entry1 : effectiveZonePopulation){
-		ZonePtr zone1 = entry1.first;
+		const ZonePtr & zone1 = entry1.first;
 
 		// Skip if zone population is zero
 		if (entry1.second.size() == 0){
@@ -182,7 +182,7 @@ void HCModel::performLinking(){
 		}
 
 		for (auto entry2 : effectiveZonePopulation){
-			ZonePtr zone2 = entry2.first;
+			const ZonePtr & zone2 = entry2.first;
 
 			double rate = interactionRate(zone1, zone2);
 			if (rate == 0.0) {
@@ -192,9 +192,11 @@ void HCModel::performLinking(){
 			repast::ExponentialGenerator generator =
 					repast::Random::instance()->createExponentialGenerator (rate);
 
-			int linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
+			double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 			double t = 0;
+
 			while (t < linkingTimeWindow){
+
 				linkZones(zone1, zone2);
 
 				t += generator.next();
@@ -203,12 +205,41 @@ void HCModel::performLinking(){
 	}
 }
 
-bool HCModel::linkZones(ZonePtr zone1, ZonePtr zone2){
+void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 
-	return false;
+//	std::cout << "Linking zones " << zone1->getZipcode() << " + " <<
+//			zone2->getZipcode() << std::endl;
+
+	int s1 = effectiveZonePopulation[zone1].size();
+	int s2 = effectiveZonePopulation[zone2].size();
+	if (s1 == 0 || s2 == 0) {
+		return;
+	}
+
+//	repast::IntUniformGenerator generator = repast::Random::createUniIntGenerator
+
+	double d1 = repast::Random::instance()->nextDouble();
+	double d2 = repast::Random::instance()->nextDouble();
+
+	int a1_idx = d1 * (s1-1);
+	int a2_idx = d2 * (s2-1);
+	if(zone1 == zone2 && a1_idx == a2_idx) {
+		return;
+	}
+
+	PersonPtr & person1 = effectiveZonePopulation[zone1][a1_idx];
+	PersonPtr & person2 = effectiveZonePopulation[zone2][a2_idx];
+
+	tryConnect(person1,person2);
+
 }
 
-double HCModel::interactionRate(ZonePtr zone1, ZonePtr zone2){
+void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
+	network.addEdge(person1, person2);
+
+}
+
+double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
 //	if(zone1 == null || zone2 == null) {
 //		return 0.0;
 //	}
@@ -237,7 +268,8 @@ double HCModel::interactionRate(ZonePtr zone1, ZonePtr zone2){
 //	}
 //	return ret;
 
-	return 0;
+	// TODO
+	return 20.5;
 }
 
 /*

@@ -47,8 +47,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
 	} else {
 		hcvState = HCV_State::susceptible;
 	}
-
 }
+
 
 HCPerson::~HCPerson() {
 //	std::cout << "Destruct Person." << std::endl;

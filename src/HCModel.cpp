@@ -60,23 +60,23 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	loadPersonData(cnep_file, personData);
 	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
 
-	int personCount = Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
-
-	PersonCreator personCreator;
-
-	personCreator.create_persons(local_persons, personData, personCount);
-
-	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
-
 	std::string zones_file = Parameters::instance()->getStringParameter(ZONES_FILE);
 	std::cout << "Zones file: " << zones_file << std::endl;
 	loadZones(zones_file, zoneMap);
-
 	std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
 
 	std::string zones_distance_file = Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 //	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
+
+	int personCount = Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
+
+	PersonCreator personCreator;
+
+	// TODO make PersonCreator sharedPtr
+	personCreator.create_persons(local_persons, personData, zoneMap, personCount);
+
+	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
 //    string network_file = Parameters::instance()->getStringParameter(NETWORK_FILE);
 //    create_network(network_file, local_persons, network);
@@ -93,6 +93,16 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	//      Network add agents
 
 	performInitialLinking();
+
+
+	// TODO ------- Test prints below --------
+	for (auto entry : zonePopulation){
+			const ZonePtr & zone = entry.first;
+
+			std::vector<PersonPtr> & list = entry.second;
+
+			std::cout << "Zone " << zone->getZipcode() << " size = " << list.size() << std::endl;
+		}
 }
 
 
@@ -125,6 +135,8 @@ void HCModel::performInitialLinking(){
 
 		total_recept_edge_target += person->getDrugReceptDegree();
 		total_give_edge_target += person->getDrugGivingDegree();
+
+		network.addVertex(person);
 	}
 
 	int iteration = 0;
@@ -158,41 +170,40 @@ void HCModel::performInitialLinking(){
 }
 
 void HCModel::performLinking(){
-//	//System.out.printf("%.1f: Linking ... ", RepastEssentials.GetTickCount());
-//	TreeMap <Double, Object[]> actions = new TreeMap <Double, Object[]> ();
-//	for(ZoneAgent zone1 : effective_zone_population.keySet()) {
-//		if(effective_zone_population.get(zone1).size() == 0) {
-//			continue;
-//		}
-//		for(ZoneAgent zone2 : effective_zone_population.keySet()) {
-//			Double rate = interaction_rate(zone1, zone2);
-//			if (rate == 0.0) {
-//				continue;
-//			}
-//			Exponential exp_gen = RandomHelper.createExponential(rate);
-//			for (double t = 0; ;) {
-//				t += exp_gen.nextDouble();
-//				if (t > linking_time_window) {
-//					break;
-//				}
-//				Object[] zones = new Object[2];
-//				zones[0] = zone1;
-//				zones[1] = zone2;
-//				actions.put(t, zones);
-//			}
-//		}
-//		if(actions.size() > 1E6) {
-//			System.out.println("Warning: too many linking actions might exhaust heap memory.  Reduce linking_time_window.");
-//		}
-//	}
-//	//System.out.print("building ... ");
-//	int num_new_links = 0;
-//	for(Object[] pair : actions.values()) {
-//		boolean new_link = link_zones((ZoneAgent)pair[0], (ZoneAgent)pair[1], excess_serosorting);
-//		num_new_links += new_link? 1: 0;
-//	}
-//	//System.out.println("Done. New links:" + num_new_links);
 
+	for (auto entry1 : effectiveZonePopulation){
+		ZonePtr zone1 = entry1.first;
+
+		// Skip if zone population is zero
+		if (entry1.second.size() == 0){
+			continue;
+		}
+
+		for (auto entry2 : effectiveZonePopulation){
+			ZonePtr zone2 = entry2.first;
+
+			double rate = interactionRate(zone1, zone2);
+			if (rate == 0.0) {
+				continue;
+			}
+
+			repast::ExponentialGenerator generator =
+					repast::Random::instance()->createExponentialGenerator (rate);
+
+			int linkingTimeWindow = Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
+			double t = 0;
+			while (t < linkingTimeWindow){
+				linkZones(zone1, zone2);
+
+				t += generator.next();
+			}
+		}
+	}
+}
+
+bool HCModel::linkZones(ZonePtr zone1, ZonePtr zone2){
+
+	return false;
 }
 
 double HCModel::interactionRate(ZonePtr zone1, ZonePtr zone2){
@@ -257,33 +268,24 @@ void HCModel::zoneCensus(){
 
 		ZonePtr & zone = zoneMap[zipcode];
 
-		std::cout << "Zone " << zone <<  std::endl;
-
 		std::vector<PersonPtr> & myEffAgents = effectiveZonePopulation[zone];
 
-		//effectiveZonePopulation[zone] = myEffAgents;
+		// Effective agents are not incarcerated status and have available in or out
+		// degree connections
+		// TODO check against incarceration state
 
-		//if (person->canAcceptInOrOutConnection()){
-		//	myEffAgents.push_back(person);
-		//}
+		unsigned int inCount = network.inEdgeCount(person);
+		unsigned int outCount = network.outEdgeCount(person);
+
+		if (inCount < person->getDrugReceptDegree() ||
+				outCount < person->getDrugGivingDegree()){
+			myEffAgents.push_back(person);
+		}
 
 		std::vector<PersonPtr> & myAgents = zonePopulation[zone];
 
 		myAgents.push_back(person);
 	}
-	std::cout << "zonePopulation " << zonePopulation.size() << std::endl;
-
-
-	for (auto entry : zonePopulation){
-		const ZonePtr & zone = entry.first;
-
-//		std::cout << "Zone " << zone <<  std::endl;
-
-//		std::vector<PersonPtr> & list = entry.second;
-//
-//		std::cout << "Zone " << zone->getZipcode() << " size = " << list.size() << std::endl;
-	}
-
 }
 
 } /* namespace hepcep */

@@ -25,11 +25,12 @@ ab_prob_chronic = 0.67
 attrition_rate = 0.024
 burn_in_days = -1
 homophily_strength = 0.7
-initial_pwid_count = 5
+initial_pwid_count = 1000
 interaction_home_cutoff = 2
 interaction_rate_constant = 0.016
 interaction_rate_at_drug_sites = 0.0001
 interaction_rate_exzone = 0.085
+linking_time_window = 0.1
 mean_career_duration = 30.3
 mean_days_acute_naive = 102
 mean_days_acute_rechallenged = 28
@@ -64,9 +65,3 @@ treatment_enrollment_per_PY = 0.01
 treatment_repeatable = false
 treatment_svr = 0.9
 treatment_susceptibility = 1
-
-
-
-
-
-

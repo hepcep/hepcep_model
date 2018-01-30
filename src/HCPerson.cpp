@@ -15,6 +15,9 @@ namespace hepcep {
 
 
 HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
+
+//	std::cout << "create Person " << id << std::endl;
+
 	age = data.age;
 	ageStarted = data.ageStarted;
 	drug_outDegree = data.drug_outDegree;
@@ -48,6 +51,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
 }
 
 HCPerson::~HCPerson() {
+//	std::cout << "Destruct Person." << std::endl;
 }
 
 void HCPerson::doSomething() {

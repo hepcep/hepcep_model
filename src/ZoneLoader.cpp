@@ -32,10 +32,7 @@ void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zon
 
     	zone->setDrugMarket(drugMarket);
 
-    	std::cout << "A_" << zip << "_B  :" << drugMarket << std::endl;
-
     	zonesMap[zip] = zone;
-
     }
 }
 

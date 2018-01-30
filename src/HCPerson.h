@@ -86,11 +86,11 @@ public:
 
 	void doSomething();
 
-	int getDrugReceptDegree(){
+	unsigned int getDrugReceptDegree(){
 		return drug_inDegree;
 	}
 
-	int getDrugGivingDegree(){
+	unsigned int getDrugGivingDegree(){
 		return drug_outDegree;
 	}
 

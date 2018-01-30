@@ -11,22 +11,17 @@
 
 namespace hepcep {
 
-unsigned int PersonCreator::ID_COUNTER = 0;
+unsigned int PersonCreator::ID_COUNTER = 1;
 
 PersonCreator::PersonCreator() {
 
 }
 
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
-		std::vector<HCPersonData> & personData, unsigned int person_count){
+		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
+		unsigned int person_count){
 
-	// not strictly necessary in initial version, as world size is always 1
-	// but kept here to illustrate how to only create "local persons"
-	int my_rank = repast::RepastProcess::instance()->rank();
-	int world_size = repast::RepastProcess::instance()->worldSize();
-
-	unsigned int count = 0;
-	int p_rank = 0;
+	unsigned int count = 1;
 
 	repast::IntUniformGenerator generator = repast::Random::instance()->createUniIntGenerator (0, personData.size());
 
@@ -35,14 +30,23 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		int i = (int)generator.next();
 		HCPersonData data = personData[i];
 
-		// TODO use constant rank 0 for now
-//     int p_rank = std::stoi(line[RANK_IDX]);
+		// If the zone is undefined, skip this person data
+		//   TODO should the data be pruned from the list to avoid repeat checks?
+		if (zoneMap.find(data.zipCode) == zoneMap.end()){
 
-		if (p_rank == my_rank || world_size == 1) {
-			persons.emplace(ID_COUNTER, std::make_shared<HCPerson>(ID_COUNTER, data));
 		}
-		count++;
-		ID_COUNTER++;  // increment id count
+		else {
+			auto person = std::make_shared<HCPerson>(ID_COUNTER, data);
+
+			//		persons.emplace(ID_COUNTER, std::make_shared<HCPerson>(ID_COUNTER, data));
+
+			person->setZone(zoneMap[data.zipCode]);
+
+			persons[ID_COUNTER] = person;
+
+			count++;
+			ID_COUNTER++;  // increment id count
+		}
 	}
 }
 

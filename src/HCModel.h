@@ -14,9 +14,8 @@
 #include "Zone.h"
 #include "FileSink.h"
 #include "Network.h"
-
-using namespace chi_sim;
-using namespace repast;
+#include "Edge.h"
+#include "network_utils.h"
 
 namespace hepcep {
 
@@ -81,7 +80,11 @@ public:
 
 	void step();
 
+
 };
+
+void writePerson(HCPerson* person, AttributeWriter& write);
+void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write);
 
 } /* namespace hepcep */
 

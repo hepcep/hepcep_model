@@ -106,6 +106,10 @@ public:
 		return zipCode;
 	}
 
+	double getAge() const {
+		return age;
+	}
+
 	bool canAcceptInOrOutConnection();
 };
 

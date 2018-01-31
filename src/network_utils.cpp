@@ -28,7 +28,7 @@ AttributeWriter::AttributeWriter(std::ofstream& out) : out_{out} {}
 AttributeWriter::~AttributeWriter() {}
 
 void AttributeWriter::operator() (const std::string& name, double value) {
-    out_ << INDENT_2 << name << " " << value << "\n";
+    out_ << INDENT_2 << name << " " << value << "d\n";
 }
 
 void AttributeWriter::operator() (const std::string& name, const std::string& value) {

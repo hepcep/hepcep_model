@@ -21,9 +21,9 @@
 namespace hepcep {
 
 using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, int>;
+using PersonPtr = std::shared_ptr<HCPerson>;
 
 enum class HCV_State{susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS};
-
 
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
@@ -86,6 +86,8 @@ public:
 
 	void doSomething();
 
+	double getDemographicDistance(PersonPtr other);
+
 	unsigned int getDrugReceptDegree() const {
 		return drug_inDegree;
 	}
@@ -110,10 +112,12 @@ public:
 		return age;
 	}
 
-	bool canAcceptInOrOutConnection();
+	std::string getRace() const {
+		return race;
+	}
+
 };
 
-using PersonPtr = std::shared_ptr<HCPerson>;
 
 } /* namespace hepcep */
 

@@ -22,6 +22,7 @@ const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 const std::string AB_PROB_CHRONIC = "ab_prob_chronic";
 const std::string AB_PROB_ACUTE = "ab_prob_acute";
 
+const std::string HOMOPHILY_STRENGTH = "homophily_strength";
 const std::string INITIAL_PWID_COUNT = "initial_pwid_count";
 const std::string LINKING_TIME_WINDOW = "linking_time_window";
 

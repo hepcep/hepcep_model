@@ -60,11 +60,22 @@ void HCPerson::doSomething() {
     // TODO increment age
 }
 
-bool HCPerson::canAcceptInOrOutConnection(){
+/*
+ * attribute and social distance between the individuals (>=0)
+ * specifically excludes geographic distance
+ * assumes all attributes are weighted by 1.0.  allow some to contribute > 1.0
+ */
+double HCPerson::getDemographicDistance(PersonPtr other){
+	double ret = 0.0;
 
-	// TODO
+	ret += (race == other->getRace()) ? 0.0: 1.0;
 
-	return true;
+	// TODO why was this more complicated than a simple age difference?
+//	ret += (Math.abs(APKBuilder.getDateDifference(this.birth_date, other.birth_date) / 10.0));
+
+	ret += std::abs(age - other->getAge()) / 10.0;
+
+	return ret / 2.0;
 }
 
 } /* namespace hepcep */

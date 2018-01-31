@@ -216,13 +216,12 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 		return;
 	}
 
-//	repast::IntUniformGenerator generator = repast::Random::createUniIntGenerator
-
 	double d1 = repast::Random::instance()->nextDouble();
 	double d2 = repast::Random::instance()->nextDouble();
 
 	int a1_idx = d1 * (s1-1);
 	int a2_idx = d2 * (s2-1);
+
 	if(zone1 == zone2 && a1_idx == a2_idx) {
 		return;
 	}
@@ -231,11 +230,45 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 	PersonPtr & person2 = effectiveZonePopulation[zone2][a2_idx];
 
 	tryConnect(person1,person2);
-
 }
 
+/**
+ * Attempt a bi-directional network connection pair between person1 & person2
+ */
 void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
+
+	// Check conditions for adding a directed edge from person1 -> person2
+	if (network.inEdgeCount(person2) >= person2->getDrugReceptDegree()) {
+		return;
+	}
+	if (network.outEdgeCount(person1) >= person1->getDrugGivingDegree()) {
+		return;
+	}
+	double homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
+	double roll = repast::Random::instance()->nextDouble();
+	if (person1->getDemographicDistance(person2) * homophily > roll) {
+		return;
+	}
 	network.addEdge(person1, person2);
+
+	// TODO schedule edge time
+//	double out_tie_end_time = RunEnvironment.getInstance().getCurrentSchedule().getTickCount()
+//					                		 + tie_endurance_distribution.nextDouble();
+//	ScheduleParameters out_tie_end_params = ScheduleParameters.createOneTime(out_tie_end_time);
+//	ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+//	schedule.schedule(out_tie_end_params, this, "end_relationship", obj);
+
+	// Check conditions for adding a directed edge from person2 -> person1
+	if (network.inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
+		return;
+	}
+	if (network.outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
+		return;
+	}
+	network.addEdge(person2, person1);
+
+	// TODO schedule edge time
+//	schedule.schedule(out_tie_end_params, obj, "end_relationship", this); //ends at the same time
 
 }
 

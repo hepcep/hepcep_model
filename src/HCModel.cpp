@@ -5,7 +5,6 @@
  *      Author: nick
  */
 
-
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
@@ -67,30 +66,16 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	std::string zones_distance_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
-//	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
+	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
 	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
 	PersonCreator personCreator;
 
-	// TODO make PersonCreator sharedPtr
+	// TODO make PersonCreator sharedPtr if reused
 	personCreator.create_persons(local_persons, personData, zoneMap, personCount);
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
-
-//    string network_file = Parameters::instance()->getStringParameter(NETWORK_FILE);
-//    create_network(network_file, local_persons, network);
-
-// check that the network loading worked
-//    std::cout << network.vertexCount() << std::endl;
-//    vector<EdgePtrT<HCPerson>> edges;
-//    network.outEdges(local_persons.at(2), edges);
-//    for (auto e : edges) {
-//        std::cout << e->v1()->id() << " -> " << e->v2()->id() << std::endl;
-//    }
-
-	// TODO Handle Repast context.add() actions re: projectons etc.
-	//      Network add agents
 
 	performInitialLinking();
 
@@ -111,7 +96,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 HCModel::~HCModel() {}
 
 void HCModel::step() {
-	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+//	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
 		person->doSomething();
@@ -273,36 +258,33 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 }
 
 double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
-//	if(zone1 == null || zone2 == null) {
-//		return 0.0;
-//	}
-//	Double dis = zone_zone_distance.get(zone1).get(zone2);
-//	if(dis == null) {
-//		dis = getDistance(zone1,zone2);
-//		zone_zone_distance.get(zone1).put(zone2, dis);
-//	}
-//	LinkedList<IDU> near_pop    = effective_zone_population.get(zone1);
-//	LinkedList<IDU> distant_pop = effective_zone_population.get(zone2);
-//	if(near_pop == null || distant_pop == null) {
-//		return 0.0;
-//	}
-//	//zone-zone interaction rate based on distance and population
-//	int pop1 = near_pop.size();
-//	int pop2 = distant_pop.size();
-//	double ret = 0;
-//	if (dis > interaction_home_cutoff) {
-//		if (zone1.getDrug_market() == zone2.getDrug_market()){
-//			ret = (interaction_rate_at_drug_sites*pop1*pop2) + (interaction_rate_exzone*pop1*pop2)/Math.pow(dis, 2);
-//		} else {
-//			ret = (interaction_rate_exzone*pop1*pop2)/Math.pow(dis, 2);
-//		}
-//	} else {
-//		ret = (interaction_rate_at_drug_sites*pop1*pop2) + (interaction_rate_constant*pop1*pop2);
-//	}
-//	return ret;
+	double rate = 0;
 
-	// TODO
-	return 20.5;
+	double distance = zoneDistanceMap[zone1->getZipcode()][zone2->getZipcode()];
+
+	int pop1 = effectiveZonePopulation[zone1].size();
+	int pop2 = effectiveZonePopulation[zone2].size();
+
+	// TODO store as class fields to avoid lookup cost.
+	double interactionHomeCutoff = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_HOME_CUTOFF);
+	double interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
+	double interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
+	double interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
+
+
+	if (distance > interactionHomeCutoff){
+		if (zone1->getDrugMarket() ==  zone2->getDrugMarket()){
+			rate = (interactionRateDrugSites * pop1 * pop2) +
+					(interactionRateExzone * pop1 * pop2) / std::pow(distance, 2);
+		}
+		else{
+			rate = (interactionRateExzone * pop1 * pop2)/std::pow(distance, 2);
+		}
+	}
+	else{
+		rate = (interactionRateDrugSites * pop1 * pop2) + (interactionRateConst * pop1 * pop2);
+	}
+	return rate;
 }
 
 /*

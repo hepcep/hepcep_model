@@ -22,7 +22,7 @@ namespace hepcep {
 void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap);
 
 void loadZonesDistances(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap,
-		std::map<ZonePtr, std::map<ZonePtr,double>> & zoneDistanceMap) ;
+		std::map<std::string, std::map<std::string,double>> & zoneDistanceMap) ;
 
 }
 

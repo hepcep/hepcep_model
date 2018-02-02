@@ -5,6 +5,8 @@
  *      Author: nick
  */
 
+#include <iomanip>
+
 #include <boost/filesystem.hpp>
 #include "chi_sim/file_utils.h"
 
@@ -28,7 +30,7 @@ AttributeWriter::AttributeWriter(std::ofstream& out) : out_{out} {}
 AttributeWriter::~AttributeWriter() {}
 
 void AttributeWriter::operator() (const std::string& name, double value) {
-    out_ << INDENT_2 << name << " " << value << "d\n";
+    out_ << std::setprecision(8) << std::fixed << INDENT_2 << name << " " << value << "\n";
 }
 
 void AttributeWriter::operator() (const std::string& name, const std::string& value) {

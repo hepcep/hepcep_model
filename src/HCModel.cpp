@@ -1,8 +1,9 @@
 /*
- * HCModel.cpp
+ * @file HCModel.cpp
+ * HepCEP model.
  *
- *  Created on: Nov 27, 2017
- *      Author: nick
+ * @author Eric Tatara
+ * @author Nick Collier
  */
 
 #include "repast_hpc/Schedule.h"
@@ -234,7 +235,11 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	if (person1->getDemographicDistance(person2) * homophily > roll) {
 		return;
 	}
-	network.addEdge(person1, person2);
+
+	double dist = zoneDistanceMap[person1->getZipcode()][person2->getZipcode()];
+
+	network.addEdge(person1, person2)->putAttribute("distance", dist);
+
 
 	// TODO schedule edge time
 //	double out_tie_end_time = RunEnvironment.getInstance().getCurrentSchedule().getTickCount()
@@ -250,7 +255,7 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	if (network.outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
 		return;
 	}
-	network.addEdge(person2, person1);
+	network.addEdge(person2, person1)->putAttribute("distance", dist);
 
 	// TODO schedule edge time
 //	schedule.schedule(out_tie_end_params, obj, "end_relationship", this); //ends at the same time
@@ -342,7 +347,7 @@ void writePerson(HCPerson* person, AttributeWriter& write) {
 }
 
 void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {
-	//write("distance", edge->getAttribute("distance", 0));
+	write("distance", edge->getAttribute("distance", 0));
 }
 
 } /* namespace hepcep */

@@ -116,6 +116,11 @@ public:
 		return race;
 	}
 
+	std::string getGender() const {
+		return gender;
+	}
+
+
 };
 
 

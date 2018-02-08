@@ -171,6 +171,7 @@ void HCModel::performLinking(){
 			const ZonePtr & zone2 = entry2.first;
 
 			double rate = interactionRate(zone1, zone2);
+
 			if (rate == 0.0) {
 				continue;
 			}
@@ -205,8 +206,8 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 	double d1 = repast::Random::instance()->nextDouble();
 	double d2 = repast::Random::instance()->nextDouble();
 
-	int a1_idx = d1 * (s1-1);
-	int a2_idx = d2 * (s2-1);
+	int a1_idx = std::round(d1 * (s1-1));
+	int a2_idx = std::round(d2 * (s2-1));
 
 	if(zone1 == zone2 && a1_idx == a2_idx) {
 		return;
@@ -214,6 +215,7 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 
 	PersonPtr & person1 = effectiveZonePopulation[zone1][a1_idx];
 	PersonPtr & person2 = effectiveZonePopulation[zone2][a2_idx];
+
 
 	tryConnect(person1,person2);
 }
@@ -344,6 +346,9 @@ void HCModel::zoneCensus(){
 
 void writePerson(HCPerson* person, AttributeWriter& write) {
 	write("age", person->getAge());
+
+	write("race", "\"" + person->getRace() +"\"");
+	write("gender", "\"" + person->getGender() +"\"");
 }
 
 void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {

@@ -6,6 +6,8 @@
  * @author Nick Collier
  */
 
+#include <stdio.h>
+
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
@@ -90,7 +92,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 			std::vector<PersonPtr> & list = entry.second;
 
 			std::cout << "Zone " << zone->getZipcode() << " size = " << list.size() << std::endl;
-		}
+	}
+
 }
 
 
@@ -130,7 +133,7 @@ void HCModel::performInitialLinking(){
 	int iteration = 0;
 
 	//stopping criterion, in terms of actual vs. required number of edges
-	double DENSITY_TARGET = 0.95;
+	double DENSITY_TARGET = 0.99;
 
 	//maximal number of iterations when forming the network, to prevent too much work
 	int    MAXITER = 30;
@@ -138,7 +141,7 @@ void HCModel::performInitialLinking(){
 				(total_edges/total_give_edge_target < DENSITY_TARGET) &&
 				(iteration < MAXITER)) {
 
-		std::cout << "Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+		std::cout << "> Total edges: " << total_edges << ". target in: " << total_recept_edge_target
 				<< ". target out: " << total_give_edge_target << std::endl;
 
 		zoneCensus();
@@ -148,7 +151,7 @@ void HCModel::performInitialLinking(){
 		total_edges = network.edgeCount();
 		iteration ++;
 	}
-	std::cout << "Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
 				<< ". target out: " << total_give_edge_target << std::endl;
 
 	if (iteration == MAXITER) {
@@ -170,7 +173,19 @@ void HCModel::performLinking(){
 		for (auto entry2 : effectiveZonePopulation){
 			const ZonePtr & zone2 = entry2.first;
 
+			// Skip if zone population is zero
+			if (entry2.second.size() == 0){
+				continue;
+			}
+
 			double rate = interactionRate(zone1, zone2);
+
+//			if (zone1 == zone2){
+//				std::cout << "eq " << rate;
+//			}
+//			else{
+//				std::cout << "" << rate;
+//			}
 
 			if (rate == 0.0) {
 				continue;
@@ -182,12 +197,17 @@ void HCModel::performLinking(){
 			double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 			double t = 0;
 
-			while (t < linkingTimeWindow){
+			int count = 0;
+			t += generator.next();
+			while (t <= linkingTimeWindow){
 
 				linkZones(zone1, zone2);
 
 				t += generator.next();
+				count += 1;
 			}
+
+//			std::cout << "\t" << count << std::endl;
 		}
 	}
 }
@@ -278,7 +298,6 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
 	double interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
 	double interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
 
-
 	if (distance > interactionHomeCutoff){
 		if (zone1->getDrugMarket() ==  zone2->getDrugMarket()){
 			rate = (interactionRateDrugSites * pop1 * pop2) +
@@ -301,7 +320,6 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
  * - typically occurs once a day (linking_time_window)
  */
 void HCModel::zoneCensus(){
-	std::cout << "Census... " ;
 
 	zonePopulation.clear();
 	effectiveZonePopulation.clear();
@@ -313,8 +331,6 @@ void HCModel::zoneCensus(){
 		totalIDUPopulation += 1;
 
 		std::string zipcode = person->getZipcode();
-
-//		std::cout << "Person " << person << " zip: " << zipcode << std::endl;
 
 		if (zoneMap.find(zipcode) == zoneMap.end()){
 			// TODO handle zone undefined
@@ -346,9 +362,22 @@ void HCModel::zoneCensus(){
 
 void writePerson(HCPerson* person, AttributeWriter& write) {
 	write("age", person->getAge());
-
+	write("age_started", person->getAgeStarted());
 	write("race", "\"" + person->getRace() +"\"");
 	write("gender", "\"" + person->getGender() +"\"");
+	write("syringe_source", "\"" + person->getSyringeSource() +"\"");
+	write("zipcode", "\"" + person->getZipcode() +"\"");
+
+	write("hcv", "\"" + HCPerson::HCVStateToString(person->getHCVState()) +"\"");
+
+	write("drug_in_deg", person->getDrugReceptDegree());
+	write("drug_out_deg", person->getDrugGivingDegree());
+	write("inject_intens", person->getInjectionIntensity());
+	write("frac_recept", person->getFractionReceptSharing());
+
+	write("lat", person->getZone()->getLat() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
+	write("lon", person->getZone()->getLon() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
+
 }
 
 void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {

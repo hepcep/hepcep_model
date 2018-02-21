@@ -29,7 +29,6 @@ private:
 
 
 protected:
-
 	Network<HCPerson> network;
 
 	// PersonData vector used for generating new HCPerson instances.

@@ -32,6 +32,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
 	// TODO Set HCV state via Immunology as in APK Model
 	hcvState = HCV_State::unknown;
 
+	// If the HCV state is ABPOS then assign the specific infection state
 	if(data.hcvState == HCV_State::ABPOS) {
 		double ab_prob_chronic = chi_sim::Parameters::instance()->getDoubleParameter(AB_PROB_CHRONIC);
 		double ab_prob_acute = chi_sim::Parameters::instance()->getDoubleParameter(AB_PROB_ACUTE);
@@ -39,13 +40,17 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
 
 		if (roll < 0 ){
 			hcvState = HCV_State::chronic;
-		} else if (roll - ab_prob_acute < 0){
+		}
+		else if (roll - ab_prob_acute < 0){
 			hcvState = HCV_State::infectiousacute;
-		} else {
+		}
+		else {
 			hcvState = HCV_State::recovered;
 		}
-	} else {
-		hcvState = HCV_State::susceptible;
+	}
+	// Otherwise the state is explicitly defined in the person data.
+	else {
+		hcvState = data.hcvState;
 	}
 }
 

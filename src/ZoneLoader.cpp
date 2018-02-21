@@ -12,6 +12,8 @@ namespace hepcep {
 
 const int ZIPCODE_IDX = 0;			// zip code (String)
 const int DRUG_MARKET_IDX = 1;		// Drug market ID (int)
+const int LAT_INDEX = 2;				// Latitude
+const int LON_INDEX = 3;				// Longitude
 
 /**
  * Creates a set of Zone instances and maps them to their zip code strings.
@@ -30,8 +32,10 @@ void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zon
 
 		std::string zip = line[ZIPCODE_IDX];
 		unsigned int drugMarket = std::stoul(line[DRUG_MARKET_IDX]);
+		double lat = std::stod(line[LAT_INDEX]);
+		double lon = std::stod(line[LON_INDEX]);
 
-		auto zone = std::make_shared<Zone>(zip);
+		auto zone = std::make_shared<Zone>(zip,lat,lon);
 
 		zone->setDrugMarket(drugMarket);
 

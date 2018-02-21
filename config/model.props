@@ -6,8 +6,8 @@ random.seed = 42
 stop.at = 5
 
 # relative to where the hepcep-model executable is run 
-cnep_plus.file = ./data/cnep_plus_2017-11-03_fixed.csv
-cnep_plus_early.file = ./data/cnep_plusEarly_2017-11-03_fixed.csv
+cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
+cnep_plus_early.file = ./data/cnep_plus_early_2018.02.13.csv
 zones.file = ./data/zones.csv
 zones.distance.file = ./data/zones_distance.csv
 

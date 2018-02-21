@@ -112,6 +112,10 @@ public:
 		return age;
 	}
 
+	double getAgeStarted() const {
+		return ageStarted;
+	}
+
 	std::string getRace() const {
 		return race;
 	}
@@ -120,10 +124,52 @@ public:
 		return gender;
 	}
 
+	std::string getSyringeSource() const {
+		return syringeSource;
+	}
 
+	HCV_State getHCVState(){
+		return hcvState;
+	}
+
+	double getInjectionIntensity() const {
+		return injectionIntensity;
+	}
+
+	double getFractionReceptSharing() const {
+		return fractionReceptSharing;
+	}
+
+	static std::string HCVStateToString(HCV_State state){
+		switch(state){
+			case HCV_State::susceptible: return "susceptible";
+			case HCV_State::exposed: return "exposed";
+			case HCV_State::infectiousacute: return "infectiousacute";
+			case HCV_State::recovered: return "recovered";
+			case HCV_State::cured: return "cured";
+			case HCV_State::chronic: return "chronic";
+			case HCV_State::ABPOS: return "ABPOS";
+			case HCV_State::unknown: return "unknown";
+		}
+		return "unknown";
+	}
+
+	static HCV_State stringToHCVState(const std::string& str){
+
+			if (str.empty()) return HCV_State::unknown;
+
+			else if(str == "ABPOS") return HCV_State::ABPOS;
+	    else if(str == "susceptible") return HCV_State::susceptible;
+
+	    else if(str == "exposed") return HCV_State::exposed;
+	    else if(str == "infectiousacute") return HCV_State::infectiousacute;
+	    else if(str == "recovered") return HCV_State::recovered;
+	    else if(str == "cured") return HCV_State::cured;
+	    else if(str == "chronic") return HCV_State::chronic;
+
+	    return HCV_State::unknown;
+	}
 };
-
-
 } /* namespace hepcep */
 
 #endif /* SRC_HCPERSON_H_ */

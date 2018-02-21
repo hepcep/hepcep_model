@@ -23,16 +23,6 @@ const int DRUG_GIV_DEG_IDX = 8;		// Network drug giving (out) degree (int)
 const int INJECT_INTENS_IDX = 9;	// Injection intensity (float double)
 const int FRAC_REC_SHAR_IDX = 10;	// Fraction recept sharing (float double)
 
-HCV_State convert(const std::string& str){
-
-		if (str.empty()) return HCV_State::unknown;
-
-		else if(str == "ABPOS") return HCV_State::ABPOS;
-    else if(str == "susceptible") return HCV_State::susceptible;
-
-    return HCV_State::unknown;
-}
-
 void loadPersonData(const string& filename, std::vector<HCPersonData> & personData) {
 	SVReader reader(filename, ',');
 	vector<std::string> line;
@@ -53,7 +43,7 @@ void loadPersonData(const string& filename, std::vector<HCPersonData> & personDa
 		data.race = line[RACE_IDX];
 		data.syringeSource = line[SYRINGE_SOURCE_IDX];
 		data.zipCode = line[ZIP_IDX];
-		data.hcvState = convert(line[HCV_STATE_IDX]);
+		data.hcvState = HCPerson::stringToHCVState(line[HCV_STATE_IDX]);
 
 		//		data.label = line[DB_LABEL_IDX];
 		data.drug_inDegree = std::stoul(line[DRUG_REC_DEG_IDX]);

@@ -17,17 +17,31 @@ class Zone {
 protected:
 	std::string zipcode;
 	unsigned int drugMarket;
+	double lat;
+	double lon;
 
 public:
 	Zone(std::string zipcode);
+	Zone(std::string zipcode, double lat, double lon);
 
 	virtual ~Zone();
 
-	unsigned int getDrugMarket();
 	void setDrugMarket(unsigned int drugMarket);
 
-	std::string getZipcode() const{
+	unsigned int getDrugMarket() const {
+		return drugMarket;
+	}
+
+	std::string getZipcode() const {
 		return zipcode;
+	}
+
+	double getLat() const {
+		return lat;
+	}
+
+	double getLon() const {
+		return lon;
 	}
 
 };

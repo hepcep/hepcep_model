@@ -12,11 +12,13 @@ Zone::Zone(std::string zipcode){
 	this->zipcode = zipcode;
 }
 
-Zone::~Zone() {
+Zone::Zone(std::string zipcode, double lat, double lon){
+	this->zipcode = zipcode;
+	this->lat = lat;
+	this->lon = lon;
 }
 
-unsigned int Zone::getDrugMarket(){
-	return drugMarket;
+Zone::~Zone() {
 }
 
 void Zone::setDrugMarket(unsigned int drugMarket){

@@ -1,13 +1,14 @@
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/initialize_random.h"
 #include "repast_hpc/io.h"
+#include "repast_hpc/logger.h"
 
 #include "HCModel.h"
 
 using namespace repast;
 
 void usage() {
-	std::cerr << "usage: X  model_properties_file" << std::endl;
+	std::cerr << "usage: X  model_properties_file [log_config_file]" << std::endl;
 	std::cerr << "\tmodel_properties_file: the path to the model properties file" << std::endl;
 }
 
@@ -56,9 +57,15 @@ int main(int argc, char **argv) {
 	// model props file
 	props = argv[1];
 	if (props.size() > 0) {
-		try {
-			RepastProcess::init("", &world);
+	    std::string log_config = "";
+	    if (argc > 2) {
+	        log_config = argv[2];
+	    }
+	    try {
+			RepastProcess::init(log_config, &world);
+			Log4CL::instance()->get_logger("hepcep").log(INFO, "Starting Model");
 			runModel(props, argc, argv);
+			Log4CL::instance()->get_logger("hepcep").log(INFO, "Ending Model");
 			RepastProcess::instance()->done();
 
 		} catch (std::exception& ex) {

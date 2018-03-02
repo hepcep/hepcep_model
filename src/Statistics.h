@@ -5,41 +5,34 @@
 #ifndef SRC_STATISTICS_H_
 #define SRC_STATISTICS_H_
 
-#include <memory>
 #include <vector>
 
 #include "DataSource.h"
 
 namespace hepcep {
 
-using DSDoublePtrT = std::shared_ptr<DataSource<double>>;
-
-struct Stats {
-
-	double val;
-	Stats() : val{0} {}
+enum class LogType {ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO, STATUS,
+    STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
 };
+
+class HCPerson;
 
 class Statistics {
 
 private:
-	static Statistics* instance_;
+    static Statistics* instance_;
 
-	Stats stats;
-
-	Statistics();
+    Statistics();
 public:
-	static Statistics* instance();
-	virtual ~Statistics();
-	void increment(long amount);
-	void reset();
-	void print(double tick);
+    static Statistics* instance();
+    virtual ~Statistics();
 
-	std::vector<DSDoublePtrT> createDataSources();
+    void logStatusChange(LogType logType, HCPerson* person, const std::string& msg);
+
 };
-
-
 
 } /* namespace seir */
 
+
 #endif /* SRC_STATISTICS_H_ */
+

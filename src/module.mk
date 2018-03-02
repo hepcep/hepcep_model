@@ -8,6 +8,11 @@ SRC = HCPlace.cpp \
 	SVReader.cpp \
 	Zone.cpp \
 	ZoneLoader.cpp \
-	network_utils.cpp
+	network_utils.cpp \
+	Immunology.cpp \
+	Event.cpp \
+	utilities.cpp \
+	EndTreatmentFunctor.cpp \
+	HCV_State.cpp
 	
 model_src += $(SRC)

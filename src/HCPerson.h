@@ -16,6 +16,7 @@
 #include "chi_sim/NextPlace.h"
 
 #include "HCPlace.h"
+#include "HCV_State.h"
 #include "Zone.h"
 
 namespace hepcep {
@@ -23,7 +24,6 @@ namespace hepcep {
 using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, int>;
 using PersonPtr = std::shared_ptr<HCPerson>;
 
-enum class HCV_State{susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS};
 
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
@@ -69,6 +69,7 @@ protected:
 	unsigned int drug_outDegree;
 	double injectionIntensity;
 	double fractionReceptSharing;
+	double lastExposureDate;
 
 	ZonePtr myZone;
 
@@ -128,7 +129,7 @@ public:
 		return syringeSource;
 	}
 
-	HCV_State getHCVState(){
+	HCV_State getHCVState() const {
 		return hcvState;
 	}
 
@@ -140,35 +141,15 @@ public:
 		return fractionReceptSharing;
 	}
 
-	static std::string HCVStateToString(HCV_State state){
-		switch(state){
-			case HCV_State::susceptible: return "susceptible";
-			case HCV_State::exposed: return "exposed";
-			case HCV_State::infectiousacute: return "infectiousacute";
-			case HCV_State::recovered: return "recovered";
-			case HCV_State::cured: return "cured";
-			case HCV_State::chronic: return "chronic";
-			case HCV_State::ABPOS: return "ABPOS";
-			case HCV_State::unknown: return "unknown";
-		}
-		return "unknown";
+	void setLastExposureDate(double tick) {
+	    lastExposureDate = tick;
 	}
 
-	static HCV_State stringToHCVState(const std::string& str){
-
-			if (str.empty()) return HCV_State::unknown;
-
-			else if(str == "ABPOS") return HCV_State::ABPOS;
-	    else if(str == "susceptible") return HCV_State::susceptible;
-
-	    else if(str == "exposed") return HCV_State::exposed;
-	    else if(str == "infectiousacute") return HCV_State::infectiousacute;
-	    else if(str == "recovered") return HCV_State::recovered;
-	    else if(str == "cured") return HCV_State::cured;
-	    else if(str == "chronic") return HCV_State::chronic;
-
-	    return HCV_State::unknown;
+	double getLastExposureDate() const {
+	    return lastExposureDate;
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 };
 } /* namespace hepcep */
 

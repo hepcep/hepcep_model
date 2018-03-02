@@ -20,24 +20,9 @@
 
 namespace hepcep {
 
-shared_ptr<ReducibleDataSet<double>> init_data_collection() {
-
-	Statistics* stats = Statistics::instance();
-	stats->reset();
-	vector<shared_ptr<DataSource<double>>> data_sources = stats->createDataSources();
-
-	DataSetBuilder<double> builder;
-	for (auto ds : data_sources) {
-		builder.addDataSource(ds, std::plus<double>());
-	}
-
-	return builder.createReducibleDataSet();
-}
-
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : 
 					AbsModelT(moved_data_size, props),
 					run(std::stoi(props.getProperty(RUN))) ,
-					//			file_sink(rank_, run, init_data_collection()) //,
 					network(true),
 					personData(),
 					zoneMap(),
@@ -104,11 +89,7 @@ void HCModel::step() {
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
 		person->doSomething();
-
-		Statistics::instance()->increment(4);
 	}
-	//    file_sink.record(tick);
-	Statistics::instance()->reset();
 }
 
 void HCModel::performInitialLinking(){
@@ -368,7 +349,7 @@ void writePerson(HCPerson* person, AttributeWriter& write) {
 	write("syringe_source", "\"" + person->getSyringeSource() +"\"");
 	write("zipcode", "\"" + person->getZipcode() +"\"");
 
-	write("hcv", "\"" + HCPerson::HCVStateToString(person->getHCVState()) +"\"");
+	write("hcv", "\"" + hcv_state_to_string(person->getHCVState()) +"\"");
 
 	write("drug_in_deg", person->getDrugReceptDegree());
 	write("drug_out_deg", person->getDrugGivingDegree());

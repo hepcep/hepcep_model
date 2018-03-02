@@ -10,11 +10,12 @@
 
 #include "parameters_constants.h"
 #include "HCPerson.h"
+#include "utilities.h"
 
 namespace hepcep {
 
 
-HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
+HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
 
@@ -24,7 +25,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id) {
 	drug_inDegree = data.drug_inDegree;
 	fractionReceptSharing = data.fractionReceptSharing;
 	race = data.race;
-	gender = data.gender;
+	gender = parse_gender(data.gender);
 	injectionIntensity = data.injectionIntensity;
 	zipCode = data.zipCode;
 	syringeSource = data.syringeSource;
@@ -82,5 +83,16 @@ double HCPerson::getDemographicDistance(PersonPtr other){
 
 	return ret / 2.0;
 }
+
+ std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
+     os << person.getAge() << "," << person.getGender() << "," << person.getRace() << "," << person.getZipcode() << "," << person.getSyringeSource()
+             << "," << hcv_state_to_string(person.getHCVState()) << "," // << person.getHcvNeighborPrevalence()
+                      << "," << person.getAgeStarted()
+                      << "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
+                      /*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();
+
+     return os;
+
+ }
 
 } /* namespace hepcep */

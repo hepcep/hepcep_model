@@ -17,9 +17,12 @@
 
 namespace hepcep {
 
+// these were private static in APK Immunology.java
 const double CONTACT_RISK = 1.0;
 const double ACUTE_BOOST = 1.0;
 
+// flag to indicate in treatment_start_date that
+// treatment has not started
 const double TREATMENT_NOT_STARTED = -1.0;
 
 // Schedule uses old boost::shared_ptrs so we use that here
@@ -50,6 +53,10 @@ Immunology::Immunology(HCPerson* idu, HCV_State alter_state, IPPtr params) : par
 
 }
 
+void Immunology::deactivate() {
+    purgeActions();
+}
+
 bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
     Statistics* stats = Statistics::instance();
     stats->logStatusChange(LogType::EXPOSED, partner_imm.idu_, "by agent " + std::to_string(idu_->id()));
@@ -59,8 +66,7 @@ bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
     }
 
     if (isAcute()) {
-        if (repast::Random::instance()->nextDouble()
-                > CONTACT_RISK * params_->transmissibility * ACUTE_BOOST) {
+        if (repast::Random::instance()->nextDouble() > CONTACT_RISK * params_->transmissibility * ACUTE_BOOST) {
             stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
             return false;
         }
@@ -106,6 +112,7 @@ void Immunology::purgeActions() {
         evt->cancel();
     }
     scheduled_actions.clear();
+    in_treatment = false;
 }
 
 bool Immunology::receiveInfectiousDose(double now) {
@@ -120,6 +127,7 @@ bool Immunology::receiveInfectiousDose(double now) {
 
     hcv_state = HCV_State::exposed;
     Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
+
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     double exposed_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_naive_to_infectious).next();
 
@@ -165,20 +173,23 @@ bool Immunology::isHcvABpos() { //presence of antigens
 }
 
 bool Immunology::isHcvRNA(double now) {
-    return (hcv_state == HCV_State::exposed || hcv_state == HCV_State::infectiousacute
-            || hcv_state == HCV_State::chronic) && (!isIn_treatment_viral_suppression(now));
+    return (hcv_state == HCV_State::exposed ||
+            hcv_state == HCV_State::infectiousacute ||
+            hcv_state == HCV_State::chronic) &&
+            (!isInTreatmentViralSuppression(now));
 }
 
 bool Immunology::isInfectious(double now) {
-    return (hcv_state == HCV_State::infectiousacute || hcv_state == HCV_State::chronic)
-            && (!isIn_treatment_viral_suppression(now));
+    return (hcv_state == HCV_State::infectiousacute ||
+            hcv_state == HCV_State::chronic)
+            && (!isInTreatmentViralSuppression(now));
 }
 
 bool Immunology::isInTreatment() {
     return in_treatment;
 }
 
-bool Immunology::isIn_treatment_viral_suppression(double tick) {
+bool Immunology::isInTreatmentViralSuppression(double tick) {
     if (!in_treatment) {
         return false;
     }
@@ -198,14 +209,23 @@ bool Immunology::isPostTreatment() { //i.e. completed a course of treatment
 }
 
 bool Immunology::isTreatable(double now) {
-    return (!in_treatment) && isHcvRNA(now)
-            && (params_->treatment_repeatable || (!isPostTreatment()));
+    return (!in_treatment) &&
+            isHcvRNA(now)
+            && (params_->treatment_repeatable ||
+            (!isPostTreatment()));
 }
 
 HCV_State Immunology::getHCVState() {
     return hcv_state;
 }
 
+/*
+ * for initializing agents
+ * this function overrides the normal course of an infection
+ * it should not be used for natural exposures
+ *
+ * censored_acute = in the middle of an acute infection
+ */
 void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
     //assert state != HCV_state.ABPOS; //used only in the DrugUser container
     hcv_state = state;
@@ -274,6 +294,10 @@ void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
             throw std::invalid_argument("Unexpected state passed to setHCVInitState: " + hcv_state_to_string(state));
 
     }
+}
+
+double Immunology::getTreatmentStartDate() {
+    return treatment_start_date;
 }
 
 void Immunology::leaveTreatment(bool treatment_succeeded) {

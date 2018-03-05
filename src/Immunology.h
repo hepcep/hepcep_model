@@ -50,7 +50,7 @@ private:
     bool past_cured, past_recovered, in_treatment;
     double treatment_start_date;
 
-    bool isIn_treatment_viral_suppression(double tick);
+    bool isInTreatmentViralSuppression(double tick);
 
     /**
      * start a NATURAL infection via exposure.
@@ -74,7 +74,15 @@ public:
      *
      * @return true if a new infection was established in partner, otherwise false.
      */
+    // "give_exposure" in APK Immunology.java
     bool exposePartner(Immunology& partner_imm, double tick);
+
+    /**
+     * Deactivates this immunology by canceling any scheduled state transitions.
+     * This should be called with the IDU associated with this Immunology leaves
+     * the Simulation.
+     */
+    void deactivate();
 
     void leaveExposed();
 
@@ -95,6 +103,8 @@ public:
     bool isPostTreatment();
     bool isTreatable(double now);
     HCV_State getHCVState();
+
+    double getTreatmentStartDate();
 
     /**
      *

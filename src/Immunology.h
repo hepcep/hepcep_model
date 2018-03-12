@@ -13,8 +13,8 @@
 
 #include "boost/shared_ptr.hpp"
 
-#include "HCV_State.h"
 #include "Event.h"
+#include "HCVState.h"
 
 namespace hepcep {
 
@@ -44,7 +44,7 @@ private:
     // this is a pointer and not a shared_ptr because
     // HCPerson needs to pass itself.
     HCPerson* idu_;
-    HCV_State hcv_state;
+    HCVState hcv_state;
     std::vector<boost::shared_ptr<Event>> scheduled_actions;
 
     bool past_cured, past_recovered, in_treatment;
@@ -66,7 +66,7 @@ private:
 
 public:
     Immunology(HCPerson* idu, IPPtr params);
-    Immunology(HCPerson* idu, HCV_State alter_state, IPPtr params);
+    Immunology(HCPerson* idu, HCVState alter_state, IPPtr params);
     virtual ~Immunology();
 
     /**
@@ -102,7 +102,7 @@ public:
     bool isResistant();
     bool isPostTreatment();
     bool isTreatable(double now);
-    HCV_State getHCVState();
+    HCVState getHCVState();
 
     double getTreatmentStartDate();
 
@@ -114,7 +114,7 @@ public:
      *
      * censored_acute = in the middle of an acute infection
      */
-    void setHCVInitState(double now, HCV_State state, int logging);
+    void setHCVInitState(double now, HCVState state, int logging);
 
     void leaveTreatment(bool treatment_succeeded);
 

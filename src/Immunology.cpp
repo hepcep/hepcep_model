@@ -43,12 +43,12 @@ ImmunologyParameters::ImmunologyParameters() :
                 std::numeric_limits<double>::signaling_NaN() }, treatment_repeatable(false)
 {}
 
-Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCV_State::susceptible), past_cured(false),
+Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }
 
-Immunology::Immunology(HCPerson* idu, HCV_State alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), past_cured(false),
+Immunology::Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }
@@ -85,7 +85,7 @@ bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
 }
 
 void Immunology::leaveExposed() {
-    hcv_state = HCV_State::infectiousacute;
+    hcv_state = HCVState::INFECTIOUS_ACUTE;
     Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
 }
 
@@ -97,11 +97,11 @@ bool Immunology::leaveAcute() {
     if (((!past_recovered) && prob_self_limiting > repast::Random::instance()->nextDouble()) ||
          ((past_recovered) && params_->prob_clearing > repast::Random::instance()->nextDouble()) ||
              ((past_cured) && params_->treatment_susceptibility < repast::Random::instance()->nextDouble()))    {
-        hcv_state = HCV_State::recovered;
+        hcv_state = HCVState::RECOVERED;
         Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
         return true;
     } else {
-        hcv_state = HCV_State::chronic;
+        hcv_state = HCVState::CHRONIC;
         Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
         return false;
     }
@@ -122,10 +122,10 @@ bool Immunology::receiveInfectiousDose(double now) {
     purgeActions();
 
     //note: this long memory changes the behavior compared to original APK, even in the default (no treatment) case.
-    past_recovered = past_recovered | (hcv_state == HCV_State::recovered);
-    past_cured     = past_cured     | (hcv_state == HCV_State::cured);
+    past_recovered = past_recovered | (hcv_state == HCVState::RECOVERED);
+    past_cured     = past_cured     | (hcv_state == HCVState::CURED);
 
-    hcv_state = HCV_State::exposed;
+    hcv_state = HCVState::EXPOSED;
     Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
 
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
@@ -152,36 +152,36 @@ bool Immunology::receiveInfectiousDose(double now) {
 
 
 bool Immunology::isAcute() {
-    return hcv_state == HCV_State::exposed || hcv_state == HCV_State::infectiousacute;
+    return hcv_state == HCVState::EXPOSED || hcv_state == HCVState::INFECTIOUS_ACUTE;
 }
 
 bool Immunology::isChronic() {
-    return hcv_state == HCV_State::chronic;
+    return hcv_state == HCVState::CHRONIC;;
 }
 
 bool Immunology::isCured() {
-    return hcv_state == HCV_State::cured;
+    return hcv_state == HCVState::CURED;
 }
 
 bool Immunology::isExposed() {
-    return hcv_state == HCV_State::exposed;
+    return hcv_state == HCVState::EXPOSED;
 }
 
 bool Immunology::isHcvABpos() { //presence of antigens
-    return (hcv_state != HCV_State::susceptible) || (hcv_state == HCV_State::ABPOS)
-            || (hcv_state == HCV_State::cured);
+    return (hcv_state != HCVState::SUSCEPTIBLE) || (hcv_state == HCVState::ABPOS)
+            || (hcv_state == HCVState::CURED);
 }
 
 bool Immunology::isHcvRNA(double now) {
-    return (hcv_state == HCV_State::exposed ||
-            hcv_state == HCV_State::infectiousacute ||
-            hcv_state == HCV_State::chronic) &&
+    return (hcv_state == HCVState::EXPOSED ||
+            hcv_state == HCVState::INFECTIOUS_ACUTE ||
+            hcv_state == HCVState::CHRONIC) &&
             (!isInTreatmentViralSuppression(now));
 }
 
 bool Immunology::isInfectious(double now) {
-    return (hcv_state == HCV_State::infectiousacute ||
-            hcv_state == HCV_State::chronic)
+    return (hcv_state == HCVState::INFECTIOUS_ACUTE ||
+            hcv_state == HCVState::CHRONIC)
             && (!isInTreatmentViralSuppression(now));
 }
 
@@ -197,11 +197,11 @@ bool Immunology::isInTreatmentViralSuppression(double tick) {
 }
 
 bool Immunology::isNaive() {
-    return hcv_state == HCV_State::susceptible;
+    return hcv_state == HCVState::SUSCEPTIBLE;
 }
 
 bool Immunology::isResistant() {
-    return hcv_state == HCV_State::recovered;
+    return hcv_state == HCVState::RECOVERED;
 }
 
 bool Immunology::isPostTreatment() { //i.e. completed a course of treatment
@@ -215,7 +215,7 @@ bool Immunology::isTreatable(double now) {
             (!isPostTreatment()));
 }
 
-HCV_State Immunology::getHCVState() {
+HCVState Immunology::getHCVState() {
     return hcv_state;
 }
 
@@ -226,15 +226,15 @@ HCV_State Immunology::getHCVState() {
  *
  * censored_acute = in the middle of an acute infection
  */
-void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
+void Immunology::setHCVInitState(double now, HCVState state, int logging) {
     //assert state != HCV_state.ABPOS; //used only in the DrugUser container
     hcv_state = state;
-    switch (state) {
-        case HCV_State::susceptible:
+    switch (state.value()) {
+        case HCVState::Value::susceptible:
         {
-            hcv_state = HCV_State::susceptible;
+            hcv_state = HCVState::SUSCEPTIBLE;
             if (logging > 0) {
-                Statistics::instance()->logStatusChange(LogType::INFO, idu_, "new_hcv_state="+hcv_state_to_string(state));
+                Statistics::instance()->logStatusChange(LogType::INFO, idu_, "new_hcv_state="+state.stringValue());
             }
             break;
         }
@@ -256,7 +256,7 @@ void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
 //              }
 //              break;
 
-        case HCV_State::infectiousacute:
+        case HCVState::Value::infectious_acute:
         {
             double acute_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
             repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
@@ -271,7 +271,7 @@ void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
         }
 
 
-        case HCV_State::chronic:
+        case HCVState::Value::chronic:
         {
             idu_->setLastExposureDate(now);
             if (logging > 0) {
@@ -280,7 +280,7 @@ void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
             }
             break;
         }
-        case HCV_State::recovered:
+        case HCVState::Value::recovered:
         {
             idu_->setLastExposureDate(now);
             if (logging > 0) {
@@ -291,7 +291,7 @@ void Immunology::setHCVInitState(double now, HCV_State state, int logging) {
             break;
         }
         default:
-            throw std::invalid_argument("Unexpected state passed to setHCVInitState: " + hcv_state_to_string(state));
+            throw std::invalid_argument("Unexpected state passed to setHCVInitState: " + state.stringValue());
 
     }
 }
@@ -303,11 +303,11 @@ double Immunology::getTreatmentStartDate() {
 void Immunology::leaveTreatment(bool treatment_succeeded) {
     in_treatment = false;
     if (treatment_succeeded) {
-        hcv_state = HCV_State::cured;
+        hcv_state = HCVState::CURED;
         Statistics::instance()->logStatusChange(LogType::CURED, idu_, "");
     } else {
         Statistics::instance()->logStatusChange(LogType::FAILED_TREATMENT, idu_, "");
-        hcv_state = HCV_State::chronic; //even if entered as acute.  ignore the case where was about to self-limit
+        hcv_state = HCVState::CHRONIC; //even if entered as acute.  ignore the case where was about to self-limit
     }
 }
 

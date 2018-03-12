@@ -15,6 +15,7 @@ namespace hepcep {
 const std::string MALE = "MALE";
 const std::string FEMALE = "FEMALE";
 
+const std::string GENDERS[] = {MALE, FEMALE};
 
 } /* namespace hepcep */
 

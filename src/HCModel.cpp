@@ -349,7 +349,7 @@ void writePerson(HCPerson* person, AttributeWriter& write) {
 	write("syringe_source", "\"" + person->getSyringeSource() +"\"");
 	write("zipcode", "\"" + person->getZipcode() +"\"");
 
-	write("hcv", "\"" + hcv_state_to_string(person->getHCVState()) +"\"");
+	write("hcv", "\"" + person->getHCVState().stringValue() +"\"");
 
 	write("drug_in_deg", person->getDrugReceptDegree());
 	write("drug_out_deg", person->getDrugGivingDegree());

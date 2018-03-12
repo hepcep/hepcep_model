@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "DataSource.h"
+#include "AggregateStats.h"
 
 namespace hepcep {
 
@@ -21,6 +21,7 @@ class Statistics {
 
 private:
     static Statistics* instance_;
+    std::vector<AggregateStats> stats;
 
     Statistics();
 public:
@@ -28,6 +29,8 @@ public:
     virtual ~Statistics();
 
     void logStatusChange(LogType logType, HCPerson* person, const std::string& msg);
+
+    void collectStats(std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
 
 };
 

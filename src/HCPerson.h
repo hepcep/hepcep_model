@@ -16,7 +16,7 @@
 #include "chi_sim/NextPlace.h"
 
 #include "HCPlace.h"
-#include "HCV_State.h"
+#include "HCVState.h"
 #include "Zone.h"
 
 namespace hepcep {
@@ -45,7 +45,7 @@ struct HCPersonData {
 	std::string race;
 	std::string syringeSource;
 	std::string zipCode;
-	HCV_State hcvState;
+	HCVState hcvState = HCVState::UNKNOWN;
 	unsigned int drug_inDegree;
 	unsigned int drug_outDegree;
 	double injectionIntensity;
@@ -64,7 +64,7 @@ protected:
 	std::string race;
 	std::string syringeSource;
 	std::string zipCode;
-	HCV_State hcvState;
+	HCVState hcvState;
 	unsigned int drug_inDegree;
 	unsigned int drug_outDegree;
 	double injectionIntensity;
@@ -129,7 +129,7 @@ public:
 		return syringeSource;
 	}
 
-	HCV_State getHCVState() const {
+	const HCVState& getHCVState() const {
 		return hcvState;
 	}
 

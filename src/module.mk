@@ -13,6 +13,7 @@ SRC = HCPlace.cpp \
 	Event.cpp \
 	utilities.cpp \
 	EndTreatmentFunctor.cpp \
-	HCV_State.cpp
+	HCVState.cpp \
+	AggregateStats.cpp
 	
 model_src += $(SRC)

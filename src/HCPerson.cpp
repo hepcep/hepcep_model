@@ -15,7 +15,7 @@
 namespace hepcep {
 
 
-HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), lastExposureDate(-1.0) {
+HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), hcvState(HCVState::UNKNOWN), lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
 
@@ -31,22 +31,22 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), lastEx
 	syringeSource = data.syringeSource;
 
 	// TODO Set HCV state via Immunology as in APK Model
-	hcvState = HCV_State::unknown;
+	hcvState = HCVState::UNKNOWN;
 
 	// If the HCV state is ABPOS then assign the specific infection state
-	if(data.hcvState == HCV_State::ABPOS) {
+	if(data.hcvState == HCVState::ABPOS) {
 		double ab_prob_chronic = chi_sim::Parameters::instance()->getDoubleParameter(AB_PROB_CHRONIC);
 		double ab_prob_acute = chi_sim::Parameters::instance()->getDoubleParameter(AB_PROB_ACUTE);
 		double roll = repast::Random::instance()->nextDouble() - ab_prob_chronic;
 
 		if (roll < 0 ){
-			hcvState = HCV_State::chronic;
+			hcvState = HCVState::CHRONIC;
 		}
 		else if (roll - ab_prob_acute < 0){
-			hcvState = HCV_State::infectiousacute;
+			hcvState = HCVState::INFECTIOUS_ACUTE;
 		}
 		else {
-			hcvState = HCV_State::recovered;
+			hcvState = HCVState::RECOVERED;
 		}
 	}
 	// Otherwise the state is explicitly defined in the person data.
@@ -86,7 +86,7 @@ double HCPerson::getDemographicDistance(PersonPtr other){
 
  std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
      os << person.getAge() << "," << person.getGender() << "," << person.getRace() << "," << person.getZipcode() << "," << person.getSyringeSource()
-             << "," << hcv_state_to_string(person.getHCVState()) << "," // << person.getHcvNeighborPrevalence()
+             << "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
                       << "," << person.getAgeStarted()
                       << "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
                       /*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();

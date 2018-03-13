@@ -52,4 +52,9 @@ HarmReduction HarmReduction::valueOf(const std::string& string_val) {
     throw std::invalid_argument("Unknown harm reduction value: " + string_val);
 }
 
+std::ostream& operator<<(std::ostream& out, const HarmReduction& val) {
+    out << val.stringValue();
+    return out;
+}
+
 } /* namespace hepcep */

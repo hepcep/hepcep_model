@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace hepcep {
 
@@ -42,6 +43,9 @@ private:
 
     AgeGroup(const Value& val, const std::string& string_val);
 };
+
+std::ostream& operator<<(std::ostream& out, const AgeGroup& val);
+
 
 } /* namespace hepcep */
 

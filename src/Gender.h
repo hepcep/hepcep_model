@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace hepcep {
 
@@ -39,6 +40,8 @@ public:
 
         Gender(const Value& val, const std::string& string_val);
 };
+
+std::ostream& operator<<(std::ostream& out, const Gender& val);
 
 } /* namespace hepcep */
 

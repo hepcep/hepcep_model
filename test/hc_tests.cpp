@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "HCVState.h"
+#include "AreaType.h"
+#include "AgeDecade.h"
+#include "AgeGroup.h"
 
 using namespace hepcep;
 
@@ -52,4 +55,37 @@ TEST(HCTest, testHCVStateEnum) {
 
         }
     }
+}
+
+AgeDecade getExpectedDecage(double age) {
+    if (age <= 20) return AgeDecade::AGE_LEQ_20;
+    if (age < 31) return AgeDecade::AGE_21_30;
+    if (age < 41) return AgeDecade::AGE_31_40;
+    if (age < 51) return AgeDecade::AGE_41_50;
+    if (age < 61) return AgeDecade::AGE_51_60;
+
+    return AgeDecade::AGE_OVER_60;
+}
+
+TEST(HCTest, testEnums) {
+    AreaType type = AreaType::getAreaType("60615");
+    ASSERT_EQ(AreaType::CITY, type);
+
+    type = AreaType::getAreaType("02492");
+    ASSERT_EQ(AreaType::SUBURBAN, type);
+    AreaType::getAreaType("");
+    ASSERT_EQ(AreaType::SUBURBAN, type);
+
+    for (int i = 10; i < 70; ++i) {
+        AgeDecade dec = AgeDecade::getAgeDecade(i);
+        ASSERT_EQ(getExpectedDecage(i), dec);
+    }
+
+    for (int i = 20; i < 50; ++i) {
+        AgeGroup grp = AgeGroup::getAgeGroup(i);
+        AgeGroup exp = AgeGroup::LEQ_30;
+        if (i > 30) exp = AgeGroup::OVER_30;
+        ASSERT_EQ(exp, grp);
+    }
+
 }

@@ -60,5 +60,10 @@ AreaType AreaType::getAreaType(const std::string& zip_code) {
     return AreaType::SUBURBAN;
 }
 
+std::ostream& operator<<(std::ostream& out, const AreaType& val) {
+    out << val.stringValue();
+    return out;
+}
+
 
 } /* namespace hepcep */

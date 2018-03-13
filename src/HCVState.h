@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace hepcep {
 
@@ -49,15 +50,8 @@ private:
 
 };
 
-/*
- enum class HCV_State{susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS};
+std::ostream& operator<<(std::ostream& out, const HCVState& val);
 
- std::string hcv_state_to_string(const HCV_State state);
-
- HCV_State string_to_hcv_state(const std::string& str);
-
- extern const std::string HCV_STATES[];
- */
 
 }
 

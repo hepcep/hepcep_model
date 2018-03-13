@@ -13,12 +13,12 @@
 
 namespace hepcep {
 
-const AgeDecade AgeDecade::AGE_LEQ_20(AgeDecade::AgeLEQ20, "AgeLEQ20");
-const AgeDecade AgeDecade::AGE_21_30(AgeDecade::Age21to30, "Age21to30");
-const AgeDecade AgeDecade::AGE_31_40(AgeDecade::Age31to40, "Age31to40");
-const AgeDecade AgeDecade::AGE_41_50(AgeDecade::Age41to50, "Age41to50");
-const AgeDecade AgeDecade::AGE_51_60(AgeDecade::Age51to60, "Age51to60");
-const AgeDecade AgeDecade::AGE_OVER_60(AgeDecade::AgeOver60, "AgeOver60");
+const AgeDecade AgeDecade::AGE_LEQ_20(AgeDecade::AgeLEQ20, "AGE_LEQ_20");
+const AgeDecade AgeDecade::AGE_21_30(AgeDecade::Age21to30, "AGE_21_30");
+const AgeDecade AgeDecade::AGE_31_40(AgeDecade::Age31to40, "AGE_31_40");
+const AgeDecade AgeDecade::AGE_41_50(AgeDecade::Age41to50, "AGE_41_50");
+const AgeDecade AgeDecade::AGE_51_60(AgeDecade::Age51to60, "AGE_51_60");
+const AgeDecade AgeDecade::AGE_OVER_60(AgeDecade::AgeOver60, "AGE_OVER_60");
 
 const std::vector<AgeDecade> AgeDecade::values_( { AgeDecade::AGE_LEQ_20, AgeDecade::AGE_21_30,
         AgeDecade::AGE_31_40, AgeDecade::AGE_41_50, AgeDecade::AGE_51_60, AgeDecade::AGE_OVER_60 });
@@ -71,6 +71,11 @@ AgeDecade AgeDecade::getAgeDecade(double age) {
     } else {
         return AgeDecade::AGE_OVER_60;
     }
+}
+
+std::ostream& operator<<(std::ostream& out, const AgeDecade& val) {
+    out << val.stringValue();
+    return out;
 }
 
 } /* namespace hepcep */

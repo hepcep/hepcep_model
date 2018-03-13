@@ -54,4 +54,9 @@ Race Race::valueOf(const std::string& string_val) {
     throw std::invalid_argument("Unknown race type: " + string_val);
 }
 
+std::ostream& operator<<(std::ostream& out, const Race& val) {
+    out << val.stringValue();
+    return out;
+}
+
 } /* namespace hepcep */

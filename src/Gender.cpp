@@ -52,4 +52,9 @@ Gender Gender::valueOf(const std::string& string_val) {
     throw std::invalid_argument("Unknown gender type: " + string_val);
 }
 
+std::ostream& operator<<(std::ostream& out, const Gender& val) {
+    out << val.stringValue();
+    return out;
+}
+
 } /* namespace hepcep */

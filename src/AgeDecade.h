@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace hepcep {
 
@@ -45,8 +46,9 @@ private:
     static const std::vector<AgeDecade> values_;
 
     AgeDecade(const Value& val, const std::string& string_val);
-
 };
+
+std::ostream& operator<<(std::ostream& out, const AgeDecade& val);
 
 } /* namespace hepcep */
 

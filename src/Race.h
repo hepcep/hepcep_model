@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace hepcep {
 
@@ -43,6 +44,9 @@ private:
 
     Race(const Value& val, const std::string& string_val);
 };
+
+std::ostream& operator<<(std::ostream& out, const Race& val);
+
 } /* namespace hepcep */
 
 #endif /* SRC_RACE_H_ */

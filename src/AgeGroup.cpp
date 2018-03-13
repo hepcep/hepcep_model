@@ -55,4 +55,9 @@ AgeGroup AgeGroup::getAgeGroup(double age) {
     return (age <= 30)? AgeGroup::LEQ_30 : AgeGroup::OVER_30;
 }
 
+std::ostream& operator<<(std::ostream& out, const AgeGroup& val) {
+    out << val.stringValue();
+    return out;
+}
+
 } /* namespace hepcep */

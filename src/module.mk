@@ -11,9 +11,14 @@ SRC = HCPlace.cpp \
 	network_utils.cpp \
 	Immunology.cpp \
 	Event.cpp \
-	utilities.cpp \
 	EndTreatmentFunctor.cpp \
 	HCVState.cpp \
-	AggregateStats.cpp
+	AggregateStats.cpp \
+	Gender.cpp \
+	Race.cpp \
+	HarmReduction.cpp \
+	AgeDecade.cpp \
+	AgeGroup.cpp \
+	AreaType.cpp 
 	
 model_src += $(SRC)

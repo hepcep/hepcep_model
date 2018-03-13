@@ -9,14 +9,18 @@
 
 namespace hepcep {
 
+StatKeySuffix::StatKeySuffix() : gender(Gender::FEMALE), race(Race::HISPANIC), hcv_state(HCVState::UNKNOWN),
+        syr_src(HarmReduction::HARM_REDUCTION), age_grp(AgeGroup::LEQ_30), age_dec(AgeDecade::AGE_21_30),
+        area_type(AreaType::CITY) {}
+
 void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
     gender = person->getGender();
-    //hcvstate = hcv_state_to_string(person->getHCVState());
+    hcv_state = person->getHCVState();
     race = person->getRace();
-    syrsrc = person->getSyringeSource();
-    //agegrp = person->getAgeGroup();
-    //agedec = person->getAgeDecade();
-    //areatype = person->getAreaType();
+    syr_src = person->getSyringeSource();
+    age_grp = AgeGroup::getAgeGroup(person->getAge());
+    age_dec = AgeDecade::getAgeDecade(person->getAge());
+    area_type = AreaType::getAreaType(person->getZipcode());
 }
 
 AggregateStats::AggregateStats(std::string base_key, std::vector<std::string> key_suffixes) : key(base_key), stats() {
@@ -32,13 +36,13 @@ void AggregateStats::reset() {
 }
 
 void AggregateStats::increment(StatKeySuffix& suffixes) {
-    ++stats[key + "_" + suffixes.agedec];
-    ++stats[key + "_" + suffixes.agegrp];
-    ++stats[key + "_" + suffixes.areatype];
-    ++stats[key + "_" + suffixes.syrsrc];
-    ++stats[key + "_" + suffixes.race];
-    ++stats[key + "_" + suffixes.hcvstate];
-    ++stats[key + "_" + suffixes.gender];
+    ++stats[key + "_" + suffixes.age_dec.stringValue()];
+    ++stats[key + "_" + suffixes.age_grp.stringValue()];
+    ++stats[key + "_" + suffixes.area_type.stringValue()];
+    ++stats[key + "_" + suffixes.syr_src.stringValue()];
+    ++stats[key + "_" + suffixes.race.stringValue()];
+    ++stats[key + "_" + suffixes.hcv_state.stringValue()];
+    ++stats[key + "_" + suffixes.gender.stringValue()];
     ++stats[key + "_ALL"];
 }
 

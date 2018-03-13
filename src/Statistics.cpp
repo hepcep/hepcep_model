@@ -6,7 +6,6 @@
 
 #include "Statistics.h"
 #include "HCPerson.h"
-#include "constants.h"
 
 namespace hepcep {
 
@@ -16,8 +15,8 @@ Statistics::Statistics() {
     std::string key = "population";
 
     std::vector<std::string> suffixes;
-    for (std::string gender : GENDERS) {
-        suffixes.push_back("_gender_" + gender);
+    for (auto& gender : Gender::values()) {
+        suffixes.push_back("_gender_" + gender.stringValue());
     }
 
     //for (std::string state : HCV_STATES) {

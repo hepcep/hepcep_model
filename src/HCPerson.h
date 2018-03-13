@@ -18,6 +18,9 @@
 #include "HCPlace.h"
 #include "HCVState.h"
 #include "Zone.h"
+#include "Gender.h"
+#include "Race.h"
+#include "HarmReduction.h"
 
 namespace hepcep {
 
@@ -60,9 +63,9 @@ protected:
 
 	double age;
 	double ageStarted;
-	std::string gender;
-	std::string race;
-	std::string syringeSource;
+	Gender gender;
+	Race race;
+	HarmReduction syringeSource;
 	std::string zipCode;
 	HCVState hcvState;
 	unsigned int drug_inDegree;
@@ -117,19 +120,19 @@ public:
 		return ageStarted;
 	}
 
-	std::string getRace() const {
+	const Race getRace() const {
 		return race;
 	}
 
-	std::string getGender() const {
+	const Gender getGender() const {
 		return gender;
 	}
 
-	std::string getSyringeSource() const {
+	const HarmReduction getSyringeSource() const {
 		return syringeSource;
 	}
 
-	const HCVState& getHCVState() const {
+	const HCVState getHCVState() const {
 		return hcvState;
 	}
 

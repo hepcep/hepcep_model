@@ -12,7 +12,6 @@
 #include "Immunology.h"
 #include "Statistics.h"
 #include "HCPerson.h"
-#include "constants.h"
 #include "EndTreatmentFunctor.h"
 
 namespace hepcep {
@@ -92,7 +91,7 @@ void Immunology::leaveExposed() {
 bool Immunology::leaveAcute() {
 
     //returns true iff self limiting
-    double prob_self_limiting = idu_->getGender() == MALE ? params_->prob_self_limiting_male : params_->prob_self_limiting_female;
+    double prob_self_limiting = idu_->getGender() == Gender::MALE ? params_->prob_self_limiting_male : params_->prob_self_limiting_female;
             //agent.getGender() == Gender.Male? prob_self_limiting_male : prob_self_limiting_female;
     if (((!past_recovered) && prob_self_limiting > repast::Random::instance()->nextDouble()) ||
          ((past_recovered) && params_->prob_clearing > repast::Random::instance()->nextDouble()) ||

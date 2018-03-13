@@ -13,13 +13,23 @@
 #include <memory>
 
 #include "HCPerson.h"
+#include "AgeGroup.h"
+#include "AreaType.h"
+#include "AgeDecade.h"
 
 namespace hepcep {
 
 struct StatKeySuffix {
 
-    std::string gender, hcvstate, race,
-        syrsrc, agegrp, agedec, areatype;
+    Gender gender;
+    Race race;
+    HCVState hcv_state;
+    HarmReduction syr_src;
+    AgeGroup age_grp;
+    AgeDecade age_dec;
+    AreaType area_type;
+
+    StatKeySuffix();
 
     void set(std::shared_ptr<HCPerson> person);
 };

@@ -10,12 +10,12 @@
 
 #include "parameters_constants.h"
 #include "HCPerson.h"
-#include "utilities.h"
 
 namespace hepcep {
 
 
-HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), hcvState(HCVState::UNKNOWN), lastExposureDate(-1.0) {
+HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender(Gender::FEMALE), race(Race::OTHER),
+        syringeSource(HarmReduction::HARM_REDUCTION), hcvState(HCVState::UNKNOWN), lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
 
@@ -24,11 +24,11 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), hcvSta
 	drug_outDegree = data.drug_outDegree;
 	drug_inDegree = data.drug_inDegree;
 	fractionReceptSharing = data.fractionReceptSharing;
-	race = data.race;
-	gender = parse_gender(data.gender);
+	race = Race::valueOf(data.race);
+	gender = Gender::valueOf(data.gender);
 	injectionIntensity = data.injectionIntensity;
 	zipCode = data.zipCode;
-	syringeSource = data.syringeSource;
+	syringeSource = HarmReduction::valueOf(data.syringeSource);
 
 	// TODO Set HCV state via Immunology as in APK Model
 	hcvState = HCVState::UNKNOWN;
@@ -85,7 +85,8 @@ double HCPerson::getDemographicDistance(PersonPtr other){
 }
 
  std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
-     os << person.getAge() << "," << person.getGender() << "," << person.getRace() << "," << person.getZipcode() << "," << person.getSyringeSource()
+     os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","
+             << person.getSyringeSource().stringValue()
              << "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
                       << "," << person.getAgeStarted()
                       << "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<

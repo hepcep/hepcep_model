@@ -344,9 +344,9 @@ void HCModel::zoneCensus(){
 void writePerson(HCPerson* person, AttributeWriter& write) {
 	write("age", person->getAge());
 	write("age_started", person->getAgeStarted());
-	write("race", "\"" + person->getRace() +"\"");
-	write("gender", "\"" + person->getGender() +"\"");
-	write("syringe_source", "\"" + person->getSyringeSource() +"\"");
+	write("race", "\"" + person->getRace().stringValue() +"\"");
+	write("gender", "\"" + person->getGender().stringValue() +"\"");
+	write("syringe_source", "\"" + person->getSyringeSource().stringValue() +"\"");
 	write("zipcode", "\"" + person->getZipcode() +"\"");
 
 	write("hcv", "\"" + person->getHCVState().stringValue() +"\"");

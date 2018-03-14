@@ -15,25 +15,25 @@ bool filter_true(double tick, std::shared_ptr<HCPerson> person) {
 
 bool filter_hcv_rna(double tick,  std::shared_ptr<HCPerson> person) {
     // TODO uncomment when implemented
-    // person->isHcvRNA(tick);
+    // return person->isHcvRNA(tick);
     return true;
 }
 
 bool filter_hcv_abpos(double tick,  std::shared_ptr<HCPerson> person) {
     // TODO uncomment when implemented
-    // person->isHcvABpos();
+    // return person->isHcvABpos();
     return true;
 }
 
 bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person) {
     // TODO uncomment when implemented
-    // person->isInTreatment();
+    // return person->isInTreatment();
     return true;
 }
 
 bool filter_cured(double tick, std::shared_ptr<HCPerson> person) {
     // TODO uncomment when implemented
-    // person->isCured();
+    // return person->isCured();
     return true;
 }
 

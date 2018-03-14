@@ -36,11 +36,12 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "HepCEP Model Initialization." << std::endl;
 	std::cout << "Output dir: " << output_directory << std::endl;
 
-//    string stats_fname = output_directory + "/" + Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
-//    file_sink.open(insert_in_file_name(stats_fname, run));
+	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
+	Statistics::init(stats_fname);
 
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
+	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
 
 	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
 	std::cout << "CNEP+ file: " << cnep_file << std::endl;
@@ -84,12 +85,17 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 HCModel::~HCModel() {}
 
+void HCModel::atEnd() {
+    Statistics::instance()->close();
+}
+
 void HCModel::step() {
-//	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
 		person->doSomething();
 	}
+	Statistics::instance()->collectStats(tick, local_persons);
 }
 
 void HCModel::performInitialLinking(){

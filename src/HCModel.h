@@ -78,6 +78,7 @@ public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);
 	virtual ~HCModel();
 
+	void atEnd();
 	void step();
 
 

@@ -19,6 +19,7 @@ SRC = HCPlace.cpp \
 	HarmReduction.cpp \
 	AgeDecade.cpp \
 	AgeGroup.cpp \
-	AreaType.cpp 
+	AreaType.cpp \
+	FileOut.cpp
 	
 model_src += $(SRC)

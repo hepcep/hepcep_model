@@ -13,13 +13,13 @@
 
 namespace hepcep {
 
-const HCVState HCVState::SUSCEPTIBLE(HCVState::susceptible, "SUSCEPTIBLE");
-const HCVState HCVState::EXPOSED(HCVState::exposed, "EXPOSED");
-const HCVState HCVState::INFECTIOUS_ACUTE(HCVState::infectious_acute, "INFECTIOUS_ACUTE");
-const HCVState HCVState::RECOVERED(HCVState::recovered, "RECOVERED");
-const HCVState HCVState::CURED(HCVState::cured, "CURED");
-const HCVState HCVState::CHRONIC(HCVState::chronic, "CHRONIC");
-const HCVState HCVState::UNKNOWN(HCVState::unknown, "UNKNOWN");
+const HCVState HCVState::SUSCEPTIBLE(HCVState::susceptible, "susceptible");
+const HCVState HCVState::EXPOSED(HCVState::exposed, "exposed");
+const HCVState HCVState::INFECTIOUS_ACUTE(HCVState::infectious_acute, "infectiousacute");
+const HCVState HCVState::RECOVERED(HCVState::recovered, "recovered");
+const HCVState HCVState::CURED(HCVState::cured, "cured");
+const HCVState HCVState::CHRONIC(HCVState::chronic, "chronic");
+const HCVState HCVState::UNKNOWN(HCVState::unknown, "unknown");
 const HCVState HCVState::ABPOS(HCVState::abpos, "ABPOS");
 
 const std::vector<HCVState> HCVState::values_({ HCVState::SUSCEPTIBLE, HCVState::EXPOSED,

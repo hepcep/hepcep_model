@@ -9,44 +9,100 @@
 
 namespace hepcep {
 
-StatKeySuffix::StatKeySuffix() : gender(Gender::FEMALE), race(Race::HISPANIC), hcv_state(HCVState::UNKNOWN),
-        syr_src(HarmReduction::HARM_REDUCTION), age_grp(AgeGroup::LEQ_30), age_dec(AgeDecade::AGE_21_30),
-        area_type(AreaType::CITY) {}
-
-void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
-    gender = person->getGender();
-    hcv_state = person->getHCVState();
-    race = person->getRace();
-    syr_src = person->getSyringeSource();
-    age_grp = AgeGroup::getAgeGroup(person->getAge());
-    age_dec = AgeDecade::getAgeDecade(person->getAge());
-    area_type = AreaType::getAreaType(person->getZipcode());
+bool filter_true(double tick, std::shared_ptr<HCPerson> person) {
+    return true;
 }
 
-AggregateStats::AggregateStats(std::string base_key, std::vector<std::string> key_suffixes) : key(base_key), stats() {
-    for (auto suffix : key_suffixes) {
-        stats.emplace(key + "_" + suffix, 0.0);
+bool filter_hcv_rna(double tick,  std::shared_ptr<HCPerson> person) {
+    // TODO uncomment when implemented
+    // person->isHcvRNA(tick);
+    return true;
+}
+
+bool filter_hcv_abpos(double tick,  std::shared_ptr<HCPerson> person) {
+    // TODO uncomment when implemented
+    // person->isHcvABpos();
+    return true;
+}
+
+bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person) {
+    // TODO uncomment when implemented
+    // person->isInTreatment();
+    return true;
+}
+
+bool filter_cured(double tick, std::shared_ptr<HCPerson> person) {
+    // TODO uncomment when implemented
+    // person->isCured();
+    return true;
+}
+
+
+void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
+    gender = GENDER_INFIX + person->getGender().stringValue();
+    hcv_state = HCV_INFIX + person->getHCVState().stringValue();
+    race = RACE_INFIX + person->getRace().stringValue();
+    syr_src = SYRSRC_INFIX + person->getSyringeSource().stringValue();
+    age_grp = AGEGRP_INFIX + AgeGroup::getAgeGroup(person->getAge()).stringValue();
+    age_dec = AGEDEC_INFIX + AgeDecade::getAgeDecade(person->getAge()).stringValue();
+    area_type = AREATYPE_INFIX + AreaType::getAreaType(person->getZipcode()).stringValue();
+}
+
+AggregateStats::AggregateStats(std::string base_key, std::vector<std::string>& metrics) : key(base_key), stats(), filter_(&filter_true) {
+    for (auto metric : metrics) {
+        stats.emplace(key + metric, 0.0);
     }
 }
 
+AggregateStats::AggregateStats(std::string base_key, std::vector<std::string>& metrics, bool (*filter)(double, std::shared_ptr<HCPerson>)) : key(base_key), stats(),
+        filter_(filter) {
+    for (auto metric : metrics) {
+        stats.emplace(key + metric, 0.0);
+    }
+}
+
+
 void AggregateStats::reset() {
-    for (auto kv : stats) {
+    for (auto& kv : stats) {
         stats[kv.first] = 0;
     }
 }
 
-void AggregateStats::increment(StatKeySuffix& suffixes) {
-    ++stats[key + "_" + suffixes.age_dec.stringValue()];
-    ++stats[key + "_" + suffixes.age_grp.stringValue()];
-    ++stats[key + "_" + suffixes.area_type.stringValue()];
-    ++stats[key + "_" + suffixes.syr_src.stringValue()];
-    ++stats[key + "_" + suffixes.race.stringValue()];
-    ++stats[key + "_" + suffixes.hcv_state.stringValue()];
-    ++stats[key + "_" + suffixes.gender.stringValue()];
-    ++stats[key + "_ALL"];
+void AggregateStats::increment(std::shared_ptr<HCPerson> person, StatKeySuffix& suffixes, double tick) {
+    if (filter_(tick, person)) {
+        ++stats[key + suffixes.age_dec];
+        ++stats[key + suffixes.age_grp];
+        ++stats[key + suffixes.area_type];
+        ++stats[key + suffixes.syr_src];
+        ++stats[key + suffixes.race];
+        ++stats[key + suffixes.hcv_state];
+        ++stats[key + suffixes.gender];
+        ++stats[key + "_ALL"];
+    }
+}
+
+void AggregateStats::write(FileOut& out) {
+    for (auto& kv : stats) {
+        out << ",";
+        out << stats[kv.first];
+    }
+}
+
+void AggregateStats::writeHeader(FileOut& out) {
+    for (auto& kv : stats) {
+        out << ",";
+        out << kv.first;
+    }
+}
+
+double AggregateStats::get(const std::string& metric) {
+    // TODO replace with [] when we know this
+    // does not throw any exceptions
+    return stats.at(key + metric);
 }
 
 AggregateStats::~AggregateStats() {
 }
+
 
 } /* namespace hepcep */

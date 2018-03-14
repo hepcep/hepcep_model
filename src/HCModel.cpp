@@ -70,6 +70,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	std::string fname("./output/net_initial.gml");
 	write_network(fname, network, &writePerson, &writeEdge);
+	// write t0 stats
+	Statistics::instance()->collectStats(0, local_persons);
 
 	// TODO ------- Test prints below --------
 	for (auto entry : zonePopulation){

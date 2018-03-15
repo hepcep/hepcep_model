@@ -11,6 +11,7 @@
 
 #include "Immunology.h"
 #include "Statistics.h"
+#include "LogType.h"
 #include "HCPerson.h"
 #include "EndTreatmentFunctor.h"
 

@@ -20,6 +20,7 @@ SRC = HCPlace.cpp \
 	AgeDecade.cpp \
 	AgeGroup.cpp \
 	AreaType.cpp \
+	LogType.cpp \
 	FileOut.cpp
 	
 model_src += $(SRC)

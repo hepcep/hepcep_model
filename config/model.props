@@ -16,6 +16,7 @@ run.number = 0;
 
 output.directory = ./output
 stats.output.file = stats.csv
+events.output.file = events.csv
 
 # Used for now
 ab_prob_acute = 0.02

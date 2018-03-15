@@ -4,6 +4,8 @@
 #include <iostream>
 #include <memory>
 
+#include "repast_hpc/RepastProcess.h"
+
 #include "Statistics.h"
 #include "HCPerson.h"
 
@@ -18,6 +20,21 @@ const std::string CURED = "cured";
 const std::string PREVALENCE = "prevalence";
 const std::string RNA_PREVALENCE = "RNApreval";
 const std::string FRACTION = "fraction";
+
+void EventCounts::reset() {
+    activations_daily = cured_daily = losses_daily = aggregate_posttreat = incidence_daily =
+            treatment_recruited_daily = aggregate_courses = 0;
+}
+
+void EventCounts::writeHeader(FileOut& out) {
+    out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,treatment_recruited_daily,aggregate_courses";
+}
+
+void EventCounts::write(FileOut& out) {
+    out << "," << activations_daily << "," << cured_daily << "," << aggregate_posttreat << "," <<
+            losses_daily << "," << incidence_daily << "," << treatment_recruited_daily <<
+            "," << aggregate_courses;
+}
 
 void MeanStats::calcMean() {
     age /= count;
@@ -54,12 +71,12 @@ void MeanStats::writeHeader(FileOut& out) {
 
 Statistics* Statistics::instance_ = nullptr;
 
-void Statistics::init(const std::string& fname) {
+void Statistics::init(const std::string& fname, const std::string& events_fname) {
     if (Statistics::instance_ != nullptr) {
         delete Statistics::instance_;
     }
 
-    instance_ = new Statistics(fname);
+    instance_ = new Statistics(fname, events_fname);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -93,8 +110,8 @@ void init_metrics(std::vector<std::string>& metrics) {
     metrics.push_back("_ALL");
 }
 
-Statistics::Statistics(const std::string& fname) :
-        stats(), metrics(), means(), out(fname) {
+Statistics::Statistics(const std::string& fname, const std::string& events_fname) :
+        stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname) {
 
     init_metrics(metrics);
 
@@ -104,6 +121,7 @@ Statistics::Statistics(const std::string& fname) :
     stats.emplace(IN_TREATMENT, AggregateStats(IN_TREATMENT, metrics, &filter_in_treatment));
     stats.emplace(CURED, AggregateStats(CURED, metrics, &filter_cured));
     means.reset();
+    event_counts.reset();
 
     // write the header
     out << "tick";
@@ -111,16 +129,21 @@ Statistics::Statistics(const std::string& fname) :
         stat.second.writeHeader(out);
     }
     means.writeHeader(out);
+    event_counts.writeHeader(out);
 
     for (auto& metric : metrics) {
        out << "," << PREVALENCE + metric << "," << RNA_PREVALENCE + metric << "," << FRACTION + metric;
     }
     out << "\n";
+
+    events_out << "tick,event_type,person_id,other\n";
 }
 
 void Statistics::close() {
     out.flush();
     out.close();
+    events_out.flush();
+    events_out.close();
 }
 
 Statistics::~Statistics() {
@@ -158,7 +181,14 @@ void Statistics::calculatePrevalence(std::map<std::string, double>& prevalences)
     }
 }
 
-void Statistics::collectStats(double tick,
+void Statistics::writeEvents() {
+    for (auto& evt : log_events) {
+        events_out << evt.tick << "," << evt.type.stringValue() << "," <<
+                evt.person << "," << evt.other << "\n";
+    }
+}
+
+void Statistics::recordStats(double tick,
         std::map<unsigned int, std::shared_ptr<HCPerson>>& persons) {
     StatKeySuffix sks;
     for (auto& kv : persons) {
@@ -178,6 +208,7 @@ void Statistics::collectStats(double tick,
 
     means.calcMean();
     means.write(out);
+    event_counts.write(out);
 
     std::map<std::string, double> prevalences;
     calculatePrevalence(prevalences);
@@ -188,14 +219,33 @@ void Statistics::collectStats(double tick,
 
     out << "\n";
 
+    writeEvents();
+
     for (auto& stat : stats) {
         stat.second.reset();
     }
     means.reset();
+    event_counts.reset();
 }
 
 void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::string& msg) {
-
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+    log_events.push_back({tick, logType, person->id(), msg});
+    if (logType == LogType::ACTIVATED) {
+        ++event_counts.activations_daily;
+    } else if (logType == LogType::CURED) {
+        ++event_counts.cured_daily;
+        ++event_counts.aggregate_posttreat;
+    } else if (logType == LogType::DEACTIVATED) {
+        ++event_counts.losses_daily;
+    } else if (logType == LogType::FAILED_TREATMENT) {
+        ++event_counts.aggregate_posttreat;
+    } else if (logType == LogType::INFECTED) {
+        ++event_counts.incidence_daily;
+    } else if (logType == LogType::STARTED_TREATMENT) {
+        ++event_counts.treatment_recruited_daily;
+        ++event_counts.aggregate_courses;
+    }
 }
 
 } /* namespace seir */

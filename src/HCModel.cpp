@@ -37,7 +37,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Output dir: " << output_directory << std::endl;
 
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
-	Statistics::init(stats_fname);
+	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
+	Statistics::init(stats_fname, events_fname);
 
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
@@ -71,7 +72,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::string fname("./output/net_initial.gml");
 	write_network(fname, network, &writePerson, &writeEdge);
 	// write t0 stats
-	Statistics::instance()->collectStats(0, local_persons);
+	Statistics::instance()->recordStats(0, local_persons);
 
 	// TODO ------- Test prints below --------
 	for (auto entry : zonePopulation){
@@ -97,7 +98,7 @@ void HCModel::step() {
 		PersonPtr& person = entry.second;
 		person->doSomething();
 	}
-	Statistics::instance()->collectStats(tick, local_persons);
+	Statistics::instance()->recordStats(tick, local_persons);
 }
 
 void HCModel::performInitialLinking(){

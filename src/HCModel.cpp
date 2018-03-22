@@ -60,10 +60,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
-	PersonCreator personCreator;
+	personCreator = std::make_shared<PersonCreator>();
+	burnInControl();
 
-	// TODO make PersonCreator sharedPtr if reused
-	personCreator.create_persons(local_persons, personData, zoneMap, personCount);
+	personCreator->create_persons(local_persons, personData, zoneMap, personCount);
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
@@ -93,10 +93,10 @@ void HCModel::atEnd() {
 }
 
 void HCModel::step() {
-    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
-		person->doSomething();
+		person->step();
 	}
 	Statistics::instance()->recordStats(tick, local_persons);
 }
@@ -348,6 +348,47 @@ void HCModel::zoneCensus(){
 
 		myAgents.push_back(person);
 	}
+}
+
+/*
+ * activate the burn-in mode
+ * - should be called before the agents are created
+ */
+void HCModel::burnInControl() {
+
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+
+	if(burnInDays <= 0) {
+//		burn_in_mode = false;
+		return;
+	}
+
+	// TODO Statistics
+//	Statistics.setBurnInMode(true);
+	personCreator->setBurnInPeriod(true, burnInDays);
+
+	// TODO Schedule
+//	main_schedule.schedule(ScheduleParameters.createOneTime(RepastEssentials.GetTickCount() + burnInDays), this, "burnInEnd", burnInDays);
+}
+
+void HCModel::burnInEnd(double burnInDays) {
+//	burn_in_mode = false;
+
+	// TODO Statistics
+//	Statistics.setBurnInMode(false);
+
+	personCreator->setBurnInPeriod(false, -1);
+
+	// TODO Person
+//	for(Object obj : context) {
+//		if(obj instanceof IDU) {
+//			IDU agent = (IDU) obj;
+//			agent.setBirthDate(agent.getBirthDate().plusDays(burnInDays));
+//			assert agent.isActive();
+//			Statistics.fire_status_change(AgentMessage.activated, agent, "", null);
+//		}
+//	}
+	std::cout << "\n**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
 
 void writePerson(HCPerson* person, AttributeWriter& write) {

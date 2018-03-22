@@ -19,6 +19,9 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender
 
 //	std::cout << "create Person " << id << std::endl;
 
+	// TODO immunology constructor with default params
+//	immunology = std::make_shared<Immunology>(this);
+
 	age = data.age;
 	ageStarted = data.ageStarted;
 	drug_outDegree = data.drug_outDegree;
@@ -60,7 +63,7 @@ HCPerson::~HCPerson() {
 //	std::cout << "Destruct Person." << std::endl;
 }
 
-void HCPerson::doSomething() {
+void HCPerson::step() {
 //    std::cout << id_ << ": hello " << std::endl;
 
     // TODO increment age
@@ -84,16 +87,38 @@ double HCPerson::getDemographicDistance(PersonPtr other){
 	return ret / 2.0;
 }
 
- std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
-     os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","
-             << person.getSyringeSource().stringValue()
-             << "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
-                      << "," << person.getAgeStarted()
-                      << "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
-                      /*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();
+/*
+ * let the agent know that it's about go enter the simulation
+ * this method should be called before adding the IDU to context
+ * life_extension is used to adjust for possible burn-in time or time already in the drug career
+ */
+bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
+		double status_report_frequency) {
+
+	active = true;
+
+	// TODO Scheduling
+//	if(! schedule_end(residual_burnin_days, elapsed_career_days)) {
+//		return false;
+//	}
+//
+//	if(status_report_frequency > 0) {
+//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+//		ScheduleParameters sched_params = ScheduleParameters.createRepeating(RepastEssentials.GetTickCount()+0.0001, status_report_frequency);
+//		my_status = schedule.schedule(sched_params, this, "report_status");
+//	}
+	return true;
+}
+
+std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
+	os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","
+			<< person.getSyringeSource().stringValue()
+			<< "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
+			<< "," << person.getAgeStarted()
+			<< "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
+			/*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();
 
      return os;
-
  }
 
 } /* namespace hepcep */

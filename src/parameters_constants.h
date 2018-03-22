@@ -23,6 +23,8 @@ const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 const std::string AB_PROB_CHRONIC = "ab_prob_chronic";
 const std::string AB_PROB_ACUTE = "ab_prob_acute";
 
+const std::string BURN_IN_DAYS = "burn_in_days";
+
 const std::string HOMOPHILY_STRENGTH = "homophily_strength";
 const std::string INITIAL_PWID_COUNT = "initial_pwid_count";
 const std::string INTERACTION_HOME_CUTOFF = "interaction_home_cutoff";
@@ -31,6 +33,7 @@ const std::string INTERACTION_RATE_DRUG_SITES = "interaction_rate_at_drug_sites"
 const std::string INTERACTION_RATE_EXZONE = "interaction_rate_exzone";
 const std::string LINKING_TIME_WINDOW = "linking_time_window";
 
+const std::string STATUS_REPORT_FREQUENCY = "status_report_frequency";
 }
 
 

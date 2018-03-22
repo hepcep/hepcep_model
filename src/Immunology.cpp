@@ -30,17 +30,18 @@ const double TREATMENT_NOT_STARTED = -1.0;
 using EventPtr = boost::shared_ptr<Event>;
 
 ImmunologyParameters::ImmunologyParameters() :
-        mean_days_acute_naive { std::numeric_limits<double>::signaling_NaN() }, mean_days_acute_rechallenged {
-                std::numeric_limits<double>::signaling_NaN() }, mean_days_naive_to_infectious {
-                std::numeric_limits<double>::signaling_NaN() }, mean_days_residual_hcv_infectivity {
-                std::numeric_limits<double>::signaling_NaN() }, prob_self_limiting_female {
-                std::numeric_limits<double>::signaling_NaN() }, prob_self_limiting_male {
-                std::numeric_limits<double>::signaling_NaN() }, prob_clearing { std::numeric_limits<
-                double>::signaling_NaN() }, transmissibility {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_duration {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_svr { std::numeric_limits<
-                double>::signaling_NaN() }, treatment_susceptibility {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_repeatable(false)
+        mean_days_acute_naive { std::numeric_limits<double>::signaling_NaN() },
+				mean_days_acute_rechallenged {std::numeric_limits<double>::signaling_NaN() },
+				mean_days_naive_to_infectious { std::numeric_limits<double>::signaling_NaN() },
+				mean_days_residual_hcv_infectivity { std::numeric_limits<double>::signaling_NaN() },
+				prob_self_limiting_female { std::numeric_limits<double>::signaling_NaN() },
+				prob_self_limiting_male { std::numeric_limits<double>::signaling_NaN() },
+				prob_clearing { std::numeric_limits<double>::signaling_NaN() },
+				transmissibility { std::numeric_limits<double>::signaling_NaN() },
+				treatment_duration { std::numeric_limits<double>::signaling_NaN() },
+				treatment_svr { std::numeric_limits<double>::signaling_NaN() },
+				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() },
+				treatment_repeatable(false)
 {}
 
 Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),

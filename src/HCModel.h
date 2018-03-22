@@ -16,6 +16,7 @@
 #include "Network.h"
 #include "Edge.h"
 #include "network_utils.h"
+#include "PersonCreator.h"
 
 namespace hepcep {
 
@@ -27,6 +28,7 @@ private:
 	int run;
 //    FileSink<double> file_sink;
 
+	std::shared_ptr<PersonCreator> personCreator;
 
 protected:
 	Network<HCPerson> network;
@@ -67,6 +69,8 @@ protected:
 	virtual void updatePerson(PersonPtr& person, int index, int* data) override {
 	}
 
+	void burnInControl();
+	void burnInEnd(double burnInDays);
 	void performInitialLinking();
 	void performLinking();
 	double interactionRate(const ZonePtr& zone1, const ZonePtr& zone2);

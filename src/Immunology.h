@@ -22,11 +22,16 @@ class HCPerson;
 
 struct ImmunologyParameters {
 
-     double mean_days_acute_naive, mean_days_acute_rechallenged,
-     mean_days_naive_to_infectious, mean_days_residual_hcv_infectivity,
-     prob_self_limiting_female, prob_self_limiting_male,
-     prob_clearing, transmissibility,
-     treatment_duration, treatment_svr,
+     double mean_days_acute_naive,
+		 mean_days_acute_rechallenged,
+     mean_days_naive_to_infectious,
+		 mean_days_residual_hcv_infectivity,
+     prob_self_limiting_female,
+		 prob_self_limiting_male,
+     prob_clearing,
+		 transmissibility,
+     treatment_duration,
+		 treatment_svr,
      treatment_susceptibility;
 
      bool treatment_repeatable;

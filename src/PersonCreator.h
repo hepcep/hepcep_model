@@ -16,12 +16,16 @@ namespace hepcep {
 
 class PersonCreator {
 
+protected:
+	bool burnInMode = false;
+	double burnInDays = 0;
+
 public:
 	static unsigned int ID_COUNTER;
 
 	PersonCreator();
 	
-    virtual ~PersonCreator();
+  virtual ~PersonCreator();
 	
 	/**
 	 * Create Persons from the specified file, placing them in the specified map.
@@ -30,6 +34,7 @@ public:
 			std::vector<HCPersonData> & personData,  std::map<std::string,ZonePtr>& zoneMap,
 			unsigned int person_count);
 
+	void setBurnInPeriod(bool burnInMode, double burnInPeriod);
 
 };
 

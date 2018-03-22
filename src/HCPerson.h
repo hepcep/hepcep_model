@@ -21,6 +21,7 @@
 #include "Gender.h"
 #include "Race.h"
 #include "HarmReduction.h"
+#include "Immunology.h"
 
 namespace hepcep {
 
@@ -76,6 +77,10 @@ protected:
 
 	ZonePtr myZone;
 
+	std::shared_ptr<Immunology> immunology;
+
+	bool active = false;
+
 public:
 	HCPerson(unsigned int id);
 	HCPerson(unsigned int id, HCPersonData& data);
@@ -88,9 +93,12 @@ public:
 	// not used in initial version
 	void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}
 
-	void doSomething();
+	void step();
 
 	double getDemographicDistance(PersonPtr other);
+
+	bool activate(double residual_burnin_days, double elapsed_career_days,
+			double status_report_frequency);
 
 	unsigned int getDrugReceptDegree() const {
 		return drug_inDegree;

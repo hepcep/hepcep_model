@@ -53,6 +53,7 @@ prob_self_limiting_female = 0.346
 prob_self_limiting_male = 0.121
 prob_clearing = 0.85
 pwid_maturity_threshold = 5
+status_report_frequency = -1
 transmissibility = 0.01
 treatment_duration = 84
 treatment_nonadherence = 0.1

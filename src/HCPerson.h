@@ -31,18 +31,6 @@ using PersonPtr = std::shared_ptr<HCPerson>;
 
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
-	//	std::string label;
-	//	unsigned int drug_outDegree;
-	//	unsigned int drug_inDegree;
-	//	double fractionReceptSharing;
-	//	std::string gender;
-	//	double ageStarted;
-	//	std::string birthDate;
-	//	std::string surveyDate;
-	//	std::string hcvState;
-	//	double injectionIntensity;
-	//	std::string zipCode;
-
 	double age;
 	double ageStarted;
 	std::string gender;
@@ -68,7 +56,7 @@ protected:
 	Race race;
 	HarmReduction syringeSource;
 	std::string zipCode;
-	HCVState hcvState;
+//	HCVState hcvState;
 	unsigned int drug_inDegree;
 	unsigned int drug_outDegree;
 	double injectionIntensity;
@@ -99,6 +87,10 @@ public:
 
 	bool activate(double residual_burnin_days, double elapsed_career_days,
 			double status_report_frequency);
+
+	void deactivate();
+	void receive_equipment_or_drugs();
+	void startTreatment();
 
 	unsigned int getDrugReceptDegree() const {
 		return drug_inDegree;
@@ -141,7 +133,7 @@ public:
 	}
 
 	const HCVState getHCVState() const {
-		return hcvState;
+		return immunology->getHCVState();
 	}
 
 	double getInjectionIntensity() const {

@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 
+#include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 

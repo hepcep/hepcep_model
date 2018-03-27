@@ -33,7 +33,22 @@ const std::string INTERACTION_RATE_DRUG_SITES = "interaction_rate_at_drug_sites"
 const std::string INTERACTION_RATE_EXZONE = "interaction_rate_exzone";
 const std::string LINKING_TIME_WINDOW = "linking_time_window";
 
+const std::string MEAN_DAYS_ACUTE_NAIVE = "mean_days_acute_naive";
+const std::string MEAN_DAYS_ACUTE_RECHALLENGED = "mean_days_acute_rechallenged";
+const std::string MEAN_DAYS_NAIVE_TO_INFECTIOUS = "mean_days_naive_to_infectious";
+const std::string MEAN_DAYS_RESIDUAL_HCV_INFECTIVITY = "mean_days_residual_hcv_infectivity";
+const std::string PROB_SELF_LIMITING_FEMALE = "prob_self_limiting_female";
+const std::string PROB_SELF_LIMITING_MALE = "prob_self_limiting_male";
+const std::string PROB_CLEARING = "prob_clearing";
+
 const std::string STATUS_REPORT_FREQUENCY = "status_report_frequency";
+
+const std::string TRANSMISSIBILITY = "transmissibility";
+const std::string TREATMENT_DURATION = "treatment_duration";
+const std::string TREATMENT_REPEATABLE = "treatment_repeatable";
+const std::string TREATMENT_SVR = "treatment_svr";
+const std::string TREATMENT_SUSCEPTIBILITY = "treatment_susceptibility";
+
 }
 
 

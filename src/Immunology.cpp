@@ -9,11 +9,14 @@
 #include "repast_hpc/Random.h"
 #include "repast_hpc/RepastProcess.h"
 
+#include "chi_sim/Parameters.h"
+
 #include "Immunology.h"
 #include "Statistics.h"
 #include "LogType.h"
 #include "HCPerson.h"
 #include "EndTreatmentFunctor.h"
+#include "parameters_constants.h"
 
 namespace hepcep {
 
@@ -43,6 +46,26 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() },
 				treatment_repeatable(false)
 {}
+
+Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
+        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
+
+	params_ = std::make_shared<ImmunologyParameters>();
+
+	params_->mean_days_acute_naive = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_ACUTE_NAIVE);
+	params_->mean_days_acute_rechallenged  = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_ACUTE_RECHALLENGED);
+	params_->mean_days_naive_to_infectious = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_NAIVE_TO_INFECTIOUS);
+	params_->mean_days_residual_hcv_infectivity = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_RESIDUAL_HCV_INFECTIVITY);
+	params_->prob_self_limiting_female = chi_sim::Parameters::instance()->getDoubleParameter(PROB_SELF_LIMITING_FEMALE);
+	params_->prob_self_limiting_male = chi_sim::Parameters::instance()->getDoubleParameter(PROB_SELF_LIMITING_MALE);
+	params_->prob_clearing = chi_sim::Parameters::instance()->getDoubleParameter(PROB_CLEARING);
+	params_->transmissibility = chi_sim::Parameters::instance()->getDoubleParameter(TRANSMISSIBILITY);
+	params_->treatment_duration = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_DURATION);
+	params_->treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
+	params_->treatment_svr = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SVR);
+	params_->treatment_susceptibility = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SUSCEPTIBILITY);
+
+}
 
 Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {

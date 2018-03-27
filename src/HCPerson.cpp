@@ -6,6 +6,8 @@
  */
 
 #include "repast_hpc/Random.h"
+#include "repast_hpc/RepastProcess.h"
+#include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
 #include "parameters_constants.h"
@@ -14,13 +16,15 @@
 namespace hepcep {
 
 
-HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender(Gender::FEMALE), race(Race::OTHER),
-        syringeSource(HarmReduction::HARM_REDUCTION), hcvState(HCVState::UNKNOWN), lastExposureDate(-1.0) {
+HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
+		gender(Gender::FEMALE), race(Race::OTHER),
+		syringeSource(HarmReduction::HARM_REDUCTION),
+		lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
 
-	// TODO immunology constructor with default params
-//	immunology = std::make_shared<Immunology>(this);
+
+	immunology = std::make_shared<Immunology>(this);
 
 	age = data.age;
 	ageStarted = data.ageStarted;
@@ -33,8 +37,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender
 	zipCode = data.zipCode;
 	syringeSource = HarmReduction::valueOf(data.syringeSource);
 
-	// TODO Set HCV state via Immunology as in APK Model
-	hcvState = HCVState::UNKNOWN;
+	HCVState hcvState = HCVState::UNKNOWN;
 
 	// If the HCV state is ABPOS then assign the specific infection state
 	if(data.hcvState == HCVState::ABPOS) {
@@ -56,6 +59,9 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender
 	else {
 		hcvState = data.hcvState;
 	}
+
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	immunology->setHCVInitState(tick,hcvState,0);
 }
 
 
@@ -109,6 +115,33 @@ bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
 //	}
 	return true;
 }
+
+void HCPerson::deactivate(){
+	// TODO deactive
+//	Statistics.fire_status_change(AgentMessage.deactivated, this, "", null);
+//	context.remove(this);
+	immunology->deactivate();
+//	if(my_status != null) {
+//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+//		schedule.removeAction(my_status);
+//	}
+}
+
+void HCPerson::receive_equipment_or_drugs() {
+	// TODO receive drugs
+	//be exposed to the blood of a friend
+//	PersonPtr donor = network.getRandomPredecessor(this);
+//
+//	if (donor != null) {
+//		donor->immunology->give_exposure(this->immunology);
+//	}
+}
+
+void HCPerson::startTreatment() {
+	// TODO start treatment
+//		bool adherent = RandomHelper.nextDouble() > treatment_nonadherence;
+//		immunology->startTreatment(adherent);
+	}
 
 std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
 	os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","

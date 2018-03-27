@@ -70,6 +70,7 @@ private:
     void purgeActions();
 
 public:
+    Immunology(HCPerson* idu);
     Immunology(HCPerson* idu, IPPtr params);
     Immunology(HCPerson* idu, HCVState alter_state, IPPtr params);
     virtual ~Immunology();

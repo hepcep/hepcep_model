@@ -5,19 +5,29 @@
  *      Author: nick
  */
 
+#include <math.h>
+
 #include "repast_hpc/Random.h"
+#include "repast_hpc/RepastProcess.h"
+#include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
 #include "parameters_constants.h"
 #include "HCPerson.h"
+#include "Network.h"
 
 namespace hepcep {
 
 
-HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender(Gender::FEMALE), race(Race::OTHER),
-        syringeSource(HarmReduction::HARM_REDUCTION), hcvState(HCVState::UNKNOWN), lastExposureDate(-1.0) {
+HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
+		gender(Gender::FEMALE), race(Race::OTHER),
+		syringeSource(HarmReduction::HARM_REDUCTION),
+		lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
+
+
+	immunology = std::make_shared<Immunology>(this);
 
 	age = data.age;
 	ageStarted = data.ageStarted;
@@ -30,8 +40,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender
 	zipCode = data.zipCode;
 	syringeSource = HarmReduction::valueOf(data.syringeSource);
 
-	// TODO Set HCV state via Immunology as in APK Model
-	hcvState = HCVState::UNKNOWN;
+	HCVState hcvState = HCVState::UNKNOWN;
 
 	// If the HCV state is ABPOS then assign the specific infection state
 	if(data.hcvState == HCVState::ABPOS) {
@@ -53,6 +62,9 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id), gender
 	else {
 		hcvState = data.hcvState;
 	}
+
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	immunology->setHCVInitState(tick,hcvState,0);
 }
 
 
@@ -60,10 +72,22 @@ HCPerson::~HCPerson() {
 //	std::cout << "Destruct Person." << std::endl;
 }
 
-void HCPerson::doSomething() {
+void HCPerson::step() {
 //    std::cout << id_ << ": hello " << std::endl;
 
-    // TODO increment age
+	if (! active) {
+		return;
+	}
+
+	double n = repast::Random::instance()->nextDouble();
+	double num_sharing_episodes = round(n	* injectionIntensity *
+			fractionReceptSharing);
+
+	for (int episode=0; episode<num_sharing_episodes; ++episode) {
+		receive_equipment_or_drugs();
+	}
+
+  age += 1.0 / 365.0;
 }
 
 /*
@@ -84,16 +108,81 @@ double HCPerson::getDemographicDistance(PersonPtr other){
 	return ret / 2.0;
 }
 
- std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
-     os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","
-             << person.getSyringeSource().stringValue()
-             << "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
-                      << "," << person.getAgeStarted()
-                      << "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
-                      /*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();
+/*
+ * let the agent know that it's about go enter the simulation
+ * this method should be called before adding the IDU to context
+ * life_extension is used to adjust for possible burn-in time or time already in the drug career
+ */
+bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
+		double status_report_frequency) {
+
+	active = true;
+
+	// TODO Scheduling
+//	if(! schedule_end(residual_burnin_days, elapsed_career_days)) {
+//		return false;
+//	}
+//
+//	if(status_report_frequency > 0) {
+//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+//		ScheduleParameters sched_params = ScheduleParameters.createRepeating(RepastEssentials.GetTickCount()+0.0001, status_report_frequency);
+//		my_status = schedule.schedule(sched_params, this, "report_status");
+//	}
+	return true;
+}
+
+void HCPerson::deactivate(){
+	// TODO deactive
+//	Statistics.fire_status_change(AgentMessage.deactivated, this, "", null);
+//	context.remove(this);
+	immunology->deactivate();
+//	if(my_status != null) {
+//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+//		schedule.removeAction(my_status);
+//	}
+}
+
+void HCPerson::receive_equipment_or_drugs() {
+
+	// be exposed to the blood of a friend
+	std::vector<EdgePtrT<HCPerson>> vec;
+
+	// TODO not working!
+//	network->inEdges(this, vec);
+
+	// Get a random in-edge
+	int n = vec.size();
+	double roll = repast::Random::instance()->nextDouble();
+	int idx = std::round(roll * (n-1));
+
+//	PersonPtr donor = vec[idx]->v1();
+//
+//	if (donor != NULL) {
+//		double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+//		donor->immunology->exposePartner(this->immunology, tick);
+//	}
+}
+
+
+void HCPerson::startTreatment() {
+	// TODO start treatment
+//		bool adherent = RandomHelper.nextDouble() > treatment_nonadherence;
+//		immunology->startTreatment(adherent);
+	}
+
+std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
+	os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","
+			<< person.getSyringeSource().stringValue()
+			<< "," << person.getHCVState().stringValue() << "," // << person.getHcvNeighborPrevalence()
+			<< "," << person.getAgeStarted()
+			<< "," << person.getDrugReceptDegree() << "," << person.getDrugGivingDegree() << "," <<
+			/*person.getNumBuddies() << */ "," << person.getInjectionIntensity() << "," << person.getFractionReceptSharing(); // << "," << person.getDatabaseLabel();
 
      return os;
-
  }
+
+void HCPerson::setNetwork(NetworkPtr<HCPerson> aNet){
+	network = aNet;
+}
 
 } /* namespace hepcep */

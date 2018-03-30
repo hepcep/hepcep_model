@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 
+#include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
@@ -23,7 +24,7 @@ namespace hepcep {
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : 
 					AbsModelT(moved_data_size, props),
 					run(std::stoi(props.getProperty(RUN))) ,
-					network(true),
+//					network(true),
 					personData(),
 					zoneMap(),
 					zoneDistanceMap(),
@@ -35,6 +36,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	std::cout << "HepCEP Model Initialization." << std::endl;
 	std::cout << "Output dir: " << output_directory << std::endl;
+
+	network = std::make_shared<Network<HCPerson>>(true);
 
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
@@ -60,10 +63,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
-	PersonCreator personCreator;
+	personCreator = std::make_shared<PersonCreator>();
+	burnInControl();
 
-	// TODO make PersonCreator sharedPtr if reused
-	personCreator.create_persons(local_persons, personData, zoneMap, personCount);
+	personCreator->create_persons(local_persons, personData, zoneMap, network, personCount);
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
@@ -93,17 +96,17 @@ void HCModel::atEnd() {
 }
 
 void HCModel::step() {
-    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
-		person->doSomething();
+		person->step();
 	}
 	Statistics::instance()->recordStats(tick, local_persons);
 }
 
 void HCModel::performInitialLinking(){
 
-	double total_edges = network.edgeCount();
+	double total_edges = network->edgeCount();
 	double total_recept_edge_target = 0;
 	double total_give_edge_target = 0;
 
@@ -117,7 +120,7 @@ void HCModel::performInitialLinking(){
 		total_recept_edge_target += person->getDrugReceptDegree();
 		total_give_edge_target += person->getDrugGivingDegree();
 
-		network.addVertex(person);
+		network->addVertex(person);
 	}
 
 	int iteration = 0;
@@ -138,7 +141,7 @@ void HCModel::performInitialLinking(){
 		performLinking();
 		performLinking();
 
-		total_edges = network.edgeCount();
+		total_edges = network->edgeCount();
 		iteration ++;
 	}
 	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
@@ -236,10 +239,10 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	// Check conditions for adding a directed edge from person1 -> person2
-	if (network.inEdgeCount(person2) >= person2->getDrugReceptDegree()) {
+	if (network->inEdgeCount(person2) >= person2->getDrugReceptDegree()) {
 		return;
 	}
-	if (network.outEdgeCount(person1) >= person1->getDrugGivingDegree()) {
+	if (network->outEdgeCount(person1) >= person1->getDrugGivingDegree()) {
 		return;
 	}
 	double homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
@@ -250,7 +253,7 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	double dist = zoneDistanceMap[person1->getZipcode()][person2->getZipcode()];
 
-	network.addEdge(person1, person2)->putAttribute("distance", dist);
+	network->addEdge(person1, person2)->putAttribute("distance", dist);
 
 
 	// TODO schedule edge time
@@ -261,13 +264,13 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 //	schedule.schedule(out_tie_end_params, this, "end_relationship", obj);
 
 	// Check conditions for adding a directed edge from person2 -> person1
-	if (network.inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
+	if (network->inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
 		return;
 	}
-	if (network.outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
+	if (network->outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
 		return;
 	}
-	network.addEdge(person2, person1)->putAttribute("distance", dist);
+	network->addEdge(person2, person1)->putAttribute("distance", dist);
 
 	// TODO schedule edge time
 //	schedule.schedule(out_tie_end_params, obj, "end_relationship", this); //ends at the same time
@@ -336,8 +339,8 @@ void HCModel::zoneCensus(){
 		// degree connections
 		// TODO check against incarceration state
 
-		unsigned int inCount = network.inEdgeCount(person);
-		unsigned int outCount = network.outEdgeCount(person);
+		unsigned int inCount = network->inEdgeCount(person);
+		unsigned int outCount = network->outEdgeCount(person);
 
 		if (inCount < person->getDrugReceptDegree() ||
 				outCount < person->getDrugGivingDegree()){
@@ -348,6 +351,47 @@ void HCModel::zoneCensus(){
 
 		myAgents.push_back(person);
 	}
+}
+
+/*
+ * activate the burn-in mode
+ * - should be called before the agents are created
+ */
+void HCModel::burnInControl() {
+
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+
+	if(burnInDays <= 0) {
+//		burn_in_mode = false;
+		return;
+	}
+
+	// TODO Statistics
+//	Statistics.setBurnInMode(true);
+	personCreator->setBurnInPeriod(true, burnInDays);
+
+	// TODO Schedule
+//	main_schedule.schedule(ScheduleParameters.createOneTime(RepastEssentials.GetTickCount() + burnInDays), this, "burnInEnd", burnInDays);
+}
+
+void HCModel::burnInEnd(double burnInDays) {
+//	burn_in_mode = false;
+
+	// TODO Statistics
+//	Statistics.setBurnInMode(false);
+
+	personCreator->setBurnInPeriod(false, -1);
+
+	// TODO Person
+//	for(Object obj : context) {
+//		if(obj instanceof IDU) {
+//			IDU agent = (IDU) obj;
+//			agent.setBirthDate(agent.getBirthDate().plusDays(burnInDays));
+//			assert agent.isActive();
+//			Statistics.fire_status_change(AgentMessage.activated, agent, "", null);
+//		}
+//	}
+	std::cout << "\n**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
 
 void writePerson(HCPerson* person, AttributeWriter& write) {

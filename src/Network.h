@@ -481,6 +481,8 @@ EdgePtrT<V> Network<V>::addEdge(const std::shared_ptr<V>& source, const std::sha
 	return doAddEdge(source, target);
 }
 
+template<typename T>
+using NetworkPtr = std::shared_ptr<Network<T>>;
 }
 
 /* namespace hepcep */

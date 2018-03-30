@@ -9,11 +9,14 @@
 #include "repast_hpc/Random.h"
 #include "repast_hpc/RepastProcess.h"
 
+#include "chi_sim/Parameters.h"
+
 #include "Immunology.h"
 #include "Statistics.h"
 #include "LogType.h"
 #include "HCPerson.h"
 #include "EndTreatmentFunctor.h"
+#include "parameters_constants.h"
 
 namespace hepcep {
 
@@ -30,18 +33,39 @@ const double TREATMENT_NOT_STARTED = -1.0;
 using EventPtr = boost::shared_ptr<Event>;
 
 ImmunologyParameters::ImmunologyParameters() :
-        mean_days_acute_naive { std::numeric_limits<double>::signaling_NaN() }, mean_days_acute_rechallenged {
-                std::numeric_limits<double>::signaling_NaN() }, mean_days_naive_to_infectious {
-                std::numeric_limits<double>::signaling_NaN() }, mean_days_residual_hcv_infectivity {
-                std::numeric_limits<double>::signaling_NaN() }, prob_self_limiting_female {
-                std::numeric_limits<double>::signaling_NaN() }, prob_self_limiting_male {
-                std::numeric_limits<double>::signaling_NaN() }, prob_clearing { std::numeric_limits<
-                double>::signaling_NaN() }, transmissibility {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_duration {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_svr { std::numeric_limits<
-                double>::signaling_NaN() }, treatment_susceptibility {
-                std::numeric_limits<double>::signaling_NaN() }, treatment_repeatable(false)
+        mean_days_acute_naive { std::numeric_limits<double>::signaling_NaN() },
+				mean_days_acute_rechallenged {std::numeric_limits<double>::signaling_NaN() },
+				mean_days_naive_to_infectious { std::numeric_limits<double>::signaling_NaN() },
+				mean_days_residual_hcv_infectivity { std::numeric_limits<double>::signaling_NaN() },
+				prob_self_limiting_female { std::numeric_limits<double>::signaling_NaN() },
+				prob_self_limiting_male { std::numeric_limits<double>::signaling_NaN() },
+				prob_clearing { std::numeric_limits<double>::signaling_NaN() },
+				transmissibility { std::numeric_limits<double>::signaling_NaN() },
+				treatment_duration { std::numeric_limits<double>::signaling_NaN() },
+				treatment_svr { std::numeric_limits<double>::signaling_NaN() },
+				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() },
+				treatment_repeatable(false)
 {}
+
+Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
+        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
+
+	params_ = std::make_shared<ImmunologyParameters>();
+
+	params_->mean_days_acute_naive = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_ACUTE_NAIVE);
+	params_->mean_days_acute_rechallenged  = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_ACUTE_RECHALLENGED);
+	params_->mean_days_naive_to_infectious = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_NAIVE_TO_INFECTIOUS);
+	params_->mean_days_residual_hcv_infectivity = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_DAYS_RESIDUAL_HCV_INFECTIVITY);
+	params_->prob_self_limiting_female = chi_sim::Parameters::instance()->getDoubleParameter(PROB_SELF_LIMITING_FEMALE);
+	params_->prob_self_limiting_male = chi_sim::Parameters::instance()->getDoubleParameter(PROB_SELF_LIMITING_MALE);
+	params_->prob_clearing = chi_sim::Parameters::instance()->getDoubleParameter(PROB_CLEARING);
+	params_->transmissibility = chi_sim::Parameters::instance()->getDoubleParameter(TRANSMISSIBILITY);
+	params_->treatment_duration = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_DURATION);
+	params_->treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
+	params_->treatment_svr = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SVR);
+	params_->treatment_susceptibility = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SUSCEPTIBILITY);
+
+}
 
 Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
@@ -57,9 +81,9 @@ void Immunology::deactivate() {
     purgeActions();
 }
 
-bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
+bool Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {
     Statistics* stats = Statistics::instance();
-    stats->logStatusChange(LogType::EXPOSED, partner_imm.idu_, "by agent " + std::to_string(idu_->id()));
+    stats->logStatusChange(LogType::EXPOSED, partner_imm->idu_, "by agent " + std::to_string(idu_->id()));
 
     if (! isHcvRNA(tick)) {
         return false;
@@ -77,9 +101,9 @@ bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
         }
     }
 
-    bool established_new_infection = partner_imm.receiveInfectiousDose(tick); //receive_infectious_dose();
+    bool established_new_infection = partner_imm->receiveInfectiousDose(tick); //receive_infectious_dose();
     if (established_new_infection) {
-        partner_imm.idu_->setLastExposureDate(tick); //important: must follow Statistics.fire()
+        partner_imm->idu_->setLastExposureDate(tick); //important: must follow Statistics.fire()
     }
     return established_new_infection;
 }

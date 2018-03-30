@@ -68,8 +68,6 @@ protected:
 
 	std::shared_ptr<Immunology> immunology;
 
-	NetworkPtr<HCPerson> network;
-
 	bool active = false;
 
 public:
@@ -84,7 +82,7 @@ public:
 	// not used in initial version
 	void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}
 
-	void step();
+	void step(NetworkPtr<HCPerson> network);
 
 	double getDemographicDistance(PersonPtr other);
 
@@ -92,7 +90,7 @@ public:
 			double status_report_frequency);
 
 	void deactivate();
-	void receive_equipment_or_drugs();
+	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
 	void startTreatment();
 
 	unsigned int getDrugReceptDegree() const {
@@ -156,8 +154,6 @@ public:
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
-
-	void setNetwork(NetworkPtr<HCPerson> aNet);
 
 };
 } /* namespace hepcep */

@@ -32,7 +32,7 @@ public:
 	 */
 	void create_persons(std::map<unsigned int, PersonPtr>& persons,
 			std::vector<HCPersonData> & personData,  std::map<std::string,ZonePtr>& zoneMap,
-			NetworkPtr<HCPerson> network, unsigned int person_count);
+			unsigned int person_count);
 
 	void setBurnInPeriod(bool burnInMode, double burnInPeriod);
 

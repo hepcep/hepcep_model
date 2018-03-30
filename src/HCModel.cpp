@@ -66,7 +66,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	personCreator = std::make_shared<PersonCreator>();
 	burnInControl();
 
-	personCreator->create_persons(local_persons, personData, zoneMap, network, personCount);
+	personCreator->create_persons(local_persons, personData, zoneMap, personCount);
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
@@ -97,10 +97,18 @@ void HCModel::atEnd() {
 
 void HCModel::step() {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+
+	// Schedule each Person agent step
+
+	// Pass in the network reference?
+
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
-		person->step();
+		person->step(network);
 	}
+
+	// Collect "dead" agents and remove them from the person list
+
 	Statistics::instance()->recordStats(tick, local_persons);
 }
 

@@ -72,7 +72,7 @@ HCPerson::~HCPerson() {
 //	std::cout << "Destruct Person." << std::endl;
 }
 
-void HCPerson::step() {
+void HCPerson::step(NetworkPtr<HCPerson> network) {
 //    std::cout << id_ << ": hello " << std::endl;
 
 	if (! active) {
@@ -84,7 +84,7 @@ void HCPerson::step() {
 			fractionReceptSharing);
 
 	for (int episode=0; episode<num_sharing_episodes; ++episode) {
-		receive_equipment_or_drugs();
+		receive_equipment_or_drugs(network);
 	}
 
   age += 1.0 / 365.0;
@@ -142,25 +142,29 @@ void HCPerson::deactivate(){
 //	}
 }
 
-void HCPerson::receive_equipment_or_drugs() {
+void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 
 	// be exposed to the blood of a friend
 	std::vector<EdgePtrT<HCPerson>> vec;
 
 	// TODO not working!
-//	network->inEdges(this, vec);
+	network->inEdges(this, vec);
 
 	// Get a random in-edge
 	int n = vec.size();
-	double roll = repast::Random::instance()->nextDouble();
-	int idx = std::round(roll * (n-1));
 
-//	PersonPtr donor = vec[idx]->v1();
-//
-//	if (donor != NULL) {
-//		double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-//		donor->immunology->exposePartner(this->immunology, tick);
-//	}
+	if (n > 0){
+		double roll = repast::Random::instance()->nextDouble();
+		int idx = std::round(roll * (n-1));
+
+		EdgePtrT<HCPerson> edge = vec[idx];
+		PersonPtr donor = edge->v1();
+
+		if (donor != NULL) {
+			double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+			donor->immunology->exposePartner(this->immunology, tick);
+		}
+	}
 }
 
 
@@ -181,8 +185,5 @@ std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
      return os;
  }
 
-void HCPerson::setNetwork(NetworkPtr<HCPerson> aNet){
-	network = aNet;
-}
 
 } /* namespace hepcep */

@@ -124,6 +124,7 @@ public:
 	 * returns them in the specified vector.
 	 */
 	void inEdges(const VertexPtrT<V>& vert, std::vector<EdgePtrT<V>>& edges);
+	void inEdges(const V* vert, std::vector<EdgePtrT<V>>& edges);
 
 
 	/**
@@ -131,6 +132,7 @@ public:
      * returns them in the specified vector.
 	 */
 	void outEdges(const VertexPtrT<V>& vert, std::vector<EdgePtrT<V>>& edges);
+	void outEdges(const V* vert, std::vector<EdgePtrT<V>>& edges);
 
 	/**
 	 * Gets the number of edges into the specified vertex.
@@ -208,6 +210,16 @@ void Network<V>::edges(const VertexPtrT<V>& vertex, std::vector<EdgePtrT<V>>& ed
 
 template<typename V>
 void Network<V>::inEdges(const VertexPtrT<V>& vertex, std::vector<EdgePtrT<V>>& edges) {
+    inEdges(vertex.get(), edges);
+}
+
+template<typename V>
+void Network<V>::outEdges(const VertexPtrT<V>& vertex, std::vector<EdgePtrT<V>>& edges) {
+    outEdges(vertex.get(), edges);
+}
+
+template<typename V>
+void Network<V>::inEdges(const V* vertex, std::vector<EdgePtrT<V>>& edges) {
     gatherEdges(vertex->id(), iel, edges);
     if (!directed_) {
         gatherEdges(vertex->id(), oel, edges);
@@ -215,12 +227,13 @@ void Network<V>::inEdges(const VertexPtrT<V>& vertex, std::vector<EdgePtrT<V>>& 
 }
 
 template<typename V>
-void Network<V>::outEdges(const VertexPtrT<V>& vertex, std::vector<EdgePtrT<V>>& edges) {
+void Network<V>::outEdges(const V* vertex, std::vector<EdgePtrT<V>>& edges) {
     gatherEdges(vertex->id(), oel, edges);
     if (!directed_) {
         gatherEdges(vertex->id(), iel, edges);
     }
 }
+
 
 template<typename V>
 unsigned int Network<V>::doEdgeCount(unsigned int id, EdgeList& el) {

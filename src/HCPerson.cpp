@@ -177,10 +177,13 @@ void HCPerson::reportStatus() {
 }
 
 void HCPerson::startTreatment() {
-	// TODO start treatment
-//		bool adherent = RandomHelper.nextDouble() > treatment_nonadherence;
-//		immunology->startTreatment(adherent);
-	}
+	double treatmentNonadherence = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_NONADHERENCE);
+	double roll = repast::Random::instance()->nextDouble();
+
+	bool adherent = (roll > treatmentNonadherence);
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	immunology->startTreatment(adherent,tick);
+}
 
 std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
 	os << person.getAge() << "," << person.getGender().stringValue() << "," << person.getRace().stringValue() << "," << person.getZipcode() << ","

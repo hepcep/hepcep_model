@@ -51,7 +51,7 @@ class HCPerson : public AbsPersonT {
 protected:
 	std::string label;
 
-	double age;
+	double age;         // age in years
 	double ageStarted;
 	Gender gender;
 	Race race;

@@ -390,7 +390,7 @@ void HCModel::burnInEnd(double burnInDays) {
 
 			// Reduce the person's age based on the burn in period.
 			double age = person->getAge();
-			person->setAge(age - burnInDays);
+			person->setAge(age - (burnInDays / 365.0));
 
 			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 	}

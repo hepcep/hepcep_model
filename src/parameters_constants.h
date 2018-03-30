@@ -48,6 +48,7 @@ const std::string TREATMENT_DURATION = "treatment_duration";
 const std::string TREATMENT_REPEATABLE = "treatment_repeatable";
 const std::string TREATMENT_SVR = "treatment_svr";
 const std::string TREATMENT_SUSCEPTIBILITY = "treatment_susceptibility";
+const std::string TREATMENT_NONADHERENCE = "treatment_nonadherence";
 
 }
 

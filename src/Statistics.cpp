@@ -228,6 +228,10 @@ void Statistics::recordStats(double tick,
     event_counts.reset();
 }
 
+void Statistics::logStatusChange(LogType logType, PersonPtr person, const std::string& msg){
+	logStatusChange(logType, person.get(), msg);
+}
+
 void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::string& msg) {
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
     log_events.push_back({tick, logType, person->id(), msg});
@@ -246,6 +250,10 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
         ++event_counts.treatment_recruited_daily;
         ++event_counts.aggregate_courses;
     }
+}
+
+void Statistics::setBurninMode(bool mode){
+	burninMode = mode;
 }
 
 } /* namespace seir */

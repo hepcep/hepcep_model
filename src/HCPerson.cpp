@@ -15,13 +15,14 @@
 #include "parameters_constants.h"
 #include "HCPerson.h"
 #include "Network.h"
+#include "Statistics.h"
 
 namespace hepcep {
 
 
 HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		gender(Gender::FEMALE), race(Race::OTHER),
-		syringeSource(HarmReduction::HARM_REDUCTION),
+		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0) {
 
 //	std::cout << "create Person " << id << std::endl;
@@ -95,7 +96,7 @@ void HCPerson::step(NetworkPtr<HCPerson> network) {
  * specifically excludes geographic distance
  * assumes all attributes are weighted by 1.0.  allow some to contribute > 1.0
  */
-double HCPerson::getDemographicDistance(PersonPtr other){
+double HCPerson::getDemographicDistance(PersonPtr other) const {
 	double ret = 0.0;
 
 	ret += (race == other->getRace()) ? 0.0: 1.0;
@@ -132,11 +133,15 @@ bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
 }
 
 void HCPerson::deactivate(){
-	// TODO deactive
-//	Statistics.fire_status_change(AgentMessage.deactivated, this, "", null);
+  Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
+
+  // TODO remove the PersonPtr from the local_persons lisr in the model
 //	context.remove(this);
+
 	immunology->deactivate();
-//	if(my_status != null) {
+
+	// TODO schedule
+	//	if(my_status != null) {
 //		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 //		schedule.removeAction(my_status);
 //	}
@@ -167,6 +172,9 @@ void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 	}
 }
 
+void HCPerson::reportStatus() {
+	Statistics::instance()->logStatusChange(LogType::STATUS, this, "");
+}
 
 void HCPerson::startTreatment() {
 	// TODO start treatment
@@ -184,6 +192,100 @@ std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
 
      return os;
  }
+
+unsigned int HCPerson::getDrugReceptDegree() const {
+	return drug_inDegree;
+}
+
+unsigned int HCPerson::getDrugGivingDegree() const {
+	return drug_outDegree;
+}
+
+ZonePtr HCPerson::getZone() const {
+	return myZone;
+}
+
+void HCPerson::setZone(ZonePtr zone){
+	myZone = zone;
+}
+
+std::string HCPerson::getZipcode() const {
+	return zipCode;
+}
+
+double HCPerson::getAge() const {
+	return age;
+}
+
+void HCPerson::setAge(double newAge) {
+	age = newAge;
+}
+
+double HCPerson::getAgeStarted() const {
+	return ageStarted;
+}
+
+Race HCPerson::getRace() const {
+	return race;
+}
+
+Gender HCPerson::getGender() const {
+	return gender;
+}
+
+HarmReduction HCPerson::getSyringeSource() const {
+	return syringeSource;
+}
+
+HCVState HCPerson::getHCVState() const {
+	return immunology->getHCVState();
+}
+
+double HCPerson::getInjectionIntensity() const {
+	return injectionIntensity;
+}
+
+double HCPerson::getFractionReceptSharing() const {
+	return fractionReceptSharing;
+}
+
+void HCPerson::setLastExposureDate(double tick){
+    lastExposureDate = tick;
+}
+
+double HCPerson::getLastExposureDate() const {
+    return lastExposureDate;
+}
+
+bool HCPerson::isHcvABpos() const {
+	return immunology->isHcvABpos();
+}
+
+bool HCPerson::isHcvRNA() const{
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	return immunology->isHcvRNA(tick);
+}
+
+bool HCPerson::isCured() const {
+	return immunology->isCured();
+}
+
+bool HCPerson::isInTreatment() const {
+	return immunology->isInTreatment();
+}
+
+bool HCPerson::isInHarmReduction() const {
+	return (syringeSource == HarmReduction::HARM_REDUCTION);
+}
+
+bool HCPerson::isPostTreatment() const {
+	return immunology->isPostTreatment();
+}
+
+bool HCPerson::isTreatable() const {
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	return immunology->isTreatable(tick);
+}
 
 
 } /* namespace hepcep */

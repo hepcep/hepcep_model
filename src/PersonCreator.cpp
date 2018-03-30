@@ -11,6 +11,7 @@
 
 #include "PersonCreator.h"
 #include "parameters_constants.h"
+#include "Statistics.h"
 
 namespace hepcep {
 
@@ -60,6 +61,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 				continue;
 			}
 
+			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 
 			persons[ID_COUNTER] = person;
 

@@ -84,74 +84,41 @@ public:
 
 	void step(NetworkPtr<HCPerson> network);
 
-	double getDemographicDistance(PersonPtr other);
+	double getDemographicDistance(PersonPtr other) const;
 
 	bool activate(double residual_burnin_days, double elapsed_career_days,
 			double status_report_frequency);
 
 	void deactivate();
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
+	void reportStatus();
 	void startTreatment();
+	void endRelationship(PersonPtr buddy);
 
-	unsigned int getDrugReceptDegree() const {
-		return drug_inDegree;
-	}
+	unsigned int getDrugReceptDegree() const;
+	unsigned int getDrugGivingDegree() const;
+	ZonePtr getZone() const;
+	void setZone(ZonePtr zone);
+	std::string getZipcode() const;
+	double getAge() const;
+	void setAge(double age);
+	double getAgeStarted() const;
+	Race getRace() const;
+	Gender getGender() const;
+	HarmReduction getSyringeSource() const;
+	HCVState getHCVState() const;
+	double getInjectionIntensity() const;
+	double getFractionReceptSharing() const;
+	void setLastExposureDate(double tick);
+	double getLastExposureDate() const;
+	bool isHcvABpos() const;
+	bool isHcvRNA() const;
 
-	unsigned int getDrugGivingDegree() const {
-		return drug_outDegree;
-	}
-
-	ZonePtr getZone() const {
-		return myZone;
-	}
-
-	void setZone(ZonePtr zone){
-		myZone = zone;
-	}
-
-	std::string getZipcode() const {
-		return zipCode;
-	}
-
-	double getAge() const {
-		return age;
-	}
-
-	double getAgeStarted() const {
-		return ageStarted;
-	}
-
-	const Race getRace() const {
-		return race;
-	}
-
-	const Gender getGender() const {
-		return gender;
-	}
-
-	const HarmReduction getSyringeSource() const {
-		return syringeSource;
-	}
-
-	const HCVState getHCVState() const {
-		return immunology->getHCVState();
-	}
-
-	double getInjectionIntensity() const {
-		return injectionIntensity;
-	}
-
-	double getFractionReceptSharing() const {
-		return fractionReceptSharing;
-	}
-
-	void setLastExposureDate(double tick) {
-	    lastExposureDate = tick;
-	}
-
-	double getLastExposureDate() const {
-	    return lastExposureDate;
-	}
+	bool isCured() const;
+	bool isInTreatment() const;
+	bool isInHarmReduction() const;
+	bool isPostTreatment() const;
+	bool isTreatable() const;
 
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 

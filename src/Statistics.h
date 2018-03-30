@@ -57,6 +57,7 @@ private:
     MeanStats means;
     EventCounts event_counts;
     FileOut out, events_out;
+    bool burninMode;
 
     Statistics(const std::string& fname, const std::string& events_fname);
 
@@ -68,10 +69,12 @@ public:
     static void init(const std::string& fname, const std::string& events_fname);
     virtual ~Statistics();
 
+    void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);
     void logStatusChange(LogType logType, HCPerson* person, const std::string& msg);
 
     void recordStats(double tick, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
     void close();
+    void setBurninMode(bool mode);
 
 };
 

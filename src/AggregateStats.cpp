@@ -14,29 +14,20 @@ bool filter_true(double tick, std::shared_ptr<HCPerson> person) {
 }
 
 bool filter_hcv_rna(double tick,  std::shared_ptr<HCPerson> person) {
-    // TODO uncomment when implemented
-    // return person->isHcvRNA(tick);
-    return true;
+    return person->isHcvRNA();
 }
 
 bool filter_hcv_abpos(double tick,  std::shared_ptr<HCPerson> person) {
-    // TODO uncomment when implemented
-    // return person->isHcvABpos();
-    return true;
+    return person->isHcvABpos();
 }
 
 bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person) {
-    // TODO uncomment when implemented
-    // return person->isInTreatment();
-    return true;
+    return person->isInTreatment();
 }
 
 bool filter_cured(double tick, std::shared_ptr<HCPerson> person) {
-    // TODO uncomment when implemented
-    // return person->isCured();
-    return true;
+    return person->isCured();
 }
-
 
 void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
     gender = GENDER_INFIX + person->getGender().stringValue();
@@ -60,7 +51,6 @@ AggregateStats::AggregateStats(std::string base_key, std::vector<std::string>& m
         stats.emplace(key + metric, 0.0);
     }
 }
-
 
 void AggregateStats::reset() {
     for (auto& kv : stats) {

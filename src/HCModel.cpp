@@ -370,12 +370,10 @@ void HCModel::burnInControl() {
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
 	if(burnInDays <= 0) {
-//		burn_in_mode = false;
 		return;
 	}
 
-	// TODO Statistics
-//	Statistics.setBurnInMode(true);
+	Statistics::instance()->setBurninMode(true);
 	personCreator->setBurnInPeriod(true, burnInDays);
 
 	// TODO Schedule
@@ -383,22 +381,20 @@ void HCModel::burnInControl() {
 }
 
 void HCModel::burnInEnd(double burnInDays) {
-//	burn_in_mode = false;
 
-	// TODO Statistics
-//	Statistics.setBurnInMode(false);
-
+	Statistics::instance()->setBurninMode(false);
 	personCreator->setBurnInPeriod(false, -1);
 
-	// TODO Person
-//	for(Object obj : context) {
-//		if(obj instanceof IDU) {
-//			IDU agent = (IDU) obj;
-//			agent.setBirthDate(agent.getBirthDate().plusDays(burnInDays));
-//			assert agent.isActive();
-//			Statistics.fire_status_change(AgentMessage.activated, agent, "", null);
-//		}
-//	}
+	for (auto entry : local_persons) {
+			PersonPtr & person = entry.second;
+
+			// Reduce the person's age based on the burn in period.
+			double age = person->getAge();
+			person->setAge(age - burnInDays);
+
+			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
+	}
+
 	std::cout << "\n**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
 

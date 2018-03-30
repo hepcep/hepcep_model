@@ -22,7 +22,7 @@ PersonCreator::PersonCreator() {
 
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
-		unsigned int person_count){
+		NetworkPtr<HCPerson> network, unsigned int person_count){
 
 	double status_report_frequency = chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY);
 
@@ -44,6 +44,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			auto person = std::make_shared<HCPerson>(ID_COUNTER, data);
 
 			person->setZone(zoneMap[data.zipCode]);
+			person->setNetwork(network);
 
 			// TODO remaining code from APK IDUBuilder.add_new_IDUS()
 //			idu.setEntryDate(APKBuilder.getSimulationDate());
@@ -55,7 +56,6 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 			// Dont include person in simulation if...
 			if(! person->activate(residual_burnin_days, elapsed_career_days, status_report_frequency)) {
-//				context.remove(idu);
 
 				// TODO additional hepcep actions here?
 				continue;

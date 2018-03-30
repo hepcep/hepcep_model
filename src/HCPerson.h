@@ -17,11 +17,12 @@
 
 #include "HCPlace.h"
 #include "HCVState.h"
-#include "Zone.h"
-#include "Gender.h"
-#include "Race.h"
 #include "HarmReduction.h"
 #include "Immunology.h"
+#include "Gender.h"
+#include "Network.h"
+#include "Race.h"
+#include "Zone.h"
 
 namespace hepcep {
 
@@ -66,6 +67,8 @@ protected:
 	ZonePtr myZone;
 
 	std::shared_ptr<Immunology> immunology;
+
+	NetworkPtr<HCPerson> network;
 
 	bool active = false;
 
@@ -153,6 +156,9 @@ public:
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
+
+	void setNetwork(NetworkPtr<HCPerson> aNet);
+
 };
 } /* namespace hepcep */
 

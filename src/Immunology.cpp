@@ -81,9 +81,9 @@ void Immunology::deactivate() {
     purgeActions();
 }
 
-bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
+bool Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {
     Statistics* stats = Statistics::instance();
-    stats->logStatusChange(LogType::EXPOSED, partner_imm.idu_, "by agent " + std::to_string(idu_->id()));
+    stats->logStatusChange(LogType::EXPOSED, partner_imm->idu_, "by agent " + std::to_string(idu_->id()));
 
     if (! isHcvRNA(tick)) {
         return false;
@@ -101,9 +101,9 @@ bool Immunology::exposePartner(Immunology& partner_imm, double tick) {
         }
     }
 
-    bool established_new_infection = partner_imm.receiveInfectiousDose(tick); //receive_infectious_dose();
+    bool established_new_infection = partner_imm->receiveInfectiousDose(tick); //receive_infectious_dose();
     if (established_new_infection) {
-        partner_imm.idu_->setLastExposureDate(tick); //important: must follow Statistics.fire()
+        partner_imm->idu_->setLastExposureDate(tick); //important: must follow Statistics.fire()
     }
     return established_new_infection;
 }

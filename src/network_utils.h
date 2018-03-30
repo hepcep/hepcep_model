@@ -46,7 +46,7 @@ using VertexAttribWriter = void (*)(VertexType*, AttributeWriter& write);
 
 
 template<typename VertexType>
-void write_network(const std::string& fname, Network<VertexType>& network,
+void write_network(const std::string& fname, NetworkPtr<VertexType> network,
         VertexAttribWriter<VertexType> vwriter, EdgeAttribWriter<VertexType> ewriter) {
 
     std::ofstream out;
@@ -54,15 +54,15 @@ void write_network(const std::string& fname, Network<VertexType>& network,
     open_ofstream(fname, out);
 
     out << "graph [\n";
-    out << INDENT_1 << "directed " << (network.isDirected() ? 1 : 0) << "\n";
-    for (auto iter = network.verticesBegin(); iter != network.verticesEnd(); ++iter) {
+    out << INDENT_1 << "directed " << (network->isDirected() ? 1 : 0) << "\n";
+    for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
         out << INDENT_1 << "node [\n" << INDENT_2 << "id " << (*iter)->id() << "\n";
         vwriter((*iter).get(), write);
         out << INDENT_1 << "]\n";
 
     }
 
-    for (auto iter = network.edgesBegin(); iter != network.edgesEnd(); ++iter) {
+    for (auto iter = network->edgesBegin(); iter != network->edgesEnd(); ++iter) {
         out << INDENT_1 << "edge [\n" << INDENT_2 << "source " << (*iter)->v1()->id() << "\n";
         out << INDENT_2 << "target " << (*iter)->v2()->id() << "\n";
         ewriter((*iter).get(), write);
@@ -76,7 +76,7 @@ void write_network(const std::string& fname, Network<VertexType>& network,
 }
 
 template<typename VertexType>
-void write_network(const std::string& fname, Network<VertexType>& network) {
+void write_network(const std::string& fname, NetworkPtr<VertexType> network) {
     write_network(fname, network, &vnoop_writer<VertexType>, &enoop_writer<VertexType>);
 }
 

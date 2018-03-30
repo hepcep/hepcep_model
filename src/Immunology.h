@@ -81,7 +81,7 @@ public:
      * @return true if a new infection was established in partner, otherwise false.
      */
     // "give_exposure" in APK Immunology.java
-    bool exposePartner(Immunology& partner_imm, double tick);
+    bool exposePartner(std::shared_ptr<Immunology> partner_imm, double tick);
 
     /**
      * Deactivates this immunology by canceling any scheduled state transitions.

@@ -31,7 +31,7 @@ private:
 	std::shared_ptr<PersonCreator> personCreator;
 
 protected:
-	Network<HCPerson> network;
+	NetworkPtr<HCPerson> network;
 
 	// PersonData vector used for generating new HCPerson instances.
 	std::vector<HCPersonData> personData;

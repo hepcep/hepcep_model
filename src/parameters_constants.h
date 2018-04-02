@@ -22,6 +22,7 @@ const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 
 const std::string AB_PROB_CHRONIC = "ab_prob_chronic";
 const std::string AB_PROB_ACUTE = "ab_prob_acute";
+const std::string ATTRITION_RATE = "attrition_rate";
 
 const std::string BURN_IN_DAYS = "burn_in_days";
 
@@ -33,6 +34,8 @@ const std::string INTERACTION_RATE_DRUG_SITES = "interaction_rate_at_drug_sites"
 const std::string INTERACTION_RATE_EXZONE = "interaction_rate_exzone";
 const std::string LINKING_TIME_WINDOW = "linking_time_window";
 
+const std::string MEAN_CAREER_DURATION = "mean_career_duration";
+const std::string MEAN_EDGE_LIFETIME = "mean_tie_lifetime";
 const std::string MEAN_DAYS_ACUTE_NAIVE = "mean_days_acute_naive";
 const std::string MEAN_DAYS_ACUTE_RECHALLENGED = "mean_days_acute_rechallenged";
 const std::string MEAN_DAYS_NAIVE_TO_INFECTIOUS = "mean_days_naive_to_infectious";

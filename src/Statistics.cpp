@@ -71,12 +71,12 @@ void MeanStats::writeHeader(FileOut& out) {
 
 Statistics* Statistics::instance_ = nullptr;
 
-void Statistics::init(const std::string& fname, const std::string& events_fname) {
+void Statistics::init(const std::string& fname, const std::string& events_fname, bool eventsEnabled) {
     if (Statistics::instance_ != nullptr) {
         delete Statistics::instance_;
     }
 
-    instance_ = new Statistics(fname, events_fname);
+    instance_ = new Statistics(fname, events_fname, eventsEnabled);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -110,8 +110,9 @@ void init_metrics(std::vector<std::string>& metrics) {
     metrics.push_back("_ALL");
 }
 
-Statistics::Statistics(const std::string& fname, const std::string& events_fname) :
-        stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname) {
+Statistics::Statistics(const std::string& fname, const std::string& events_fname, bool eventsEnabled) :
+        stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname),
+				logEventsEnabled(eventsEnabled) {
 
     init_metrics(metrics);
 
@@ -233,27 +234,35 @@ void Statistics::logStatusChange(LogType logType, PersonPtr person, const std::s
 }
 
 void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::string& msg) {
-    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-    log_events.push_back({tick, logType, person->id(), msg});
-    if (logType == LogType::ACTIVATED) {
-        ++event_counts.activations_daily;
-    } else if (logType == LogType::CURED) {
-        ++event_counts.cured_daily;
-        ++event_counts.aggregate_posttreat;
-    } else if (logType == LogType::DEACTIVATED) {
-        ++event_counts.losses_daily;
-    } else if (logType == LogType::FAILED_TREATMENT) {
-        ++event_counts.aggregate_posttreat;
-    } else if (logType == LogType::INFECTED) {
-        ++event_counts.incidence_daily;
-    } else if (logType == LogType::STARTED_TREATMENT) {
-        ++event_counts.treatment_recruited_daily;
-        ++event_counts.aggregate_courses;
-    }
+
+	if (!logEventsEnabled)
+		return;
+
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	log_events.push_back({tick, logType, person->id(), msg});
+	if (logType == LogType::ACTIVATED) {
+		++event_counts.activations_daily;
+	} else if (logType == LogType::CURED) {
+		++event_counts.cured_daily;
+		++event_counts.aggregate_posttreat;
+	} else if (logType == LogType::DEACTIVATED) {
+		++event_counts.losses_daily;
+	} else if (logType == LogType::FAILED_TREATMENT) {
+		++event_counts.aggregate_posttreat;
+	} else if (logType == LogType::INFECTED) {
+		++event_counts.incidence_daily;
+	} else if (logType == LogType::STARTED_TREATMENT) {
+		++event_counts.treatment_recruited_daily;
+		++event_counts.aggregate_courses;
+	}
 }
 
 void Statistics::setBurninMode(bool mode){
 	burninMode = mode;
+}
+
+void Statistics::setLogEventsEnabled(bool enabled){
+	logEventsEnabled = enabled;
 }
 
 } /* namespace seir */

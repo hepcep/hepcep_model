@@ -25,8 +25,6 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0) {
 
-//	std::cout << "create Person " << id << std::endl;
-
 
 	immunology = std::make_shared<Immunology>(this);
 
@@ -74,7 +72,7 @@ HCPerson::~HCPerson() {
 }
 
 void HCPerson::step(NetworkPtr<HCPerson> network) {
-//    std::cout << id_ << ": hello " << std::endl;
+//    std::cout << id_ << ": step " << std::endl;
 
 	if (! active) {
 		return;
@@ -99,11 +97,10 @@ void HCPerson::step(NetworkPtr<HCPerson> network) {
 double HCPerson::getDemographicDistance(PersonPtr other) const {
 	double ret = 0.0;
 
+	// race adjustment
 	ret += (race == other->getRace()) ? 0.0: 1.0;
 
-	// TODO why was this more complicated than a simple age difference?
-//	ret += (Math.abs(APKBuilder.getDateDifference(this.birth_date, other.birth_date) / 10.0));
-
+	// age adjustment
 	ret += std::abs(age - other->getAge()) / 10.0;
 
 	return ret / 2.0;
@@ -152,7 +149,6 @@ void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 	// be exposed to the blood of a friend
 	std::vector<EdgePtrT<HCPerson>> vec;
 
-	// TODO not working!
 	network->inEdges(this, vec);
 
 	// Get a random in-edge
@@ -183,6 +179,15 @@ void HCPerson::startTreatment() {
 	bool adherent = (roll > treatmentNonadherence);
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	immunology->startTreatment(adherent,tick);
+}
+
+void HCPerson::endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network){
+
+	// TODO Using id() for now but check if we should use the Person pointer instead.
+	EdgePtrT<HCPerson> edge = network->removeEdge(this->id(), buddy->id());
+
+//	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+//	std::cout << "t= " << tick << " End rel: " << this->id() << " -> " << buddy->id() << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const HCPerson& person) {

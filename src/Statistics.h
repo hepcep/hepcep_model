@@ -58,15 +58,16 @@ private:
     EventCounts event_counts;
     FileOut out, events_out;
     bool burninMode;
+    bool logEventsEnabled;
 
-    Statistics(const std::string& fname, const std::string& events_fname);
+    Statistics(const std::string& fname, const std::string& events_fname, bool eventsEnabled);
 
     void calculatePrevalence(std::map<std::string, double>& prevalences);
     void writeEvents();
 
 public:
     static Statistics* instance();
-    static void init(const std::string& fname, const std::string& events_fname);
+    static void init(const std::string& fname, const std::string& events_fname, bool eventsEnabled);
     virtual ~Statistics();
 
     void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);
@@ -75,6 +76,7 @@ public:
     void recordStats(double tick, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
     void close();
     void setBurninMode(bool mode);
+    void setLogEventsEnabled(bool enabled);
 
 };
 

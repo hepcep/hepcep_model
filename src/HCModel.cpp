@@ -12,6 +12,8 @@
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
+#include "Distributions.h"
+#include "EndRelationshipFunctor.h"
 #include "HCModel.h"
 #include "Statistics.h"
 #include "PersonCreator.h"
@@ -32,6 +34,13 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					effectiveZonePopulation()
 {
 
+	// Initialize statistical distributions used in the model.
+	double attritionRate = chi_sim::Parameters::instance()->getDoubleParameter(ATTRITION_RATE);
+	double meanEdgeLifetime = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_EDGE_LIFETIME);
+	double meanCareerDuration = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_CAREER_DURATION);
+
+	Distributions::init(attritionRate, meanEdgeLifetime, meanCareerDuration);
+
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 
 	std::cout << "HepCEP Model Initialization." << std::endl;
@@ -39,19 +48,18 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	network = std::make_shared<Network<HCPerson>>(true);
 
+	// Initialize statistics collection
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
-	Statistics::init(stats_fname, events_fname);
+	Statistics::init(stats_fname, events_fname, false);
 
-	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
-	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
-
+	// Load persons
 	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
 	std::cout << "CNEP+ file: " << cnep_file << std::endl;
 	loadPersonData(cnep_file, personData);
 	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
 
+	// Load zones
 	std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
 	std::cout << "Zones file: " << zones_file << std::endl;
 	loadZones(zones_file, zoneMap);
@@ -70,24 +78,30 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
+	// Schedule model events
+	// Model step
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
+
+	// Model end
+	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
+
+	// Zone census schedule
+	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
+
+	// Dynamic network linking schedule
+	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
+	runner.scheduleEvent(1, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
+
 	performInitialLinking();
 
+	// Log the initial network topology
 	std::string fname("./output/net_initial.gml");
 	write_network(fname, network, &writePerson, &writeEdge);
+
 	// write t0 stats
 	Statistics::instance()->recordStats(0, local_persons);
-
-	// TODO ------- Test prints below --------
-	for (auto entry : zonePopulation){
-			const ZonePtr & zone = entry.first;
-
-			std::vector<PersonPtr> & list = entry.second;
-
-			std::cout << "Zone " << zone->getZipcode() << " size = " << list.size() << std::endl;
-	}
-
 }
-
 
 HCModel::~HCModel() {}
 
@@ -98,16 +112,14 @@ void HCModel::atEnd() {
 void HCModel::step() {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	// Schedule each Person agent step
-
-	// Pass in the network reference?
+	std::cout << "t= " << tick << std::endl;
 
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
 		person->step(network);
 	}
 
-	// Collect "dead" agents and remove them from the person list
+	// TODO Collect "dead" agents and remove them from the person list
 
 	Statistics::instance()->recordStats(tick, local_persons);
 }
@@ -118,10 +130,7 @@ void HCModel::performInitialLinking(){
 	double total_recept_edge_target = 0;
 	double total_give_edge_target = 0;
 
-	// APK iterates over network nodes but we can just iterate over the population
-//	for (auto iter = network.verticesBegin(); iter != network.verticesEnd(); ++iter){
-//			PersonPtr person = (*iter);
-
+	// Add each person to the network as a vertex.
 	for (auto entry : local_persons) {
 		PersonPtr & person = entry.second;
 
@@ -181,13 +190,6 @@ void HCModel::performLinking(){
 
 			double rate = interactionRate(zone1, zone2);
 
-//			if (zone1 == zone2){
-//				std::cout << "eq " << rate;
-//			}
-//			else{
-//				std::cout << "" << rate;
-//			}
-
 			if (rate == 0.0) {
 				continue;
 			}
@@ -207,16 +209,11 @@ void HCModel::performLinking(){
 				t += generator.next();
 				count += 1;
 			}
-
-//			std::cout << "\t" << count << std::endl;
 		}
 	}
 }
 
 void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
-
-//	std::cout << "Linking zones " << zone1->getZipcode() << " + " <<
-//			zone2->getZipcode() << std::endl;
 
 	int s1 = effectiveZonePopulation[zone1].size();
 	int s2 = effectiveZonePopulation[zone2].size();
@@ -237,14 +234,16 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 	PersonPtr & person1 = effectiveZonePopulation[zone1][a1_idx];
 	PersonPtr & person2 = effectiveZonePopulation[zone2][a2_idx];
 
-
 	tryConnect(person1,person2);
 }
 
 /**
  * Attempt a bi-directional network connection pair between person1 & person2
+ *
+ * TODO move to HCPerson
  */
 void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
 	// Check conditions for adding a directed edge from person1 -> person2
 	if (network->inEdgeCount(person2) >= person2->getDrugReceptDegree()) {
@@ -263,13 +262,17 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	network->addEdge(person1, person2)->putAttribute("distance", dist);
 
+//	if (tick > 1){
+//		std::cout << "t= " << tick << " begin rel: " << person1->id() << " -> " << person2->id() << std::endl;
+//	}
 
-	// TODO schedule edge time
-//	double out_tie_end_time = RunEnvironment.getInstance().getCurrentSchedule().getTickCount()
-//					                		 + tie_endurance_distribution.nextDouble();
-//	ScheduleParameters out_tie_end_params = ScheduleParameters.createOneTime(out_tie_end_time);
-//	ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-//	schedule.schedule(out_tie_end_params, this, "end_relationship", obj);
+	// Schedule the p1 -> p2 edge removal in the future
+	double edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
+	double endTime = tick + edgeLifespan;
+
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+	EndRelationshipFunctor* endRelationshipEvent1 = new EndRelationshipFunctor(person1,person2,network);
+	runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent1));
 
 	// Check conditions for adding a directed edge from person2 -> person1
 	if (network->inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
@@ -280,9 +283,16 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	}
 	network->addEdge(person2, person1)->putAttribute("distance", dist);
 
-	// TODO schedule edge time
-//	schedule.schedule(out_tie_end_params, obj, "end_relationship", this); //ends at the same time
+//	if (tick > 1){
+//		std::cout << "t= " << tick << " begin rel: " << person2->id() << " -> " << person1->id() << std::endl;
+//	}
 
+	// Schedule the p2 -> p1 edge removal in the future
+	edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
+	endTime = tick + edgeLifespan;
+
+	EndRelationshipFunctor* endRelationshipEvent2 = new EndRelationshipFunctor(person2,person1,network);
+	runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent2));
 }
 
 double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){

@@ -93,7 +93,7 @@ public:
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
 	void reportStatus();
 	void startTreatment();
-	void endRelationship(PersonPtr buddy);
+	void endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network);
 
 	unsigned int getDrugReceptDegree() const;
 	unsigned int getDrugGivingDegree() const;

@@ -11,6 +11,7 @@ SRC = HCPlace.cpp \
 	network_utils.cpp \
 	Immunology.cpp \
 	Event.cpp \
+	EndRelationshipFunctor.cpp \
 	EndTreatmentFunctor.cpp \
 	HCVState.cpp \
 	AggregateStats.cpp \
@@ -21,6 +22,7 @@ SRC = HCPlace.cpp \
 	AgeGroup.cpp \
 	AreaType.cpp \
 	LogType.cpp \
-	FileOut.cpp
+	FileOut.cpp \
+	Distributions.cpp
 	
 model_src += $(SRC)

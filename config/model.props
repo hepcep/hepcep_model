@@ -3,7 +3,7 @@ random.seed = 42
 # full week
 # stop.at = 128.1
 
-stop.at = 5
+stop.at = 365
 
 # relative to where the hepcep-model executable is run 
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -26,7 +26,7 @@ ab_prob_chronic = 0.67
 attrition_rate = 0.024
 burn_in_days = -1
 homophily_strength = 0.7
-initial_pwid_count = 3200
+initial_pwid_count = 32000
 interaction_home_cutoff = 2
 interaction_rate_constant = 0.016
 interaction_rate_at_drug_sites = 0.0001

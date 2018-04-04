@@ -69,7 +69,7 @@ protected:
 	virtual void updatePerson(PersonPtr& person, int index, int* data) override {
 	}
 
-	void burnInControl();
+	void burnInControl(double burnInDays);
 	void burnInEnd(double burnInDays);
 	void performInitialLinking();
 	void performLinking();
@@ -77,6 +77,8 @@ protected:
 	void zoneCensus();
 	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
+	void treatment();
+	void treatmentSelection();
 
 public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);

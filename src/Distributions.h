@@ -1,17 +1,23 @@
 /*
  * Distributions.h
  *
- *  Created on: Mar 31, 2018
- *      Author: eric
+ *	Holds statistical distributions for convienient access.
+ *
+ *	TODO might be better to use store re-used generators in the Repast
+ *				random instance via repast::Random::instance()->putGenerator()
+ *
+ *      Author: Eric Tatara
  */
 
 #ifndef SRC_DISTRIBUTIONS_H_
 #define SRC_DISTRIBUTIONS_H_
 
+#include "boost/random.hpp"
 #include "repast_hpc/Random.h"
 
 namespace hepcep {
 
+using PoissonGen = boost::variate_generator<boost::mt19937&, boost::poisson_distribution<>>;
 
 class Distributions {
 

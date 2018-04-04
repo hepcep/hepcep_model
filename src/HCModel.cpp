@@ -26,7 +26,6 @@ namespace hepcep {
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : 
 					AbsModelT(moved_data_size, props),
 					run(std::stoi(props.getProperty(RUN))) ,
-//					network(true),
 					personData(),
 					zoneMap(),
 					zoneDistanceMap(),
@@ -72,7 +71,9 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
 	personCreator = std::make_shared<PersonCreator>();
-	burnInControl();
+
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+	burnInControl(burnInDays);
 
 	personCreator->create_persons(local_persons, personData, zoneMap, personCount);
 
@@ -86,12 +87,24 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	// Model end
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
 
+	// TODO Schedule reorg - we can instead just call each model function in the
+	//      step method to ensure the correct order.
+
 	// Zone census schedule
 	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
 
 	// Dynamic network linking schedule
 	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	runner.scheduleEvent(1, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
+
+	// Treatment schedule
+	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
+	double enrollmentStart = burnInDays + treatmentStartDelay;
+
+	if (treatmentEnrollPerPY > 0){
+		runner.scheduleEvent(enrollmentStart, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
+	}
 
 	performInitialLinking();
 
@@ -172,6 +185,16 @@ void HCModel::performInitialLinking(){
 
 void HCModel::performLinking(){
 
+	// TODO Linking refactor.  The zone-zone interation rate only needs to be called
+	//      once per step since it only depends on the census update.  The performLinking()
+	//      method however is called 10x per step by default and this results
+	//      in a huge amount of unneccessary and expensive calls.  We can move the
+	//      interaction rate calculation to (or after) the census update once per tick.
+	//
+	//      Or we could just call performLinking() once per step but use the
+	//      linking time window as a multiplier to call linkZones(...) proportionally
+	//      times.   This might be a preferable approach.
+
 	for (auto entry1 : effectiveZonePopulation){
 		const ZonePtr & zone1 = entry1.first;
 
@@ -197,7 +220,7 @@ void HCModel::performLinking(){
 			repast::ExponentialGenerator generator =
 					repast::Random::instance()->createExponentialGenerator (rate);
 
-			double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
+			double linkingTimeWindow = 0.1; //chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 			double t = 0;
 
 			int count = 0;
@@ -304,10 +327,15 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
 	int pop2 = effectiveZonePopulation[zone2].size();
 
 	// TODO store as class fields to avoid lookup cost.
-	double interactionHomeCutoff = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_HOME_CUTOFF);
-	double interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
-	double interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
-	double interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
+//	double interactionHomeCutoff = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_HOME_CUTOFF);
+//	double interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
+//	double interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
+//	double interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
+
+	double interactionHomeCutoff = 2.0;
+	double interactionRateDrugSites = 0.0001;
+	double interactionRateExzone = 0.085;
+	double interactionRateConst = 0.016;
 
 	if (distance > interactionHomeCutoff){
 		if (zone1->getDrugMarket() ==  zone2->getDrugMarket()){
@@ -375,9 +403,7 @@ void HCModel::zoneCensus(){
  * activate the burn-in mode
  * - should be called before the agents are created
  */
-void HCModel::burnInControl() {
-
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+void HCModel::burnInControl(double burnInDays) {
 
 	if(burnInDays <= 0) {
 		return;
@@ -406,6 +432,41 @@ void HCModel::burnInEnd(double burnInDays) {
 	}
 
 	std::cout << "\n**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
+}
+
+void HCModel::treatment(){
+	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+	double treatmentMeanDaily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
+
+	PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(treatmentMeanDaily));
+	repast::DefaultNumberGenerator<PoissonGen> gen(treat_gen);
+
+	double todaysTotalEnrollment = gen.next();
+
+	std::cout << "treat enrollment: " << todaysTotalEnrollment << std::endl;
+
+	if (todaysTotalEnrollment <= 0) {
+		return; //do nothing.  occurs when we previously over-enrolled
+	}
+
+	std::vector<PersonPtr> candidates;
+	for (auto entry : local_persons) {
+			PersonPtr & person = entry.second;
+
+			if (person->isTreatable()){
+				candidates.push_back(person);
+			}
+	}
+
+	if (candidates.size() == 0){
+		return;
+	}
+
+
+}
+
+void HCModel::treatmentSelection(){
+
 }
 
 void writePerson(HCPerson* person, AttributeWriter& write) {

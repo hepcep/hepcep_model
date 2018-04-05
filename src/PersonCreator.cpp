@@ -20,10 +20,10 @@ unsigned int PersonCreator::ID_COUNTER = 1;
 PersonCreator::PersonCreator() {
 
 }
-
+// TODO change to return a vector that we can emplace into a map in HCModel
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
-		unsigned int person_count){
+		unsigned int person_count, bool earlyCareerOnly){
 
 	double statusReportFrequency = chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY);
 
@@ -47,6 +47,17 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			auto person = std::make_shared<HCPerson>(ID_COUNTER, data);
 
 			person->setZone(zoneMap[data.zipCode]);
+
+			if (earlyCareerOnly){
+				int daysSinceInitiated = round(365.*(person->getAge() - person->getAgeStarted()));
+				// TODO finish
+//				idu.setBirthDate(idu.getBirthDate().plusDays(days_since_initiated - 50));
+//				if(prob_infected_when_arrive < RandomHelper.nextDouble()) { //typically for new IDU
+//					idu.setHcvInitialState(HCV_state.susceptible);
+//				} else {
+//					idu.setHcvInitialState(HCV_state.infectiousacute);
+//				}
+			}
 
 			// TODO remaining code from APK IDUBuilder.add_new_IDUS()
 //			idu.setEntryDate(APKBuilder.getSimulationDate());

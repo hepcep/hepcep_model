@@ -78,6 +78,8 @@ public:
     void setBurninMode(bool mode);
     void setLogEventsEnabled(bool enabled);
 
+    int getDailyLosses();
+
 };
 
 } /* namespace seir */

@@ -201,6 +201,7 @@ void Statistics::recordStats(double tick,
         means.increment(kv.second);
     }
 
+
     out << tick;
 
     for (auto& stat : stats) {
@@ -220,7 +221,9 @@ void Statistics::recordStats(double tick,
 
     out << "\n";
 
-    writeEvents();
+    if (logEventsEnabled){
+    	writeEvents();
+    }
 
     for (auto& stat : stats) {
         stat.second.reset();
@@ -235,8 +238,9 @@ void Statistics::logStatusChange(LogType logType, PersonPtr person, const std::s
 
 void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::string& msg) {
 
-	if (!logEventsEnabled)
-		return;
+	// TODO change this to toggle writing, but we still need to count stats for the model logic
+//	if (!logEventsEnabled)
+//		return;
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	log_events.push_back({tick, logType, person->id(), msg});
@@ -263,6 +267,10 @@ void Statistics::setBurninMode(bool mode){
 
 void Statistics::setLogEventsEnabled(bool enabled){
 	logEventsEnabled = enabled;
+}
+
+int Statistics::getDailyLosses(){
+	return event_counts.losses_daily;
 }
 
 } /* namespace seir */

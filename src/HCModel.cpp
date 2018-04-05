@@ -40,6 +40,9 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	Distributions::init(attritionRate, meanEdgeLifetime, meanCareerDuration);
 
+	// Init variables from model.props
+	netInflow = chi_sim::Parameters::instance()->getDoubleParameter(NET_INFLOW);
+
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 
 	std::cout << "HepCEP Model Initialization." << std::endl;
@@ -75,7 +78,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 	burnInControl(burnInDays);
 
-	personCreator->create_persons(local_persons, personData, zoneMap, personCount);
+	personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
@@ -125,7 +128,7 @@ void HCModel::atEnd() {
 void HCModel::step() {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	std::cout << "t= " << tick << std::endl;
+	std::cout << "t = " << tick << " pop. = " << local_persons.size() << std::endl;
 
 	std::vector<PersonPtr> inActivePersons;
 
@@ -147,9 +150,27 @@ void HCModel::step() {
 		network->removeVertex(person);
 	}
 
-	// TODO Collect "dead" agents and remove them from the person list
+	generateArrivingPersons();
 
+	// Record stats MUST always be last since it resets some values used above.
 	Statistics::instance()->recordStats(tick, local_persons);
+}
+
+void HCModel::generateArrivingPersons(){
+	int totalLost = Statistics::instance()->getDailyLosses();
+
+	double meanArrival = totalLost + netInflow/365.0;
+
+	if (meanArrival <= 0) return;  // Poisson mean must be > 0
+
+	PoissonGen arrival_gen(repast::Random::instance()->engine(),
+			boost::random::poisson_distribution<>(meanArrival));
+
+	repast::DefaultNumberGenerator<PoissonGen> gen(arrival_gen);
+
+	int newCount = gen.next();
+
+	personCreator->create_persons(local_persons, personData, zoneMap, newCount, true);
 }
 
 void HCModel::performInitialLinking(){

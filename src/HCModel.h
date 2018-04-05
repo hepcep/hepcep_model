@@ -30,6 +30,8 @@ private:
 
 	std::shared_ptr<PersonCreator> personCreator;
 
+	double netInflow;
+
 protected:
 	NetworkPtr<HCPerson> network;
 
@@ -69,6 +71,7 @@ protected:
 	virtual void updatePerson(PersonPtr& person, int index, int* data) override {
 	}
 
+	void generateArrivingPersons();
 	void burnInControl(double burnInDays);
 	void burnInEnd(double burnInDays);
 	void performInitialLinking();

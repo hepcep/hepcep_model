@@ -40,10 +40,10 @@ const std::string MEAN_DAYS_ACUTE_NAIVE = "mean_days_acute_naive";
 const std::string MEAN_DAYS_ACUTE_RECHALLENGED = "mean_days_acute_rechallenged";
 const std::string MEAN_DAYS_NAIVE_TO_INFECTIOUS = "mean_days_naive_to_infectious";
 const std::string MEAN_DAYS_RESIDUAL_HCV_INFECTIVITY = "mean_days_residual_hcv_infectivity";
+const std::string NET_INFLOW = "net_inflow";
 const std::string PROB_SELF_LIMITING_FEMALE = "prob_self_limiting_female";
 const std::string PROB_SELF_LIMITING_MALE = "prob_self_limiting_male";
 const std::string PROB_CLEARING = "prob_clearing";
-
 const std::string PROB_CESSATION = "prob_cessation";
 
 const std::string STATUS_REPORT_FREQUENCY = "status_report_frequency";

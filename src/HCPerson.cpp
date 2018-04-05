@@ -343,5 +343,8 @@ bool HCPerson::isActive() const{
 	return active;
 }
 
+void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
+	immunology->setHCVInitState(tick,hcvState,0);
+}
 
 } /* namespace hepcep */

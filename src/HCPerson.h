@@ -106,6 +106,7 @@ public:
 	Gender getGender() const;
 	HarmReduction getSyringeSource() const;
 	HCVState getHCVState() const;
+	void setHcvInitialState(HCVState hcvState, double tick);
 	double getInjectionIntensity() const;
 	double getFractionReceptSharing() const;
 	void setLastExposureDate(double tick);

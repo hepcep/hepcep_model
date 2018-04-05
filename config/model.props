@@ -24,7 +24,7 @@ ab_prob_acute = 0.02
 # Not used yet, but in APK parameters.xml
 ab_prob_chronic = 0.67
 attrition_rate = 0.024
-burn_in_days = -1
+burn_in_days = 30
 homophily_strength = 0.7
 initial_pwid_count = 3200
 interaction_home_cutoff = 2
@@ -62,7 +62,7 @@ treatment_enrollment_probability_HRP = 0.2
 treatment_enrollment_probability_fullnetwork = 0.1
 treatment_enrollment_probability_inpartner = 0.1
 treatment_enrollment_probability_outpartner = 0.1
-treatment_enrollment_start_delay = 2190
+treatment_enrollment_start_delay = 50 # 2190
 treatment_enrollment_per_PY = 0.01
 treatment_repeatable = false
 treatment_svr = 0.9

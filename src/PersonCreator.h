@@ -19,6 +19,8 @@ class PersonCreator {
 protected:
 	bool burnInMode = false;
 	double burnInDays = 0;
+	double probInfectedNewArriving;
+	double statusReportFrequency;
 
 public:
 	static unsigned int ID_COUNTER;

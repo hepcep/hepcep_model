@@ -251,7 +251,12 @@ HCVState Immunology::getHCVState() {
  * censored_acute = in the middle of an acute infection
  */
 void Immunology::setHCVInitState(double now, HCVState state, int logging) {
-    //assert state != HCV_state.ABPOS; //used only in the DrugUser container
+
+	// TODO check purge actions.  APK doesn't do this but the initial HCV state
+	//      is called twice for new arriving Persons so it may add additional
+	//      schedule actions that are not valid after the second call.
+	purgeActions();
+
     hcv_state = state;
     switch (state.value()) {
         case HCVState::Value::susceptible:

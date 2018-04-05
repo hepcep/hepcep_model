@@ -25,11 +25,13 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
 		unsigned int person_count){
 
-	double status_report_frequency = chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY);
+	double statusReportFrequency = chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY);
 
 	unsigned int count = 1;
 
 	repast::IntUniformGenerator generator = repast::Random::instance()->createUniIntGenerator (0, personData.size());
+
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
 	while (count <= person_count) {
 		// Select a random CNEP+ profile from which to create the Person instance
@@ -48,14 +50,14 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 			// TODO remaining code from APK IDUBuilder.add_new_IDUS()
 //			idu.setEntryDate(APKBuilder.getSimulationDate());
-			double elapsed_career_days = 365.0*(person->getAge() - person->getAgeStarted());
-			double residual_burnin_days = 0;
+			double elapsedCareerDays = 365.0*(person->getAge() - person->getAgeStarted());
+			double residualBurninDays = 0;
 			if (burnInMode) {
-//				residual_burnin_days = Math.max(0, burn_in_days - RepastEssentials.GetTickCount());
+				residualBurninDays = max(0., burnInDays - tick);
 			}
 
 			// Dont include person in simulation if...
-			if(! person->activate(residual_burnin_days, elapsed_career_days, status_report_frequency)) {
+			if(! person->activate(residualBurninDays, elapsedCareerDays, statusReportFrequency)) {
 
 				// TODO additional hepcep actions here?
 				continue;

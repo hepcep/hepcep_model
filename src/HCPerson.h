@@ -85,9 +85,8 @@ public:
 	void step(NetworkPtr<HCPerson> network);
 
 	double getDemographicDistance(PersonPtr other) const;
-
-	bool activate(double residual_burnin_days, double elapsed_career_days,
-			double status_report_frequency);
+	bool activate(double residualBurninDays, double elapsedCareerDays,double statusReportFrequency);
+	bool scheduleEnd(double residualBurninDays, double elapsedCareerDays);
 
 	void deactivate();
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
@@ -113,6 +112,7 @@ public:
 	double getLastExposureDate() const;
 	bool isHcvABpos() const;
 	bool isHcvRNA() const;
+	bool isActive() const;
 
 	bool isCured() const;
 	bool isInTreatment() const;

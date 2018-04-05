@@ -12,6 +12,7 @@
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
+#include "Distributions.h"
 #include "parameters_constants.h"
 #include "HCPerson.h"
 #include "Network.h"
@@ -68,15 +69,11 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 
 
 HCPerson::~HCPerson() {
-//	std::cout << "Destruct Person." << std::endl;
+	std::cout << "Destruct Person " << id() << std::endl;
 }
 
 void HCPerson::step(NetworkPtr<HCPerson> network) {
 //    std::cout << id_ << ": step " << std::endl;
-
-	if (! active) {
-		return;
-	}
 
 	double n = repast::Random::instance()->nextDouble();
 	double num_sharing_episodes = round(n	* injectionIntensity *
@@ -109,18 +106,19 @@ double HCPerson::getDemographicDistance(PersonPtr other) const {
 /*
  * let the agent know that it's about go enter the simulation
  * this method should be called before adding the IDU to context
- * life_extension is used to adjust for possible burn-in time or time already in the drug career
+ * life_extension is used to adjust for possible burn-in time or time already in
+ * the drug career
  */
-bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
-		double status_report_frequency) {
+bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays,
+		double statusReportFrequency) {
 
 	active = true;
 
-	// TODO Scheduling
-//	if(! schedule_end(residual_burnin_days, elapsed_career_days)) {
-//		return false;
-//	}
-//
+	if(! scheduleEnd(residualBurninDays, elapsedCareerDays)) {
+		return false;
+	}
+
+	// TODO event recording
 //	if(status_report_frequency > 0) {
 //		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 //		ScheduleParameters sched_params = ScheduleParameters.createRepeating(RepastEssentials.GetTickCount()+0.0001, status_report_frequency);
@@ -132,12 +130,12 @@ bool HCPerson::activate(double residual_burnin_days, double elapsed_career_days,
 void HCPerson::deactivate(){
   Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
 
-  // TODO remove the PersonPtr from the local_persons lisr in the model
+  // TODO remove the PersonPtr from the local_persons list in the model
 //	context.remove(this);
-
+  active = false;
 	immunology->deactivate();
 
-	// TODO schedule
+	// TODO schedule this may not be needed depending on how we implement reporting
 	//	if(my_status != null) {
 //		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 //		schedule.removeAction(my_status);
@@ -172,6 +170,54 @@ void HCPerson::reportStatus() {
 	Statistics::instance()->logStatusChange(LogType::STATUS, this, "");
 }
 
+/*
+ * called at initialization to plan the death of this agent
+ *
+ */
+bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays) {
+
+	//distributions for days until end
+	double residualLife = 0;
+	double timeToCessation = 0;
+	double residualTimeInApk = 0;
+
+	double probCessation = chi_sim::Parameters::instance()->getDoubleParameter(PROB_CESSATION);
+
+	for(int trial=0; trial<100; ++trial) {
+		//anticipate lifetime from birth, accounting for burnin period
+		residualLife = residualBurninDays + Distributions::instance()->getLifespanRandom();
+		residualLife -= getAge() * 365.0;
+
+		double roll = repast::Random::instance()->nextDouble();
+		if(roll < probCessation) {
+			timeToCessation = residualBurninDays - elapsedCareerDays + Distributions::instance()->getCessationTimeRandom();;
+			residualTimeInApk = min(timeToCessation, residualLife);
+		}
+		else {
+			residualTimeInApk = residualLife;
+		}
+		if (residualTimeInApk > residualBurninDays) {
+			break;
+		}
+	}
+	if (residualTimeInApk <= residualBurninDays) {
+		return false;
+	}
+
+
+	// TODO decide if the scheduled action needs an equivalent HPC object
+//	my_end = schedule.schedule(death_sched_params, this, "deactivate");
+
+	// Schedule death deactivate method
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	residualTimeInApk += tick;
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+	runner.scheduleEvent(residualTimeInApk, repast::Schedule::FunctorPtr(
+			new repast::MethodFunctor<HCPerson>(this, &HCPerson::deactivate)));
+
+	return true;
+}
+
 void HCPerson::startTreatment() {
 	double treatmentNonadherence = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_NONADHERENCE);
 	double roll = repast::Random::instance()->nextDouble();
@@ -186,8 +232,6 @@ void HCPerson::endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network){
 	// TODO Using id() for now but check if we should use the Person pointer instead.
 	EdgePtrT<HCPerson> edge = network->removeEdge(this->id(), buddy->id());
 
-//	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-//	std::cout << "t= " << tick << " End rel: " << this->id() << " -> " << buddy->id() << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
@@ -293,6 +337,10 @@ bool HCPerson::isPostTreatment() const {
 bool HCPerson::isTreatable() const {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	return immunology->isTreatable(tick);
+}
+
+bool HCPerson::isActive() const{
+	return active;
 }
 
 

@@ -44,6 +44,8 @@ const std::string PROB_SELF_LIMITING_FEMALE = "prob_self_limiting_female";
 const std::string PROB_SELF_LIMITING_MALE = "prob_self_limiting_male";
 const std::string PROB_CLEARING = "prob_clearing";
 
+const std::string PROB_CESSATION = "prob_cessation";
+
 const std::string STATUS_REPORT_FREQUENCY = "status_report_frequency";
 
 const std::string TRANSMISSIBILITY = "transmissibility";

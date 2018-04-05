@@ -127,9 +127,24 @@ void HCModel::step() {
 
 	std::cout << "t= " << tick << std::endl;
 
+	std::vector<PersonPtr> inActivePersons;
+
 	for (auto entry : local_persons) {
 		PersonPtr& person = entry.second;
-		person->step(network);
+
+		if (person->isActive()){
+			person->step(network);
+		}
+		else {
+			inActivePersons.push_back(person);
+		}
+	}
+
+	// Remove inactive persons
+	for (PersonPtr person : inActivePersons){
+		std::cout << "Removing inactive person: " << person->id() << std::endl;
+		local_persons.erase(person->id());
+		network->removeVertex(person);
 	}
 
 	// TODO Collect "dead" agents and remove them from the person list
@@ -285,10 +300,6 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	network->addEdge(person1, person2)->putAttribute("distance", dist);
 
-//	if (tick > 1){
-//		std::cout << "t= " << tick << " begin rel: " << person1->id() << " -> " << person2->id() << std::endl;
-//	}
-
 	// Schedule the p1 -> p2 edge removal in the future
 	double edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
 	double endTime = tick + edgeLifespan;
@@ -305,10 +316,6 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 		return;
 	}
 	network->addEdge(person2, person1)->putAttribute("distance", dist);
-
-//	if (tick > 1){
-//		std::cout << "t= " << tick << " begin rel: " << person2->id() << " -> " << person1->id() << std::endl;
-//	}
 
 	// Schedule the p2 -> p1 edge removal in the future
 	edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();

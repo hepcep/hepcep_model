@@ -40,8 +40,15 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	Distributions::init(attritionRate, meanEdgeLifetime, meanCareerDuration);
 
-	// Init variables from model.props
+	// Initialize model variables (used later) from model.props
 	netInflow = chi_sim::Parameters::instance()->getDoubleParameter(NET_INFLOW);
+	interactionHomeCutoff = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_HOME_CUTOFF);
+	interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
+	interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
+	interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
+	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+	linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
+	homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
 
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 
@@ -75,8 +82,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	personCreator = std::make_shared<PersonCreator>();
 
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
-	burnInControl(burnInDays);
+	// Burn-in needs to be set after person creator but before generating persons
+	burnInControl();
 
 	personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
 
@@ -101,6 +108,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	runner.scheduleEvent(1, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
 	// Treatment schedule
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
@@ -148,6 +156,8 @@ void HCModel::step() {
 		std::cout << "Removing inactive person: " << person->id() << std::endl;
 		local_persons.erase(person->id());
 		network->removeVertex(person);
+
+		// TODO check if any scheduled Functor is holding onto a PersonPtr
 	}
 
 	generateArrivingPersons();
@@ -256,7 +266,6 @@ void HCModel::performLinking(){
 			repast::ExponentialGenerator generator =
 					repast::Random::instance()->createExponentialGenerator (rate);
 
-			double linkingTimeWindow = 0.1; //chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 			double t = 0;
 
 			int count = 0;
@@ -311,7 +320,7 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	if (network->outEdgeCount(person1) >= person1->getDrugGivingDegree()) {
 		return;
 	}
-	double homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
+
 	double roll = repast::Random::instance()->nextDouble();
 	if (person1->getDemographicDistance(person2) * homophily > roll) {
 		return;
@@ -353,17 +362,6 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
 
 	int pop1 = effectiveZonePopulation[zone1].size();
 	int pop2 = effectiveZonePopulation[zone2].size();
-
-	// TODO store as class fields to avoid lookup cost.
-//	double interactionHomeCutoff = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_HOME_CUTOFF);
-//	double interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
-//	double interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
-//	double interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
-
-	double interactionHomeCutoff = 2.0;
-	double interactionRateDrugSites = 0.0001;
-	double interactionRateExzone = 0.085;
-	double interactionRateConst = 0.016;
 
 	if (distance > interactionHomeCutoff){
 		if (zone1->getDrugMarket() ==  zone2->getDrugMarket()){
@@ -431,7 +429,9 @@ void HCModel::zoneCensus(){
  * activate the burn-in mode
  * - should be called before the agents are created
  */
-void HCModel::burnInControl(double burnInDays) {
+void HCModel::burnInControl() {
+
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
 	if(burnInDays <= 0) {
 		return;
@@ -440,12 +440,17 @@ void HCModel::burnInControl(double burnInDays) {
 	Statistics::instance()->setBurninMode(true);
 	personCreator->setBurnInPeriod(true, burnInDays);
 
-	// TODO Schedule
-//	main_schedule.schedule(ScheduleParameters.createOneTime(RepastEssentials.GetTickCount() + burnInDays), this, "burnInEnd", burnInDays);
+	// Schedule the burn-in end time
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+	runner.scheduleEvent(tick + burnInDays,
+			repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::burnInEnd)));
+
 }
 
-void HCModel::burnInEnd(double burnInDays) {
+void HCModel::burnInEnd() {
 
+	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 	Statistics::instance()->setBurninMode(false);
 	personCreator->setBurnInPeriod(false, -1);
 
@@ -463,7 +468,7 @@ void HCModel::burnInEnd(double burnInDays) {
 }
 
 void HCModel::treatment(){
-	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+
 	double treatmentMeanDaily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
 
 	PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(treatmentMeanDaily));
@@ -490,6 +495,7 @@ void HCModel::treatment(){
 		return;
 	}
 
+	// TODO Finish Treatment
 
 }
 

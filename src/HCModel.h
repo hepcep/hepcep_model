@@ -48,6 +48,14 @@ protected:
 
 	int totalIDUPopulation = 0;
 
+	double interactionHomeCutoff;
+	double interactionRateDrugSites;
+	double interactionRateExzone;
+	double interactionRateConst;
+	double treatmentEnrollPerPY;
+	double linkingTimeWindow;
+	double homophily;
+
 	// not used in initial version
 	void nextActSelected(PersonPtr& person, chi_sim::NextPlace<HCPlace>& next_act) override {
 	}
@@ -72,8 +80,8 @@ protected:
 	}
 
 	void generateArrivingPersons();
-	void burnInControl(double burnInDays);
-	void burnInEnd(double burnInDays);
+	void burnInControl();
+	void burnInEnd();
 	void performInitialLinking();
 	void performLinking();
 	double interactionRate(const ZonePtr& zone1, const ZonePtr& zone2);

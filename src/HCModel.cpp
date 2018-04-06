@@ -30,8 +30,12 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					zoneMap(),
 					zoneDistanceMap(),
 					zonePopulation(),
-					effectiveZonePopulation()
+					effectiveZonePopulation(),
+					treatmentEnrollmentProb(),
+					treatmentEnrollmentResidual()
 {
+
+	// TODO put all the data init in a separate method
 
 	// Initialize statistical distributions used in the model.
 	double attritionRate = chi_sim::Parameters::instance()->getDoubleParameter(ATTRITION_RATE);
@@ -50,6 +54,24 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
 
+	double treatment_enrollment_probability_unbiased = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_UNBIASED);
+	double treatment_enrollment_probability_HRP = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_HRP);
+	double treatment_enrollment_probability_fullnetwork = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK);
+	double treatment_enrollment_probability_inpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_INPARTNER);
+	double treatment_enrollment_probability_outpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_OUTPARTNER);
+
+	treatmentEnrollmentProb[EnrollmentMethod::UNBIASED] = treatment_enrollment_probability_unbiased;
+	treatmentEnrollmentProb[EnrollmentMethod::HRP] = treatment_enrollment_probability_HRP;
+	treatmentEnrollmentProb[EnrollmentMethod::FULLNETWORK] = treatment_enrollment_probability_fullnetwork;
+	treatmentEnrollmentProb[EnrollmentMethod::INPARTNER] = treatment_enrollment_probability_inpartner;
+	treatmentEnrollmentProb[EnrollmentMethod::OUTPARTNER] = treatment_enrollment_probability_outpartner;
+
+	treatmentEnrollmentResidual[EnrollmentMethod::UNBIASED] = 0.;
+	treatmentEnrollmentResidual[EnrollmentMethod::HRP] = 0.;
+	treatmentEnrollmentResidual[EnrollmentMethod::FULLNETWORK] = 0.;
+	treatmentEnrollmentResidual[EnrollmentMethod::INPARTNER] = 0.;
+	treatmentEnrollmentResidual[EnrollmentMethod::OUTPARTNER] = 0.;
+
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 
 	std::cout << "HepCEP Model Initialization." << std::endl;
@@ -61,6 +83,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
 	Statistics::init(stats_fname, events_fname, false);
+
+	// TODO put all the data loading into a separate method
 
 	// Load persons
 	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
@@ -493,6 +517,10 @@ void HCModel::treatment(){
 
 	if (candidates.size() == 0){
 		return;
+	}
+
+	for (EnrollmentMethod mthd : EnrollmentMethod::values()){
+
 	}
 
 	// TODO Finish Treatment

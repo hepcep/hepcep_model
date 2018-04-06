@@ -23,6 +23,7 @@ SRC = HCPlace.cpp \
 	AreaType.cpp \
 	LogType.cpp \
 	FileOut.cpp \
-	Distributions.cpp
+	Distributions.cpp \
+	EnrollmentMethod.cpp
 	
 model_src += $(SRC)

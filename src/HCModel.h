@@ -12,6 +12,7 @@
 
 #include "HCPerson.h"
 #include "Zone.h"
+#include "EnrollmentMethod.h"
 #include "FileSink.h"
 #include "Network.h"
 #include "Edge.h"
@@ -39,12 +40,12 @@ protected:
 	std::vector<HCPersonData> personData;
 
 	std::map<std::string,ZonePtr> zoneMap;
-
 	std::map<std::string, std::map<std::string,double>> zoneDistanceMap;
-
 	std::map<ZonePtr, std::vector<PersonPtr>> zonePopulation;
-
 	std::map<ZonePtr, std::vector<PersonPtr>> effectiveZonePopulation;
+
+	std::map<EnrollmentMethod, double> treatmentEnrollmentProb;
+	std::map<EnrollmentMethod, double> treatmentEnrollmentResidual;
 
 	int totalIDUPopulation = 0;
 

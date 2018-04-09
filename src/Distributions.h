@@ -29,6 +29,8 @@ private:
 	repast::ExponentialGenerator networkLifespanGenerator;
 	repast::NormalGenerator cessationTimeGenerator;
 
+	repast::DoubleUniformGenerator shuffleGenerator;  // used to shuffle collections
+
 
 public:
 	static Distributions* instance();
@@ -39,6 +41,8 @@ public:
 	double getLifespanRandom();
 	double getNetworkLifespanRandom();
 	double getCessationTimeRandom();
+
+	repast::DoubleUniformGenerator getShuffleGenerator();
 
 };
 

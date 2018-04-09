@@ -16,7 +16,8 @@ Distributions* Distributions::instance_ = nullptr;
 Distributions::Distributions(double attritionRate, double meanEdgeLifetime, double meanCareerDuration):
 				lifespanGenerator{repast::Random::instance()->createExponentialGenerator(attritionRate/365.0)},
 				networkLifespanGenerator{repast::Random::instance()->createExponentialGenerator((1.0/meanEdgeLifetime)/365.0)},
-				cessationTimeGenerator{repast::Random::instance()->createNormalGenerator(meanCareerDuration*365.0, meanCareerDuration*365.0/3.0)}
+				cessationTimeGenerator{repast::Random::instance()->createNormalGenerator(meanCareerDuration*365.0, meanCareerDuration*365.0/3.0)},
+				shuffleGenerator{repast::Random::instance()->createUniDoubleGenerator(0,1)}
 				{
 
 }
@@ -48,6 +49,10 @@ double Distributions::getNetworkLifespanRandom(){
 
 double Distributions::getCessationTimeRandom(){
 	return cessationTimeGenerator.next();
+}
+
+repast::DoubleUniformGenerator Distributions::getShuffleGenerator(){
+	return shuffleGenerator;
 }
 
 } // namespace hepcep

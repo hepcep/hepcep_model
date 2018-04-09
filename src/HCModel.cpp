@@ -8,7 +8,10 @@
 
 #include <stdio.h>
 
+#include "boost/range/algorithm.hpp"
+
 #include "repast_hpc/RepastProcess.h"
+#include "repast_hpc/Random.h"
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
 
@@ -520,14 +523,126 @@ void HCModel::treatment(){
 	}
 
 	for (EnrollmentMethod mthd : EnrollmentMethod::values()){
+		double enrollmentTarget = todaysTotalEnrollment *
+				treatmentEnrollmentProb[mthd] + treatmentEnrollmentResidual[mthd];
 
+		treatmentEnrollmentResidual[mthd] = enrollmentTarget;  //update.  might be fractional increase
+
+		if(enrollmentTarget < 1) {
+			continue;
+		}
+
+		// Use Repast random to ensure repeatability
+//		repast::shuffleList(candidates);
+
+		// TODO maybe figure out how to use random_shuffle with the Repast generator
+
+		std::random_shuffle(candidates.begin(), candidates.end(), myrandom);
+
+		// set, to avoid accidentally double-recruiting
+		std::unordered_set<PersonPtr> enrolled;
+
+		treatmentSelection(mthd, candidates, enrolled, enrollmentTarget);
+
+		//carried over from day to the next day.  this can give below 0
+		treatmentEnrollmentResidual[mthd] = (enrollmentTarget - enrolled.size());
+
+		for (PersonPtr person: enrolled){
+			person->startTreatment();
+		}
 	}
-
-	// TODO Finish Treatment
-
 }
 
-void HCModel::treatmentSelection(){
+void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
+		std::vector<PersonPtr> candidates, std::unordered_set<PersonPtr> enrolled,
+		double enrollmentTarget){
+
+	unsigned int next_candidate_idx = 0;
+	if(enrMethod == EnrollmentMethod::UNBIASED) {
+		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
+			PersonPtr person = candidates[next_candidate_idx];
+			if(person->isTreatable()) {
+				enrolled.insert(person);
+			}
+		}
+	}
+	else if(enrMethod == EnrollmentMethod::HRP) {
+		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
+			PersonPtr person = candidates[next_candidate_idx];
+			if(person->isTreatable() && person->isInHarmReduction()) {
+				enrolled.insert(person);
+			}
+		}
+	}
+	else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
+		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
+			PersonPtr person = candidates[next_candidate_idx];
+			if(! person->isTreatable()) {
+				continue;
+			}
+			enrolled.insert(person);
+
+			// Try to enroll all connected persons
+
+			std::vector<EdgePtrT<HCPerson>> inEdges;
+			std::vector<EdgePtrT<HCPerson>> outEdges;
+
+			network->inEdges(person,inEdges);
+			network->outEdges(person,outEdges);
+
+			for (EdgePtrT<HCPerson> edge : inEdges){
+				PersonPtr other = edge->v1();   // Other agent is edge v1
+				if (other->isTreatable()){
+					enrolled.insert(other);
+				}
+			}
+			for (EdgePtrT<HCPerson> edge : outEdges){
+				PersonPtr other = edge->v2();  // Other agent is edge v2
+				if (other->isTreatable()){
+					enrolled.insert(other);
+				}
+			}
+		}
+	}
+	else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {
+		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
+
+			double roll = repast::Random::instance()->nextDouble();
+			int rand_idx = std::round(roll * (candidates.size()-1));
+
+			PersonPtr person = candidates[rand_idx];
+			if(! person->isTreatable()) {
+				continue;
+			}
+			enrolled.insert(person);
+
+
+			if(enrMethod == EnrollmentMethod::INPARTNER) {
+				std::vector<EdgePtrT<HCPerson>> inEdges;
+				network->inEdges(person,inEdges);
+
+				for (EdgePtrT<HCPerson> edge : inEdges){
+					PersonPtr other = edge->v1();   // Other agent is edge v1
+					if (other->isTreatable()){
+						enrolled.insert(other);
+						break; //only one
+					}
+				}
+			}
+			else {  // outpartner
+				std::vector<EdgePtrT<HCPerson>> outEdges;
+				network->outEdges(person,outEdges);
+
+				for (EdgePtrT<HCPerson> edge : outEdges){
+					PersonPtr other = edge->v2();  // Other agent is edge v2
+					if (other->isTreatable()){
+						enrolled.insert(other);
+						break; //only one
+					}
+				}
+			}
+		}
+	}
 
 }
 
@@ -553,6 +668,12 @@ void writePerson(HCPerson* person, AttributeWriter& write) {
 
 void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {
 	write("distance", edge->getAttribute("distance", 0));
+}
+
+// random generator function used in std lib functions that need a random generator
+int myrandom (int i) {
+	repast::IntUniformGenerator gen = repast::Random::instance()->createUniIntGenerator(0, i-1);
+	return gen.next();
 }
 
 } /* namespace hepcep */

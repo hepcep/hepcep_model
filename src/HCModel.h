@@ -8,6 +8,8 @@
 #ifndef SRC_HCMODEL_H_
 #define SRC_HCMODEL_H_
 
+#include <unordered_set>
+
 #include "chi_sim/AbstractModel.h"
 
 #include "HCPerson.h"
@@ -90,7 +92,8 @@ protected:
 	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
 	void treatment();
-	void treatmentSelection();
+	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr> candidates,
+			std::unordered_set<PersonPtr> enrolled, double enrollmentTarget);
 
 public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);
@@ -104,6 +107,9 @@ public:
 
 void writePerson(HCPerson* person, AttributeWriter& write);
 void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write);
+
+// random generator function used in std lib functions that need a random generator
+int myrandom (int i);
 
 } /* namespace hepcep */
 

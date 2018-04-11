@@ -92,8 +92,8 @@ protected:
 	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
 	void treatment();
-	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr> candidates,
-			std::unordered_set<PersonPtr> enrolled, double enrollmentTarget);
+	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
+			std::unordered_set<PersonPtr>& enrolled, double enrollmentTarget);
 
 public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);

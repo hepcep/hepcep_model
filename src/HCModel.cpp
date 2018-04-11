@@ -180,7 +180,7 @@ void HCModel::step() {
 
 	// Remove inactive persons
 	for (PersonPtr person : inActivePersons){
-		std::cout << "Removing inactive person: " << person->id() << std::endl;
+//		std::cout << "Removing inactive person: " << person->id() << std::endl;
 		local_persons.erase(person->id());
 		network->removeVertex(person);
 
@@ -503,7 +503,7 @@ void HCModel::treatment(){
 
 	double todaysTotalEnrollment = gen.next();
 
-	std::cout << "treat enrollment: " << todaysTotalEnrollment << std::endl;
+//	std::cout << "treat enrollment: " << todaysTotalEnrollment << std::endl;
 
 	if (todaysTotalEnrollment <= 0) {
 		return; //do nothing.  occurs when we previously over-enrolled
@@ -547,6 +547,8 @@ void HCModel::treatment(){
 		//carried over from day to the next day.  this can give below 0
 		treatmentEnrollmentResidual[mthd] = (enrollmentTarget - enrolled.size());
 
+//		std::cout << "Treatment enrolled [" << mthd << "]:" << enrolled.size() << std::endl;;
+
 		for (PersonPtr person: enrolled){
 			person->startTreatment();
 		}
@@ -554,7 +556,7 @@ void HCModel::treatment(){
 }
 
 void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
-		std::vector<PersonPtr> candidates, std::unordered_set<PersonPtr> enrolled,
+		std::vector<PersonPtr>& candidates, std::unordered_set<PersonPtr>& enrolled,
 		double enrollmentTarget){
 
 	unsigned int next_candidate_idx = 0;

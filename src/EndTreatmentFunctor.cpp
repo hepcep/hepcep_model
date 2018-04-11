@@ -18,7 +18,13 @@ EndTreatmentFunctor::~EndTreatmentFunctor() {
 }
 
 void EndTreatmentFunctor::operator()() {
+
+	if (immunology){
     immunology->leaveTreatment(success);
+	}
+	else{
+		std::cout << "NULL immunology ptr" << std::endl;
+	}
 }
 
 } /* namespace hepcep */

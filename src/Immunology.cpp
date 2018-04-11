@@ -334,9 +334,14 @@ void Immunology::leaveTreatment(bool treatment_succeeded) {
     if (treatment_succeeded) {
         hcv_state = HCVState::CURED;
         Statistics::instance()->logStatusChange(LogType::CURED, idu_, "");
-    } else {
+
+//        std::cout << "Treatment success: " << idu_->id() << std::endl;
+    }
+    else {
         Statistics::instance()->logStatusChange(LogType::FAILED_TREATMENT, idu_, "");
         hcv_state = HCVState::CHRONIC; //even if entered as acute.  ignore the case where was about to self-limit
+
+//        std::cout << "Treatment failed: " << idu_->id() << std::endl;
     }
 }
 

@@ -69,7 +69,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 
 
 HCPerson::~HCPerson() {
-	std::cout << "Destruct Person " << id() << std::endl;
+//	std::cout << "Destruct Person " << id() << std::endl;
 }
 
 void HCPerson::step(NetworkPtr<HCPerson> network) {
@@ -130,8 +130,6 @@ bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays,
 void HCPerson::deactivate(){
   Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
 
-  // TODO remove the PersonPtr from the local_persons list in the model
-//	context.remove(this);
   active = false;
 	immunology->deactivate();
 
@@ -225,6 +223,8 @@ void HCPerson::startTreatment() {
 	bool adherent = (roll > treatmentNonadherence);
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	immunology->startTreatment(adherent,tick);
+
+//	std::cout << "Treatment started: " << this->id() << std::endl;
 }
 
 void HCPerson::endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network){

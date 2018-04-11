@@ -1,9 +1,6 @@
 random.seed = 42
 
-# full week
-# stop.at = 128.1
-
-stop.at = 365
+stop.at = 4015 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run 
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -18,15 +15,12 @@ output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
 
-# Used for now
 ab_prob_acute = 0.02
-
-# Not used yet, but in APK parameters.xml
 ab_prob_chronic = 0.67
 attrition_rate = 0.024
-burn_in_days = 30
+burn_in_days = 365
 homophily_strength = 0.7
-initial_pwid_count = 3200
+initial_pwid_count = 32000
 interaction_home_cutoff = 2
 interaction_rate_constant = 0.016
 interaction_rate_at_drug_sites = 0.0001
@@ -62,7 +56,7 @@ treatment_enrollment_probability_HRP = 0.2
 treatment_enrollment_probability_fullnetwork = 0.1
 treatment_enrollment_probability_inpartner = 0.1
 treatment_enrollment_probability_outpartner = 0.1
-treatment_enrollment_start_delay = 50 # 2190
+treatment_enrollment_start_delay = 0 #1825  #5yr (after burn-in days)
 treatment_enrollment_per_PY = 0.01
 treatment_repeatable = false
 treatment_svr = 0.9

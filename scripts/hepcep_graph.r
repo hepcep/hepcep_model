@@ -1,3 +1,9 @@
+#
+# Analysis of hepcep network structure
+#
+# Eric Tatara
+#
+
 library(igraph)
 library(data.table)
 library(ggplot2)

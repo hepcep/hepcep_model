@@ -1,0 +1,10 @@
+1	random.seed	100
+2	random.seed	101
+3	random.seed	102
+4	random.seed	103
+5	random.seed	104
+6	random.seed	105
+7	random.seed	106
+8	random.seed	107
+9	random.seed	108
+10	random.seed	109

@@ -1,12 +1,14 @@
+# EMEWS-specific attributes, mostly path related.
+
 random.seed = 42
 
 stop.at = 4015 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run 
-cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
-cnep_plus_early.file = ./data/cnep_plus_early_2018.02.13.csv
-zones.file = ./data/zones.csv
-zones.distance.file = ./data/zones_distance.csv
+cnep_plus.file = ../../../data/cnep_plus_all_2018.02.13.csv
+cnep_plus_early.file = ../../../data/cnep_plus_early_2018.02.13.csv
+zones.file = ../../../data/zones.csv
+zones.distance.file = ../../../data/zones_distance.csv
 
 # this will be passed in when doing sweeps
 run.number = 0;

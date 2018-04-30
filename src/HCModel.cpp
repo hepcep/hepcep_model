@@ -80,6 +80,9 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "HepCEP Model Initialization." << std::endl;
 	std::cout << "Output dir: " << output_directory << std::endl;
 
+	// Save the props in the output folder
+	props.writeToPropsFile("./model.props", ",");
+
 	network = std::make_shared<Network<HCPerson>>(true);
 
 	// Initialize statistics collection

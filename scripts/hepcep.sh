@@ -45,7 +45,7 @@ MODEL_CMD=""
 # surrounded by quotes and separated by spaces. For example,
 # arg_array=("$emews_root/python/nt3_tc1_runner.py" "$parameter_string")
 #arg_array=("arg1" "arg2" "arg3")
-COMMAND="mpirun -n 1 $emews_root/Debug/hepcep_model-0.0 $emews_root/config/model.props $emews_root/config/config.props $param_line"
+COMMAND="mpirun -n 1 $emews_root/Debug/hepcep_model-0.0 $emews_root/config/emews_model.props $emews_root/config/config.props $param_line"
 
 # Turn bash error checking off. This is
 # required to properly handle the model execution return value

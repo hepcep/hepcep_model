@@ -102,6 +102,8 @@ TCL_LIB_NAME=libtcl$(NAME).$(LIB_EXT)
 SED := sed
 MV := mv -f
 
+SWIFT_MODEL_DIR=../swift_proj/model
+
 -include $(TEST_OBJECTS:.o=.d)
 -include $(EXEC_OBJECTS:.o=.d)
 -include $(LIB_OBJECTS:.o=.d)
@@ -112,6 +114,18 @@ all: model tests
 
 model : $(EXEC_OBJECTS)
 	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIBS) $(RPATHS) -o $(NAME)
+	
+		
+hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o
+	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIB_LDFLAGS) $(LIBS) $(RPATHS) $(TCL_LIB) -o $(SWIFT_MODEL_DIR)/$(TCL_LIB_NAME)
+	LEAF_PKG=hepcep_model LEAF_VERSION=0.0 \
+	LEAF_SO=$(TCL_LIB_NAME) LEAF_TCL=hepcep_model.tcl \
+	$(TCLSH_LOCAL) $(SWIFT_MODEL_DIR)/make-package.tcl > $(SWIFT_MODEL_DIR)/pkgIndex.tcl
+	
+../src/hepcep_model_wrapper.cpp :  $(SWIFT_MODEL_DIR)/hepcep_model.i ../src/run.h
+	$(SWIG) -c++ -o $(@) $(<)
+	$(SED) -i.bu "s/Hepcep_model_Init/Tclhepcep_model_Init/" $(@)
+
 		
 tests : $(TEST_OBJECTS)
 	$(CXXLD) $(filter-out %.d, $^) $(LIBS) $(RPATHS) $(GTEST_LIB) -lpthread -o $(TEST_NAME)

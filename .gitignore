@@ -23,3 +23,7 @@ Debug/
 Release/
 
 /output/
+
+src/hepcep_model_wrapper.cpp
+src/hepcep_model_wrapper.cpp.bu
+

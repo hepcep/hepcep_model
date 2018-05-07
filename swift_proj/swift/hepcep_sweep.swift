@@ -24,8 +24,8 @@ string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.cs
 
 	string zs[];
   foreach pl,i in param_lines {
-    string stats_output = "stats.output.file = %s/run_%d/stats.csv" % (turbine_output, i);
-    string events_output = "events.output.file = %s/run_%d/events.csv" % (turbine_output, i);
+    string stats_output = "stats.output.file = stats.csv";
+    string events_output = "events.output.file = events.csv";
     string output = "output.directory = %s/run_%d" % (turbine_output, i);
 
     string defaults = "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (stats_output, events_output, output,

@@ -6,10 +6,41 @@
 library(data.table)
 library(ggplot2)
 
-fileName <- "../output/stats.csv"
-dt <- fread(fileName)
+fileName <- "/output/stats.csv"
+dirs <- list.dirs (path=".", recursive=FALSE)
 
-rows <- nrow(dt)
+tableList <- list()
+for (d in dirs){
+  path <- paste0(d,fileName)
+  
+  if (!file.exists(path)){
+    print(paste0("File doesnt exist! ",path))
+  }
+  else{
+    print(paste0("Loading ", path ))
+    
+    tryCatch({
+      tableList[[d]]  <- fread(path)  
+    }, 
+      warning = function(w) {
+      
+    },
+      error = function(e) {
+      print(paste0("Error loading file: ", path))
+    }, 
+      finally = {
+      
+    }
+    )
+    
+  }
+}
+
+dt <- rbindlist(tableList)
+tableList <- NULL
+
+#rows <- nrow(dt)
+rows <- 1100
 burninDays <- 365
 
 # Day samples at the END (day 365) of each simulation year
@@ -23,7 +54,7 @@ annualData <- dt[tick %in% days]
 annualData[, Year := years]
 
 # Year for which we will generate a prediction data set
-predictionYear <- 2012
+predictionYear <- 2011
 predictionData <- annualData[Year==predictionYear,]
 
 categories <- c("prevalence_ALL", "prevalence_gender_MALE", "prevalence_gender_FEMALE", 
@@ -37,19 +68,23 @@ catLabels <- c("ALL", "MALE", "FEMALE", "NHWhite", "NHBlack", "Hispanic", "HR", 
 
 plotData <- predictionData[,categories,with=FALSE]
 
-df <- data.frame(cat=catLabels,vals=as.numeric(plotData[1]))
+#Single run DF 
+#df <- data.frame(cat=catLabels,vals=as.numeric(plotData[1]))
+
+#Multi run DF calculate the mean and std dev for each category
+df <- data.frame(cat=catLabels,vals=apply(plotData,2,mean), sd=apply(plotData,2,sd))
 
 # Force the frame levels to specific order
 df$cat <- factor(df$cat, levels=catLabels)
 
+# Prevalence for all groups in a single year 
 ggplot(df, aes(cat,vals*100)) +
   geom_col(fill="blue", alpha = 0.5, color="black") +
+  geom_errorbar(aes(ymin=100*(vals-sd), ymax=100*(vals+sd)), width=.2,position=position_dodge(.9)) + 
   theme_minimal() +
   theme(text = element_text(size=16)) +
   scale_y_continuous(limits=c(0, 70), breaks=seq(0,70,10)) +
-  labs(title="HepCEP Model output (single run)", y="Prevalence (HCV AB+) %", x="")
-
-
+  labs(title="HepCEP Model output", y="Prevalence (HCV AB+) %", x="")
 
 # Prevalnce plot by racial groups
 ggplot(annualData, aes(x=Year)) + 

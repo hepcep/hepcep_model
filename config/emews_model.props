@@ -2,7 +2,7 @@
 
 random.seed = 42
 
-stop.at = 4015 # 10yr + 1yr burn ins
+stop.at = 1100 #4015 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run 
 cnep_plus.file = ../../../data/cnep_plus_all_2018.02.13.csv
@@ -43,7 +43,7 @@ nonNEP_degree_boost = 1.7
 nonNEP_hcv_ab_boost = 0.011
 nonNEP_injection_ratio = 0.85
 nonNEP_sharing_boost = 0.33
-prob_cessation = 0.0232
+prob_cessation = 0.232
 prob_infected_when_arrive = 0.05
 prob_self_limiting_female = 0.346
 prob_self_limiting_male = 0.121

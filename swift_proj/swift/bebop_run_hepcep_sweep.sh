@@ -64,8 +64,8 @@ USER_VARS=()
 # log variables and script to to TURBINE_OUTPUT directory
 log_script
 
-module load jdk
-module load gcc/7.1.0
+#module load jdk
+#module load gcc/7.1.0
 
 # echo's anything following this standard out
 set -x

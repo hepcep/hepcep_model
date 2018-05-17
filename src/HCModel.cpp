@@ -81,7 +81,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Output dir: " << output_directory << std::endl;
 
 	// Save the props in the output folder
-	props.writeToPropsFile(output_directory +"/model.props", ",");
+//	props.writeToPropsFile(output_directory + "/model.props", "");
 
 	network = std::make_shared<Network<HCPerson>>(true);
 

@@ -166,7 +166,7 @@ void HCModel::atEnd() {
 void HCModel::step() {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	std::cout << "t = " << tick << " pop. = " << local_persons.size() << std::endl;
+//	std::cout << "t = " << tick << " pop. = " << local_persons.size() << std::endl;
 
 	std::vector<PersonPtr> inActivePersons;
 

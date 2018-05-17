@@ -65,7 +65,7 @@ void run_model(int rank, repast::Properties& props) {
     }
 
 
-    props.writeToPropsFile(props.getProperty(OUTPUT_DIRECTORY) + "/parameters.txt", "");
+//    props.writeToPropsFile(props.getProperty(OUTPUT_DIRECTORY) + "/parameters.txt", "");
 
     repast::RepastProcess::instance()->getScheduleRunner().run();
 

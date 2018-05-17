@@ -1,6 +1,6 @@
 random.seed = 42
 
-stop.at = 4015 # 10yr + 1yr burn ins
+stop.at = 4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run 
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv

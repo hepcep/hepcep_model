@@ -6,7 +6,7 @@
 library(data.table)
 library(ggplot2)
 
-fileName <- "/output/stats.csv"
+fileName <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
 
 tableList <- list()
@@ -39,8 +39,9 @@ for (d in dirs){
 dt <- rbindlist(tableList)
 tableList <- NULL
 
-#rows <- nrow(dt)
-rows <- 1100
+# rows should be the number of entries in a single run
+rows <- max(dt$tick)
+#rows <- 4380
 burninDays <- 365
 
 # Day samples at the END (day 365) of each simulation year
@@ -54,7 +55,7 @@ annualData <- dt[tick %in% days]
 annualData[, Year := years]
 
 # Year for which we will generate a prediction data set
-predictionYear <- 2011
+predictionYear <- 2012
 predictionData <- annualData[Year==predictionYear,]
 
 categories <- c("prevalence_ALL", "prevalence_gender_MALE", "prevalence_gender_FEMALE", 
@@ -90,6 +91,11 @@ ggplot(df, aes(cat,vals*100)) +
 ggplot(annualData, aes(x=Year)) + 
   geom_line(aes(y=prevalence_race_NHWhite, color='NHWhite'), size=1.5) +
   geom_point(aes(y=prevalence_race_NHWhite, color='NHWhite', shape='NHWhite'), size=4) +
+
+#  geom_errorbar(aes(ymin=(mean(prevalence_race_NHWhite)-3*sd(prevalence_race_NHWhite)), 
+#                    ymax=(mean(prevalence_race_NHWhite)+3*sd(prevalence_race_NHWhite))), 
+#                width=.2,position=position_dodge(.9)) + 
+  
   geom_line(aes(y=prevalence_race_NHBlack, color='NHBlack'), size=1.5) +
   geom_point(aes(y=prevalence_race_NHBlack, color='NHBlack', shape='NHBlack'), size=4) +
   geom_line(aes(y=prevalence_race_Hispanic, color='Hispanic'), size=1.5) +

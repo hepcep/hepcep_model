@@ -22,14 +22,14 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=3
+export PROCS=32
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 export QUEUE=bdwall
-export WALLTIME=00:10:00
-export PPN=3
+export WALLTIME=00:50:00
+export PPN=32
 export TURBINE_JOBNAME="${EXPID}_job"
 
 # if R cannot be found, then these will need to be
@@ -64,8 +64,7 @@ USER_VARS=()
 # log variables and script to to TURBINE_OUTPUT directory
 log_script
 
-#module load jdk
-#module load gcc/7.1.0
+module load jdk
 
 # echo's anything following this standard out
 set -x

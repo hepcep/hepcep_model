@@ -15,10 +15,10 @@ namespace hepcep {
 class Zone {
 
 protected:
-	std::string zipcode;
-	unsigned int drugMarket;
-	double lat;
-	double lon;
+	std::string zipcode_;
+	unsigned int drugMarket_;
+	double lat_;
+	double lon_;
 
 public:
 	Zone(std::string zipcode);
@@ -29,19 +29,19 @@ public:
 	void setDrugMarket(unsigned int drugMarket);
 
 	unsigned int getDrugMarket() const {
-		return drugMarket;
+		return drugMarket_;
 	}
 
 	std::string getZipcode() const {
-		return zipcode;
+		return zipcode_;
 	}
 
 	double getLat() const {
-		return lat;
+		return lat_;
 	}
 
 	double getLon() const {
-		return lon;
+		return lon_;
 	}
 
 };

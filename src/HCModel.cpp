@@ -80,9 +80,14 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "HepCEP Model Initialization." << std::endl;
 	std::cout << "Output dir: " << output_directory << std::endl;
 
-	// Save the props in the output folder
 	std::string props_file = chi_sim::unique_file_name(props.getProperty(OUTPUT_DIRECTORY) + "/model.props");
-	props.writeToPropsFile(props_file, "");
+	FileOut fo(props_file);
+	for (auto iter = props.keys_begin(); iter != props.keys_end(); ++iter) {
+	    fo << (*iter) << " = " << props.getProperty(*iter);
+	}
+	fo.close();
+
+
 
 	network = std::make_shared<Network<HCPerson>>(true);
 

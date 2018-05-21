@@ -26,7 +26,7 @@
 
 namespace hepcep {
 
-HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) : 
+HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					AbsModelT(moved_data_size, props),
 					run(std::stoi(props.getProperty(RUN))) ,
 					personData(),
@@ -83,11 +83,9 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::string props_file = chi_sim::unique_file_name(props.getProperty(OUTPUT_DIRECTORY) + "/model.props");
 	FileOut fo(props_file);
 	for (auto iter = props.keys_begin(); iter != props.keys_end(); ++iter) {
-	    fo << (*iter) << " = " << props.getProperty(*iter);
+	    fo << (*iter) << " = " << props.getProperty(*iter) << "\n";
 	}
 	fo.close();
-
-
 
 	network = std::make_shared<Network<HCPerson>>(true);
 

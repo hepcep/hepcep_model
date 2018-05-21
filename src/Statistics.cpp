@@ -111,7 +111,7 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname, bool eventsEnabled) :
-        stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname),
+        stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname), burninMode(false),
 				logEventsEnabled(eventsEnabled) {
 
     init_metrics(metrics);
@@ -274,4 +274,3 @@ int Statistics::getDailyLosses(){
 }
 
 } /* namespace seir */
-

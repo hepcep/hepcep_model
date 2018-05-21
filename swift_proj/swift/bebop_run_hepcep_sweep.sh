@@ -11,7 +11,7 @@ PATH=/lcrc/project/MRSA/bebop/sfw/swift-t-38569e3/stc/bin:$PATH
 
 # uncomment to turn on swift/t logging. Can also set TURBINE_LOG,
 # TURBINE_DEBUG, and ADLB_DEBUG to 0 to turn off logging
-export TURBINE_LOG=1 TURBINE_DEBUG=1 ADLB_DEBUG=1
+# export TURBINE_LOG=1 TURBINE_DEBUG=1 ADLB_DEBUG=1
 THIS=$( cd $( dirname $0 ) ; /bin/pwd )
 export EMEWS_PROJECT_ROOT=$( cd $( dirname $0 )/.. ; /bin/pwd )
 # source some utility functions used by EMEWS in this script
@@ -22,14 +22,14 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=32
+export PROCS=1
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 export QUEUE=bdwall
-export WALLTIME=00:50:00
-export PPN=32
+export WALLTIME=00:30:00
+export PPN=4
 export TURBINE_JOBNAME="${EXPID}_job"
 
 # if R cannot be found, then these will need to be

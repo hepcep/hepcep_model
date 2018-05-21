@@ -135,11 +135,11 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	//      step method to ensure the correct order.
 
 	// Zone census schedule
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
+	runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
 
 	// Dynamic network linking schedule
 	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
-	runner.scheduleEvent(1, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
+	runner.scheduleEvent(1.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
 	// Treatment schedule
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
@@ -147,8 +147,11 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
 
+  std::cout << burnInDays << ", " << treatmentEnrollPerPY << ", " << treatmentStartDelay << ", " <<
+    enrollmentStart << std::endl;
+
 	if (treatmentEnrollPerPY > 0){
-		runner.scheduleEvent(enrollmentStart, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
+		runner.scheduleEvent(enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
 	}
 
 	performInitialLinking();
@@ -467,6 +470,8 @@ void HCModel::burnInControl() {
 
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
+  std::cout << "Scheduling burnin end for " << burnInDays << std::endl;
+
 	if(burnInDays <= 0) {
 		return;
 	}
@@ -476,6 +481,7 @@ void HCModel::burnInControl() {
 
 	// Schedule the burn-in end time
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+  std::cout << "Scheduling burnin end for " << tick << " + " <<  burnInDays << std::endl;
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(tick + burnInDays,
 			repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::burnInEnd)));
@@ -515,6 +521,9 @@ void HCModel::treatment(){
 	if (todaysTotalEnrollment <= 0) {
 		return; //do nothing.  occurs when we previously over-enrolled
 	}
+
+  //double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+  //std::cout << "treatment at " << tick << ", " << totalIDUPopulation << ", " << treatmentMeanDaily <<  std::endl;
 
 	std::vector<PersonPtr> candidates;
 	for (auto entry : local_persons) {

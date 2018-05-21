@@ -2,7 +2,7 @@ random.seed = 42
 
 stop.at = 4380 # 10yr + 1yr burn ins
 
-# relative to where the hepcep-model executable is run 
+# relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
 cnep_plus_early.file = ./data/cnep_plus_early_2018.02.13.csv
 zones.file = ./data/zones.csv
@@ -56,7 +56,7 @@ treatment_enrollment_probability_HRP = 0.2
 treatment_enrollment_probability_fullnetwork = 0.1
 treatment_enrollment_probability_inpartner = 0.1
 treatment_enrollment_probability_outpartner = 0.1
-treatment_enrollment_start_delay = 0 #1825  #5yr (after burn-in days)
+treatment_enrollment_start_delay = 0 
 treatment_enrollment_per_PY = 0.01
 treatment_repeatable = false
 treatment_svr = 0.9

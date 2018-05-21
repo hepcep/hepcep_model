@@ -147,9 +147,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
 
-  std::cout << burnInDays << ", " << treatmentEnrollPerPY << ", " << treatmentStartDelay << ", " <<
-    enrollmentStart << std::endl;
-
 	if (treatmentEnrollPerPY > 0){
 		runner.scheduleEvent(enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
 	}
@@ -470,8 +467,6 @@ void HCModel::burnInControl() {
 
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
-  std::cout << "Scheduling burnin end for " << burnInDays << std::endl;
-
 	if(burnInDays <= 0) {
 		return;
 	}
@@ -479,9 +474,8 @@ void HCModel::burnInControl() {
 	Statistics::instance()->setBurninMode(true);
 	personCreator->setBurnInPeriod(true, burnInDays);
 
-	// Schedule the burn-in end time
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-  std::cout << "Scheduling burnin end for " << tick << " + " <<  burnInDays << std::endl;
+	std::cout << "Scheduling burnin end for " << tick << " + " <<  burnInDays << std::endl;
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(tick + burnInDays,
 			repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::burnInEnd)));

@@ -45,8 +45,7 @@ void parse_parameters(int rank, repast::Properties& props, const std::string& pa
 
 
 void run_model(int rank, repast::Properties& props) {
-    boost::mpi::communicator comm;
-    if (comm.rank() == 0) {
+    if (rank == 0) {
         std::string time;
         repast::timestamp(time);
         std::cout << "Start Time: " << time << std::endl;
@@ -58,7 +57,7 @@ void run_model(int rank, repast::Properties& props) {
     // processes
     hepcep::HCModel model(props, 0);
 
-    if (comm.rank() == 0) {
+    if (rank == 0) {
         std::string time;
         repast::timestamp(time);
         std::cout << "Schedule Start Time: " << time << std::endl;
@@ -69,7 +68,7 @@ void run_model(int rank, repast::Properties& props) {
 
     repast::RepastProcess::instance()->getScheduleRunner().run();
 
-    if (comm.rank() == 0) {
+    if (rank == 0) {
         std::string time;
         repast::timestamp(time);
         std::cout << "End Time: " << time << std::endl;

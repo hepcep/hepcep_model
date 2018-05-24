@@ -29,7 +29,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 	unsigned int count = 1;
 
-	repast::IntUniformGenerator generator = repast::Random::instance()->createUniIntGenerator (0, personData.size());
+	repast::IntUniformGenerator generator = repast::Random::instance()->createUniIntGenerator (0, personData.size() - 1);
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 

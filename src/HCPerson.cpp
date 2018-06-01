@@ -69,7 +69,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 
 
 HCPerson::~HCPerson() {
-//	std::cout << "Destruct Person " << id() << std::endl;
+    //std::cout << "Destruct Person " << id() << std::endl;
+    immunology->purgeActions();
 }
 
 void HCPerson::step(NetworkPtr<HCPerson> network) {

@@ -17,8 +17,10 @@ FileOut::FileOut(const std::string& filename) :
 
 	std::string fname = chi_sim::unique_file_name(filename);
 	fs::path filepath(fname);
-    if (!fs::exists(filepath.parent_path()))
+    if (!fs::exists(filepath.parent_path())) {
         fs::create_directories(filepath.parent_path());
+    }
+
 	out.open(fname.c_str());
 }
 

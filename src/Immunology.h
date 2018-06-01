@@ -67,7 +67,6 @@ private:
      *
      */
     bool receiveInfectiousDose(double tick);
-    void purgeActions();
 
 public:
     Immunology(HCPerson* idu);
@@ -128,6 +127,8 @@ public:
      * Initiates treatment.
      */
     void startTreatment(bool adherent, double now);
+
+    void purgeActions();
 };
 
 

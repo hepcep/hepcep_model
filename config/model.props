@@ -9,11 +9,12 @@ zones.file = ./data/zones.csv
 zones.distance.file = ./data/zones_distance.csv
 
 # this will be passed in when doing sweeps
-run.number = 0;
+run.number = 1;
 
 output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
+log.initial.network = false
 
 ab_prob_acute = 0.02
 ab_prob_chronic = 0.67
@@ -41,7 +42,7 @@ nonNEP_degree_boost = 1.7
 nonNEP_hcv_ab_boost = 0.011
 nonNEP_injection_ratio = 0.85
 nonNEP_sharing_boost = 0.33
-prob_cessation = 0.0232
+prob_cessation = 0.232
 prob_infected_when_arrive = 0.05
 prob_self_limiting_female = 0.346
 prob_self_limiting_male = 0.121
@@ -57,7 +58,7 @@ treatment_enrollment_probability_fullnetwork = 0.1
 treatment_enrollment_probability_inpartner = 0.1
 treatment_enrollment_probability_outpartner = 0.1
 treatment_enrollment_start_delay = 0 
-treatment_enrollment_per_PY = 0.01
+treatment_enrollment_per_PY = 0
 treatment_repeatable = false
 treatment_svr = 0.9
 treatment_susceptibility = 1

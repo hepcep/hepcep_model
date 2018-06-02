@@ -73,7 +73,7 @@ public:
     void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);
     void logStatusChange(LogType logType, HCPerson* person, const std::string& msg);
 
-    void recordStats(double tick, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
+    void recordStats(double tick, int run, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
     void close();
     void setBurninMode(bool mode);
     void setLogEventsEnabled(bool enabled);

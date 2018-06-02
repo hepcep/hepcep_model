@@ -125,7 +125,7 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
     event_counts.reset();
 
     // write the header
-    out << "tick";
+    out << "tick,run";
     for (auto& stat : stats) {
         stat.second.writeHeader(out);
     }
@@ -189,7 +189,7 @@ void Statistics::writeEvents() {
     }
 }
 
-void Statistics::recordStats(double tick,
+void Statistics::recordStats(double tick, int run,
         std::map<unsigned int, std::shared_ptr<HCPerson>>& persons) {
     StatKeySuffix sks;
     for (auto& kv : persons) {
@@ -202,7 +202,7 @@ void Statistics::recordStats(double tick,
     }
 
 
-    out << tick;
+    out << tick << "," << run;
 
     for (auto& stat : stats) {
        stat.second.write(out);

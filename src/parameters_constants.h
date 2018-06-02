@@ -20,6 +20,8 @@ const std::string EVENTS_OUTPUT_FILE = "events.output.file";
 const std::string ZONES_FILE = "zones.file";
 const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 
+const std::string LOG_INITIAL_NETWORK = "log.initial.network";
+
 const std::string AB_PROB_CHRONIC = "ab_prob_chronic";
 const std::string AB_PROB_ACUTE = "ab_prob_acute";
 const std::string ATTRITION_RATE = "attrition_rate";

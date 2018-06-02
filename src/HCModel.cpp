@@ -154,11 +154,16 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	performInitialLinking();
 
 	// Log the initial network topology
-	std::string fname(output_directory + "/net_initial.gml");
-	write_network(fname, network, &writePerson, &writeEdge);
+	double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);
+
+	if (logNetwork){
+		std::string fname(output_directory + "/net_initial.gml");
+		write_network(fname, network, &writePerson, &writeEdge);
+	}
+
 
 	// write t0 stats
-	Statistics::instance()->recordStats(0, local_persons);
+	Statistics::instance()->recordStats(0, run, local_persons);
 }
 
 HCModel::~HCModel() {}
@@ -197,7 +202,7 @@ void HCModel::step() {
 	generateArrivingPersons();
 
 	// Record stats MUST always be last since it resets some values used above.
-	Statistics::instance()->recordStats(tick, local_persons);
+	Statistics::instance()->recordStats(tick, run, local_persons);
 }
 
 void HCModel::generateArrivingPersons(){

@@ -8,7 +8,7 @@ library(igraph)
 library(data.table)
 library(ggplot2)
 
-file <- "../output/net_initial_11.gml" 
+file <- "net_initial.gml" 
 
 g <- read.graph(file, format="gml")
 
@@ -52,17 +52,30 @@ n[5] <- nrow(group5)/nrow(young_edges_2) * 100
 n[6] <- nrow(group6)/nrow(young_edges_2) * 100
 n[7] <- nrow(group7)/nrow(young_edges_2) * 100
 
-youngDist <- data.frame(distance=c("2","4","8","16","32","64","64+"), 
-                        percent=n)
+catLabels <- c("2","4","8","16","32","64","64+")
+youngDist <- data.frame(cat=catLabels, vals=n, sd=0, model="HepCEP")
 
 # Force the frame levels to specific order
-youngDist$distance <- factor(youngDist$distance, levels=c("2","4","8","16","32","64","64+"))
+youngDist$distance <- factor(youngDist$distance, levels=catLabels)
 
+# Values from the PLOS paper for comparison
+# Values from network_apk_vs_boodram-2015-01-31.xlsx
+df <- data.frame(cat=catLabels, vals= c(29,12,14,16,14,11,4), 
+                 sd=c(1.2,1.4,1.4,1.4,1.4,1.4,1.4), model="APK")
 
-ggplot(youngDist, aes(x=distance, y=percent)) +
-  geom_bar(stat="identity",fill="green", alpha = 0.5, color="black") +
+youngDist <- rbind(youngDist,df)
+
+df <- data.frame(cat=catLabels, vals= c(30,11,13,17,12,11,6), 
+                 sd=c(3.6,4,4,4,4,4,4), model="YSN")
+youngDist <- rbind(youngDist,df)
+
+# Prevalence for all groups in a single year (PLOS Fog 4)
+ggplot(youngDist, aes(x=cat, y=vals, fill=model)) +
+  geom_bar(position=position_dodge(), stat="identity", color="black", alpha=0.5) +
+  geom_errorbar(aes(ymin=vals-sd, ymax=vals+sd), width=.2,position=position_dodge(.9)) +
+  scale_y_continuous(limits=c(0, 35), breaks=seq(0,70,10)) +
+  scale_fill_manual(name="", values = c("APK"="green", "HepCEP"="blue", "YSN"="red")) +
+  labs(x="Distance for a pair of connected young PWID (km)") +
   theme_minimal() +
-  theme(text = element_text(size=24)) +
-  scale_y_continuous(breaks=seq(0, 35, 5))  # Ticks from 0-10, every .25
-
+  theme(text = element_text(size=16), legend.position = c(.6, .9), legend.text=element_text(size=16)) 
 

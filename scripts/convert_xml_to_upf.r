@@ -19,16 +19,15 @@ for (f in files){
     name <- xml_attr(node,"name")
     value <- xml_attr(node,"value")
     
-    if (name == "run_length"){
-      name <- "stop.at"
-      value <- 2000 # TEST TEST TEST
+    if (name == "run_length" || name == "status_report_frequency" ){
+#      name <- "stop.at"
+#      value <- 2000 # TEST TEST TEST
+      
+      # don't include these since we set via model.props
     }
-    
-    if (name == "status_report_frequency" ){
-      value <- -1 # TEST TEST TEST
+    else{
+      x <- paste0(x,"\t",name,"=",value)  
     }
-    
-    x <- paste0(x,"\t",name,"=",value)
   }
   x <- paste0(x,"\n")
   

@@ -243,7 +243,11 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 //		return;
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-	log_events.push_back({tick, logType, person->id(), msg});
+
+// TODO Uncomment to enable event logging (otherwise uses a lot of mem)
+//	log_events.push_back({tick, logType, person->id(), msg});
+
+
 	if (logType == LogType::ACTIVATED) {
 		++event_counts.activations_daily;
 	} else if (logType == LogType::CURED) {

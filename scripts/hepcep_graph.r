@@ -119,12 +119,14 @@ df <- data.frame(distance=distLabels, mean= c(30,11,13,17,12,11,6),
 distStats <- rbind(distStats,df)
 
 # Prevalence for all groups in a single year (PLOS Fog 4)
-ggplot(distStats, aes(x=distance, y=mean, fill=model)) +
+ggplot(distStats, aes(x=distance, y=mean/100, fill=model)) +
   geom_bar(position=position_dodge(), stat="identity", color="black", alpha=0.5) +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,position=position_dodge(.9)) +
-  scale_y_continuous(limits=c(0, 35), breaks=seq(0,70,10)) +
+  geom_errorbar(aes(ymin=(mean-sd)/100, ymax=(mean+sd)/100), width=.2,position=position_dodge(.9)) +
+  scale_y_continuous(limits=c(0, 0.35)) +
   scale_fill_manual(name="", values = c("APK"="green", "HepCEP"="blue", "YSN"="red")) +
-  labs(x="Distance for a pair of connected young PWID (km)") +
+  labs(x="Distance for a pair of connected young PWID (km)", y="Fraction of PWID Pairs") +
+  scale_x_discrete(labels=c("[0-2)","[2-4)","[4-8)","[8-16)","[16-32)","[32-64)","64+")) + 
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.6, .9), legend.text=element_text(size=16)) 
+  theme(text = element_text(size=18), legend.position = c(.6, .9), legend.text=element_text(size=16)) 
 
+ggsave(filename = "pwidpairs.png")

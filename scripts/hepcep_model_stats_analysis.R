@@ -21,10 +21,21 @@ for (d in dirs){
     print(paste0("Loading ", path ))
     
     tryCatch({
-      tableList[[d]]  <- fread(path)  
+      # Read the model.props for optional storing of parameter values
+      propsRead <- fread(paste0(d,"/model.props"), fill=TRUE)
+      props <- propsRead[,1]
+      props$Value <- propsRead[,3]
+      colnames(props)<-c("Name", "Value")
+      
+      table <-  fread(path)
+      
+      # Optionally store properties in the table for this run
+      table$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
+      
+      tableList[[d]]  <- table  
     }, 
       warning = function(w) {
-      
+        print(paste0("Error loading file: ", path))
     },
       error = function(e) {
       print(paste0("Error loading file: ", path))
@@ -108,18 +119,18 @@ df <- data.frame(cat=catLabels, vals= c(42,43,40,36,57,43,42,41,24,54,53,32),
 predictionSet <- rbind(predictionSet,df)
 
 # Prevalence for all groups in a single year (PLOS Fog 4)
-ggplot(predictionSet, aes(x=cat, y=vals, fill=model)) +
+p <- ggplot(predictionSet, aes(x=cat, y=vals, fill=model)) +
   geom_bar(position=position_dodge(), stat="identity", color="black", alpha=0.5) +
   geom_errorbar(aes(ymin=vals-sd, ymax=vals+sd), width=.2,position=position_dodge(.9)) +
   scale_y_continuous(limits=c(0, 70), breaks=seq(0,70,10)) +
   scale_fill_manual(name="", values = c("APK"="green", "HepCEP"="blue", "NHBS"="red")) +
   labs(y="Prevalence (HCV AB+) %", x="") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.2, .9), legend.text=element_text(size=16)) 
-
+  theme(text = element_text(size=30), legend.position = c(.2, .9), legend.text=element_text(size=22)) 
+ggsave("Prevalence Histogram.png", plot=p, width=10, height=7)
 
 # Prevalnce plot by racial groups (PLOS Fog 6)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=prevalence_race_NHWhite_mean, color='NHWhite'), size=1.5) +
   geom_point(aes(y=prevalence_race_NHWhite_mean, color='NHWhite', shape='NHWhite'), size=4) +
   geom_line(aes(y=prevalence_race_NHBlack_mean, color='NHBlack'), size=1.5) +
@@ -146,16 +157,20 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=prevalence_syringesource_nonHR_mean-prevalence_syringesource_nonHR_sd, 
                     ymax=prevalence_syringesource_nonHR_mean+prevalence_syringesource_nonHR_sd,color='nonHR'),width=.15) + 
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 0.6), breaks=seq(0,0.6,0.1)) +
   scale_color_manual(name="", values = c("NHWhite"="green", "NHBlack"="blue", "Hispanic"="red","ALL"="black", "HR"="black", "nonHR"="red")) +
   scale_shape_manual(name="", values = c("NHWhite"=23, "NHBlack"=3, "Hispanic"=25,"ALL"=17, "HR"=16, "nonHR"=20)) +
   labs(y="Prevalence (HCV AB+)", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.25, .25), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.25, .25), legend.text=element_text(size=24)) +
+#  guides(fill=guide_legend(keywidth=0.1,keyheight=1.9,default.unit="inch"))
+ggsave("HCV Prev Race Syringe.png", plot=p, width=8, height=6)
+
 
 # Prevalnce plot by age and city/suburbs (PLOS Fog 6)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=prevalence_areatype_CITY_mean, color='City of Chicago'), size=1.5) +
   geom_point(aes(y=prevalence_areatype_CITY_mean, color='City of Chicago', shape='City of Chicago'), size=4) +
   geom_line(aes(y=prevalence_areatype_SUBURBAN_mean, color='Suburban'), size=1.5) +
@@ -178,16 +193,18 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=prevalence_agegrp_OVER_30_mean-prevalence_agegrp_OVER_30_sd, 
                     ymax=prevalence_agegrp_OVER_30_mean+prevalence_agegrp_OVER_30_sd,color='Over 30'),width=.15) +
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 0.6), breaks=seq(0,0.6,0.1)) +
   scale_color_manual(name="", values = c("City of Chicago"="green", "Suburban"="green", "ALL"="black", "Under 30"="blue", "Over 30"="orange")) +
   scale_shape_manual(name="", values = c("City of Chicago"=18, "Suburban"=4, "ALL"=17, "Under 30"=15, "Over 30"=16)) +
   labs(y="Prevalence (HCV AB+)", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.25, .25), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.25, .25), legend.text=element_text(size=24))
+ggsave("HCV Prev Age Location.png", plot=p, width=8, height=6)
 
 # Prevalnce plot by gender (PLOS Fog 6)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=prevalence_ALL_mean, color='ALL'), size=1.5) +
   geom_point(aes(y=prevalence_ALL_mean, color='ALL', shape='ALL'), size=4) +
   geom_line(aes(y=prevalence_gender_MALE_mean, color='Male'), size=1.5) +
@@ -202,16 +219,18 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=prevalence_gender_FEMALE_mean-prevalence_gender_FEMALE_sd, 
                     ymax=prevalence_gender_FEMALE_mean+prevalence_gender_FEMALE_sd,color='Female'),width=.15) +
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 0.6), breaks=seq(0,0.6,0.1)) +
   scale_color_manual(name="", values = c("ALL"="black", "Male"="dark green", "Female"="purple")) +
   scale_shape_manual(name="", values = c("ALL"=17, "Male"=18, "Female"=15)) +
   labs(y="Prevalence (HCV AB+)", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.25, .25), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.25, .25), legend.text=element_text(size=24))
+ggsave("HCV Prev Gender.png", plot=p, width=8, height=6)
 
 # Fraction of population by age and city/suburbs (PLOS Fog 7)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=fraction_areatype_CITY_mean, color='City of Chicago'), size=1.5) +
   geom_point(aes(y=fraction_areatype_CITY_mean, color='City of Chicago', shape='City of Chicago'), size=4) +
   geom_line(aes(y=fraction_areatype_SUBURBAN_mean, color='Suburban'), size=1.5) +
@@ -230,16 +249,18 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=fraction_agegrp_OVER_30_mean-fraction_agegrp_OVER_30_sd, 
                     ymax=fraction_agegrp_OVER_30_mean+fraction_agegrp_OVER_30_sd,color='Over 30'),width=.15) +
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 1.0), breaks=seq(0,1.0,0.2)) +
   scale_color_manual(name="", values = c("City of Chicago"="green", "Suburban"="green", "Under 30"="blue", "Over 30"="orange")) +
   scale_shape_manual(name="", values = c("City of Chicago"=18, "Suburban"=4, "Under 30"=15, "Over 30"=16)) +
   labs(y="Fraction of Population", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.15, .90), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.25, .90), legend.text=element_text(size=24))
+ggsave("Fraction Age Location.png", plot=p, width=8, height=6)
 
 # Fraction of population by age subgroups (PLOS Fog 7)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=fraction_agedec_AGE_LEQ_20_mean, color='<=20'), size=1.5) +
   geom_point(aes(y=fraction_agedec_AGE_LEQ_20_mean, color='<=20', shape='<=20'), size=4) +
   geom_line(aes(y=fraction_agedec_AGE_21_30_mean, color='21-30'), size=1.5) +
@@ -262,16 +283,18 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=fraction_agedec_AGE_51_60_mean-fraction_agedec_AGE_51_60_sd, 
                     ymax=fraction_agedec_AGE_51_60_mean+fraction_agedec_AGE_51_60_sd,color='51-60'),width=.15) +
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 1.0), breaks=seq(0,1.0,0.2)) +
   scale_color_manual(name="", values = c("<=20"="red", "21-30"="blue", "31-40"="green", "41-50"="black", "51-60"="purple")) +
   scale_shape_manual(name="", values = c("<=20"=20, "21-30"=15, "31-40"=16, "41-50"=18, "51-60"=17)) +
   labs(y="Fraction of Population", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.15, .90), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.15, .90), legend.text=element_text(size=24))
+ggsave("Fraction Age.png", plot=p, width=8, height=6)
 
 # Fraction of population by racial groups (PLOS Fog 7)
-ggplot(annDataSummary, aes(x=Year_mean)) + 
+p <- ggplot(annDataSummary, aes(x=Year_mean)) + 
   geom_line(aes(y=fraction_race_NHWhite_mean, color='NHWhite'), size=1.5) +
   geom_point(aes(y=fraction_race_NHWhite_mean, color='NHWhite', shape='NHWhite'), size=4) +
   geom_line(aes(y=fraction_race_NHBlack_mean, color='NHBlack'), size=1.5) +
@@ -294,11 +317,51 @@ ggplot(annDataSummary, aes(x=Year_mean)) +
   geom_errorbar(aes(ymin=fraction_syringesource_nonHR_mean-fraction_syringesource_nonHR_sd, 
                     ymax=fraction_syringesource_nonHR_mean+fraction_syringesource_nonHR_sd,color='nonHR'),width=.15) +
   
-  scale_x_continuous(breaks=years) +
+#  scale_x_continuous(breaks=years) +
+  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   scale_y_continuous(limits=c(0, 1.0), breaks=seq(0,1.0,0.2)) +
   scale_color_manual(name="", values = c("NHWhite"="orange", "NHBlack"="blue", "Hispanic"="red","ALL"="black", "HR"="black", "nonHR"="red")) +
   scale_shape_manual(name="", values = c("NHWhite"=23, "NHBlack"=3, "Hispanic"=25,"ALL"=17, "HR"=16, "nonHR"=20)) +
   labs(y="Fraction of Population", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=16), legend.position = c(.15, .90), legend.text=element_text(size=16))
+  theme(text = element_text(size=30), legend.position = c(.15, .90), legend.text=element_text(size=24))
+ggsave("Fraction Race.png", plot=p, width=8, height=6)
 
+
+# Aggregate on paramter sweep and year
+# mean
+annDataSummarySweep<-aggregate(annualData, 
+                               by=list(Year = annualData$Year, 
+                                       Enrollment=annualData$treatment_enrollment_per_PY), 
+                               FUN=mean)
+names(annDataSummarySweep) <- paste0(names(annDataSummarySweep),"_mean")
+
+# Std Err
+annDataSummarySweepStd<-aggregate(annualData, 
+                                  by=list(Year = annualData$Year, 
+                                          Enrollment=annualData$treatment_enrollment_per_PY), 
+                                  FUN=std)
+
+names(annDataSummarySweepStd) <- paste0(names(annDataSummarySweepStd),"_std")
+
+# Std Dev
+annDataSummarySweepSd<-aggregate(annualData, 
+                                 by=list(Year = annualData$Year, 
+                                         Enrollment=annualData$treatment_enrollment_per_PY), 
+                                 FUN=sd)
+names(annDataSummarySweepSd) <- paste0(names(annDataSummarySweepSd),"_sd")
+
+annDataSummarySweep <-cbind(annDataSummarySweep, annDataSummarySweepStd, annDataSummarySweepSd)
+
+
+ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=1) +
+  geom_point(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=2) +
+#  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  geom_errorbar(aes(x=Year_mean, ymin=RNApreval_ALL_mean-RNApreval_ALL_sd, 
+                    ymax=RNApreval_ALL_mean+RNApreval_ALL_sd,color=Enrollment_mean),width=.15) +
+  
+  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="HCV RNA Prevalence", x="Year", color="Enrollment") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.text=element_text(size=20))

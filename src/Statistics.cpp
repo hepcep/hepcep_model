@@ -187,6 +187,7 @@ void Statistics::writeEvents() {
         events_out << evt.tick << "," << evt.type.stringValue() << "," <<
                 evt.person << "," << evt.other << "\n";
     }
+    log_events.clear();
 }
 
 void Statistics::recordStats(double tick, int run,

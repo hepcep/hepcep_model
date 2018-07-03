@@ -59,7 +59,13 @@ burninDays <- 365
 days <- seq((burninDays+365), rows, 365)
 
 startYear <- 2010   # First year of simulation
-years <- seq(startYear, (startYear + length(days) - 1))    # list of all sim years in data
+#years <- seq(startYear, (startYear + length(days) - 1))    # list of all sim years in data
+
+# Convert the simulation day tick to the simulated year
+dayToYear <- function(firstYear, day) firstYear + floor((day)/365)
+dt$Year <- unlist(lapply(dt$tick, dayToYear, firstYear=startYear-1))
+
+years <- unlist(unique(dt$Year))
 
 # Create a subset of columns to select from the DT
 categories <- c("prevalence_ALL", "prevalence_gender_MALE", "prevalence_gender_FEMALE", 
@@ -71,9 +77,10 @@ categories <- c("prevalence_ALL", "prevalence_gender_MALE", "prevalence_gender_F
 catLabels <- c("ALL", "MALE", "FEMALE", "NHWhite", "NHBlack", "Hispanic", "HR", "nonHR" ,"LEQ30", 
                "Over30", "City", "Suburban")
 
+# The annual data is a snapshot of stats on the last day in the year
 annualData <- dt[tick %in% days]
 #annualData <- annualData[,categories,with=FALSE]
-annualData[, Year := years]
+#annualData[, Year := years]
 
 # Aggregate statistics on the data by year
 # Mean
@@ -328,6 +335,8 @@ p <- ggplot(annDataSummary, aes(x=Year_mean)) +
 ggsave("Fraction Race.png", plot=p, width=8, height=6)
 
 
+# TODO Update the prevalence stats calculations to use the data.table method as with incidence.
+
 # Aggregate on paramter sweep and year
 # mean
 annDataSummarySweep<-aggregate(annualData, 
@@ -353,8 +362,7 @@ names(annDataSummarySweepSd) <- paste0(names(annDataSummarySweepSd),"_sd")
 
 annDataSummarySweep <-cbind(annDataSummarySweep, annDataSummarySweepStd, annDataSummarySweepSd)
 
-
-ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=1) +
+p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=1) +
   geom_point(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=2) +
 #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
   
@@ -364,4 +372,29 @@ ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mean,col
   scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
   labs(y="HCV RNA Prevalence", x="Year", color="Enrollment") +
   theme_minimal() +
-  theme(text = element_text(size=20), legend.text=element_text(size=20))
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20))
+ggsave("Treatment Prevalence.png", plot=p, width=10, height=8)
+
+
+# TODO change DT to exclude tick 0 and tick 1:burninDays in all data sets
+#!(tick %in% 1:burninDays)
+
+# Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
+#   the dt$incidence_daily by the population count 
+incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
+
+# Calculate the mean and std of yearly incidence rate
+incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence)), by=list(Year,treatment_enrollment_per_PY)]
+
+p <- ggplot(incidenceSummary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
+  geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+#  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)

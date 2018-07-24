@@ -29,6 +29,10 @@ bool filter_cured(double tick, std::shared_ptr<HCPerson> person) {
     return person->isCured();
 }
 
+bool filter_infected_today(double tick, std::shared_ptr<HCPerson> person) {
+    return person->isInfectedToday();
+}
+
 void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
     gender = GENDER_INFIX + person->getGender().stringValue();
     hcv_state = HCV_INFIX + person->getHCVState().stringValue();

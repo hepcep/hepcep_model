@@ -5,6 +5,7 @@
 #
 library(data.table)
 library(ggplot2)
+library(zoo)
 
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
@@ -64,6 +65,16 @@ startYear <- 2010   # First year of simulation
 # Convert the simulation day tick to the simulated year
 dayToYear <- function(firstYear, day) firstYear + floor((day)/365)
 dt$Year <- unlist(lapply(dt$tick, dayToYear, firstYear=startYear-1))
+
+# Convert the simulation day tick to month number.
+# The month number will be greater than 12 for days > 365
+dayToMonth <- function(day) 1 + floor((day)/31)
+dt$Month <- unlist(lapply(dt$tick, dayToMonth))
+
+# Convert the simulation day tick to week number.
+# The week number will be greater than 50 for days > 365
+dayToWeek <- function(day) 1 + floor((day)/7)
+dt$Week <- unlist(lapply(dt$tick, dayToWeek))
 
 years <- unlist(unique(dt$Year))
 
@@ -362,6 +373,10 @@ names(annDataSummarySweepSd) <- paste0(names(annDataSummarySweepSd),"_sd")
 
 annDataSummarySweep <-cbind(annDataSummarySweep, annDataSummarySweepStd, annDataSummarySweepSd)
 
+annDataSummarySweep <- as.data.table(annDataSummarySweep)
+setA <- annDataSummarySweep[Enrollment_mean %in% c(0,0.01)]
+setA <- setA[Year_mean > 2014]
+
 p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=1) +
   geom_point(aes(x=Year_mean,y=RNApreval_ALL_mean,color=Enrollment_mean), size=2) +
 #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
@@ -369,11 +384,40 @@ p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mea
   geom_errorbar(aes(x=Year_mean, ymin=RNApreval_ALL_mean-RNApreval_ALL_sd, 
                     ymax=RNApreval_ALL_mean+RNApreval_ALL_sd,color=Enrollment_mean),width=.15) +
   
-  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  scale_x_continuous(limits=c(2014, 2045)) +
+  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.05)) +
   labs(y="HCV RNA Prevalence", x="Year", color="Enrollment") +
   theme_minimal() +
   theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20))
-ggsave("Treatment Prevalence.png", plot=p, width=10, height=8)
+ggsave("Treatment Prevalence ALL.png", plot=p, width=10, height=8)
+
+p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_agegrp_LEQ_30_mean,color=Enrollment_mean), size=1) +
+  geom_point(aes(x=Year_mean,y=RNApreval_agegrp_LEQ_30_mean,color=Enrollment_mean), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  geom_errorbar(aes(x=Year_mean, ymin=RNApreval_agegrp_LEQ_30_mean-RNApreval_agegrp_LEQ_30_sd, 
+                    ymax=RNApreval_agegrp_LEQ_30_mean+RNApreval_agegrp_LEQ_30_sd,color=Enrollment_mean),width=.15) +
+  
+  scale_x_continuous(limits=c(2014, 2045)) +
+  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.05)) +
+  labs(y="HCV RNA Prevalence Young PWID (<30)", x="Year", color="Enrollment") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20))
+ggsave("Treatment Prevalence Young.png", plot=p, width=10, height=8)
+
+p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_agegrp_OVER_30_mean,color=Enrollment_mean), size=1) +
+  geom_point(aes(x=Year_mean,y=RNApreval_agegrp_OVER_30_mean,color=Enrollment_mean), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  geom_errorbar(aes(x=Year_mean, ymin=RNApreval_agegrp_OVER_30_mean-RNApreval_agegrp_OVER_30_sd, 
+                    ymax=RNApreval_agegrp_OVER_30_mean+RNApreval_agegrp_OVER_30_sd,color=Enrollment_mean),width=.15) +
+  
+  scale_x_continuous(limits=c(2014, 2045)) +
+  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.05)) +
+  labs(y="HCV RNA Prevalence Older PWID (30+)", x="Year", color="Enrollment") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20))
+ggsave("Treatment Prevalence Old.png", plot=p, width=10, height=8)
 
 
 # TODO change DT to exclude tick 0 and tick 1:burninDays in all data sets
@@ -398,3 +442,93 @@ p <- ggplot(incidenceSummary) + geom_line(aes(x=Year, y=mean, color=treatment_en
   theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
   guides(color=guide_legend(title="Enrollment"))
 ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
+
+
+
+
+#### Testing weekly and daily incidence
+
+
+
+# Calculate the Weekly incidence rate per 1000 person-years which is the yearly sum of 
+#   the dt$incidence_daily by the population count 
+incidenceWeek <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
+                    by=list(Week,treatment_enrollment_per_PY,run)]
+
+# Calculate the mean and std of Weekly incidence rate
+incidenceSummaryWeekly <- incidenceWeek[, list(mean=mean(incidence), sd=sd(incidence)), 
+                                        by=list(Week,treatment_enrollment_per_PY)]
+
+p <- ggplot(incidenceSummaryWeekly) + geom_line(aes(x=Week, y=mean, color=treatment_enrollment_per_PY), size=1) +
+#  geom_point(aes(x=Week, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+#  geom_errorbar(aes(x=Week, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Incidence (per 1000 person-years)", x="Week", color="treatment_enrollment_per_PY") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
+
+
+# Calculate the monthly incidence rate per 1000 person-years which is the yearly sum of 
+#   the dt$incidence_daily by the population count 
+incidenceMonth <- dt[Year %in% 2010:2044, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
+                    by=list(Month,treatment_enrollment_per_PY,run)]
+
+# Calculate the mean and std of Weekly incidence rate
+incidenceSummaryMonthly <- incidenceMonth[, list(mean=mean(incidence), sd=sd(incidence)), 
+                                        by=list(Month,treatment_enrollment_per_PY)]
+
+p <- ggplot(incidenceSummaryMonthly) + geom_line(aes(x=Month, y=mean, color=treatment_enrollment_per_PY), size=1) +
+#  geom_point(aes(x=Month, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  #  geom_errorbar(aes(x=Week, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Incidence (per 1000 person-years)", x="Month", color="treatment_enrollment_per_PY") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
+
+
+foo <- incidenceMonth[run == 100]
+
+ggplot(foo) + geom_line(aes(x=Month, y=incidence, color=treatment_enrollment_per_PY), size=1) +
+  #  geom_point(aes(x=Month, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  #  geom_errorbar(aes(x=Week, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Incidence (per 1000 person-years)", x="Month", color="treatment_enrollment_per_PY") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+
+
+#Experiment with moving average incidence
+
+window = 31
+incidence_daily_rolling_mean = dt[Year %in% 2010:2044, 
+                                     .(tick, Year, run, treatment_enrollment_per_PY, 
+                                       rm_inc = rollmean(incidence_daily/(population_ALL-infected_ALL), 
+                                                               window, fill = NA))]
+
+foo <- incidence_daily_rolling_mean[run == 100]
+
+ggplot(foo) + geom_line(aes(x=tick, y=rm_inc, color=treatment_enrollment_per_PY), size=1) +
+  #  geom_point(aes(x=Month, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  
+  #  geom_errorbar(aes(x=Week, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Incidence (per 1000 person-years)", x="Month", color="treatment_enrollment_per_PY") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))

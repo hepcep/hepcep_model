@@ -41,6 +41,7 @@ bool filter_hcv_rna(double tick,  std::shared_ptr<HCPerson> person);
 bool filter_hcv_abpos(double tick,  std::shared_ptr<HCPerson> person);
 bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person);
 bool filter_cured(double tick, std::shared_ptr<HCPerson> person);
+bool filter_infected_today(double tick, std::shared_ptr<HCPerson> person);
 
 class AggregateStats {
     

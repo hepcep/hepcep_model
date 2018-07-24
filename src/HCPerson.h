@@ -63,6 +63,7 @@ protected:
 	double injectionIntensity;
 	double fractionReceptSharing;
 	double lastExposureDate;
+	double lastInfectionDate;
 
 	ZonePtr myZone;
 
@@ -111,9 +112,12 @@ public:
 	double getFractionReceptSharing() const;
 	void setLastExposureDate(double tick);
 	double getLastExposureDate() const;
+	void setLastInfectionDate(double tick);
+	double getLastInfectionDate() const;
 	bool isHcvABpos() const;
 	bool isHcvRNA() const;
 	bool isActive() const;
+	bool isInfectedToday() const;
 
 	bool isCured() const;
 	bool isInTreatment() const;

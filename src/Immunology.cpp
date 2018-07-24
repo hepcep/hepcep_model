@@ -152,6 +152,8 @@ bool Immunology::receiveInfectiousDose(double now) {
     hcv_state = HCVState::EXPOSED;
     Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
 
+    idu_->setLastInfectionDate(now);
+
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     double exposed_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_naive_to_infectious).next();
 

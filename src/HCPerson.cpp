@@ -24,7 +24,8 @@ namespace hepcep {
 HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		gender(Gender::FEMALE), race(Race::OTHER),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
-		lastExposureDate(-1.0) {
+		lastExposureDate(-1.0),
+		lastInfectionDate(-1.0){
 
 
 	immunology = std::make_shared<Immunology>(this);
@@ -310,6 +311,14 @@ double HCPerson::getLastExposureDate() const {
     return lastExposureDate;
 }
 
+void HCPerson::setLastInfectionDate(double tick){
+    lastInfectionDate = tick;
+}
+
+double HCPerson::getLastInfectionDate() const {
+    return lastInfectionDate;
+}
+
 bool HCPerson::isHcvABpos() const {
 	return immunology->isHcvABpos();
 }
@@ -317,6 +326,12 @@ bool HCPerson::isHcvABpos() const {
 bool HCPerson::isHcvRNA() const{
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	return immunology->isHcvRNA(tick);
+}
+
+// Returns true if the last infection date tick is now (today)
+bool HCPerson::isInfectedToday() const{
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+	return tick == lastInfectionDate;
 }
 
 bool HCPerson::isCured() const {

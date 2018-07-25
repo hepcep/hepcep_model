@@ -49,10 +49,19 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			person->setZone(zoneMap[data.zipCode]);
 
 			if (earlyCareerOnly){
-				int daysSinceInitiated = round(365.*(person->getAge() - person->getAgeStarted()));
+				// Force early career PWIDs to be young.  Subtract some time from the
+				//   person's age based on their time since starting injecting.
+				double daysSinceInitiated = 365.0*(person->getAge() - person->getAgeStarted());
 
 				// TODO How to handle birthdate?
+				// APK adds days to the birth date which makes the person younger, so
+				//    HepCEP can just decrease the age accordingly.
 //				idu.setBirthDate(idu.getBirthDate().plusDays(days_since_initiated - 50));
+
+				double age = person->getAge();
+				double newAge = age - (daysSinceInitiated - 50.0) / 365.0;
+				person->setAge(newAge);
+
 
 				// TODO make sure setting the initial HCV state doesnt create duplicate
 				//     schedule entries in the immunology.  APK follows the same pattern.
@@ -83,6 +92,8 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 
 			persons[ID_COUNTER] = person;
+
+	//		std::cout << "new per age: " << person->getAge() << std::endl;
 
 			count++;
 			ID_COUNTER++;  // increment id count

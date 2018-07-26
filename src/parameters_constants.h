@@ -36,6 +36,7 @@ const std::string INTERACTION_RATE_DRUG_SITES = "interaction_rate_at_drug_sites"
 const std::string INTERACTION_RATE_EXZONE = "interaction_rate_exzone";
 const std::string LINKING_TIME_WINDOW = "linking_time_window";
 
+const std::string MATURITY_THRESHOLD = "pwid_maturity_threshold";
 const std::string MEAN_CAREER_DURATION = "mean_career_duration";
 const std::string MEAN_EDGE_LIFETIME = "mean_tie_lifetime";
 const std::string MEAN_DAYS_ACUTE_NAIVE = "mean_days_acute_naive";

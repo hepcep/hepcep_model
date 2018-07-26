@@ -35,8 +35,26 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 	while (count <= person_count) {
 		// Select a random CNEP+ profile from which to create the Person instance
-		int i = (int)generator.next();
-		HCPersonData data = personData[i];
+
+		HCPersonData data;
+		// Sample from entire CNEP+
+		if (!earlyCareerOnly){
+			int i = (int)generator.next();
+			data = personData[i];
+		}
+
+		// TODO this seems computationally wasteful..
+		else{  // Sample only from early career persons
+			int remaining_trials;
+			for (remaining_trials = 50; remaining_trials > 0; --remaining_trials) {
+				int i = (int)generator.next();
+				HCPersonData candidate = personData[i];
+				if (candidate.early_career == true){
+					data = candidate;
+					break;
+				}
+			}
+		}
 
 		// If the zone is undefined, skip this person data
 		//   TODO should the data be pruned from the list to avoid repeat checks?

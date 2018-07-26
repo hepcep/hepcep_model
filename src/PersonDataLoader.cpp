@@ -6,6 +6,9 @@
 
 #include "repast_hpc/RepastProcess.h"
 
+#include "chi_sim/Parameters.h"
+
+#include "parameters_constants.h"
 #include "PersonDataLoader.h"
 #include "SVReader.h"
 
@@ -27,6 +30,9 @@ void loadPersonData(const string& filename, std::vector<HCPersonData> & personDa
 	SVReader reader(filename, ',');
 	vector<std::string> line;
 
+	// Determines if person is early career
+	double maturityThreshold = chi_sim::Parameters::instance()->getDoubleParameter(MATURITY_THRESHOLD);
+
 	// Header
 	// Age, Age_Started, Gender, Race, SyringeSource, Zip, HCV	Drug_in_degree,
 	// 	Drug_out_degree, Daily_injection_intensity, Fraction_recept_sharing
@@ -45,14 +51,14 @@ void loadPersonData(const string& filename, std::vector<HCPersonData> & personDa
 		data.zipCode = line[ZIP_IDX];
 		data.hcvState = HCVState::valueOf(line[HCV_STATE_IDX]);
 
-		//		data.label = line[DB_LABEL_IDX];
 		data.drug_inDegree = std::stoul(line[DRUG_REC_DEG_IDX]);
 		data.drug_outDegree = std::stoul(line[DRUG_GIV_DEG_IDX]);
 		data.injectionIntensity = std::stod(line[INJECT_INTENS_IDX]);
 		data.fractionReceptSharing = std::stod(line[FRAC_REC_SHAR_IDX]);
 
+		data.early_career = (data.age - data.ageStarted) < maturityThreshold;
+
 		personData.push_back(data);
 	}
 }
-
 }

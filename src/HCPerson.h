@@ -43,6 +43,7 @@ struct HCPersonData {
 	unsigned int drug_outDegree;
 	double injectionIntensity;
 	double fractionReceptSharing;
+	bool early_career;
 
 };
 

@@ -93,6 +93,10 @@ annualData <- dt[tick %in% days]
 #annualData <- annualData[,categories,with=FALSE]
 #annualData[, Year := years]
 
+
+# Optionally filter the annualData by experiment type, e.g. some swept parameter
+#annualData <- annualData[treatment_enrollment_per_PY == 0.00]
+
 # Aggregate statistics on the data by year
 # Mean
 annDataSummary<-aggregate(annualData, by=list(Year = annualData$Year), FUN=mean)
@@ -268,7 +272,7 @@ p <- ggplot(annDataSummary, aes(x=Year_mean)) +
                     ymax=fraction_agegrp_OVER_30_mean+fraction_agegrp_OVER_30_sd,color='Over 30'),width=.15) +
   
 #  scale_x_continuous(breaks=years) +
-  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  scale_x_continuous(breaks=seq(2010,2045,5)) +
   scale_y_continuous(limits=c(0, 1.0), breaks=seq(0,1.0,0.2)) +
   scale_color_manual(name="", values = c("City of Chicago"="green", "Suburban"="green", "Under 30"="blue", "Over 30"="orange")) +
   scale_shape_manual(name="", values = c("City of Chicago"=18, "Suburban"=4, "Under 30"=15, "Over 30"=16)) +
@@ -425,24 +429,75 @@ ggsave("Treatment Prevalence Old.png", plot=p, width=10, height=8)
 
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
-incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
+#incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
+
+incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,treatment_enrollment_per_PY,run)]
+
+#incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,treatment_enrollment_per_PY,run)]
+
 
 # Calculate the mean and std of yearly incidence rate
 incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence)), by=list(Year,treatment_enrollment_per_PY)]
 
-p <- ggplot(incidenceSummary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
+incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0,0.025,0.05)]
+
+p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  #  scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020)) +
+  scale_x_continuous(breaks=seq(2010,2045,5)) +
   
   geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
   
 #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
-  labs(y="Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY") +
+  labs(y="Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY", title="Age 30+ Incidence") +
   theme_minimal() +
   theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
   guides(color=guide_legend(title="Enrollment"))
 ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
 
+
+# Calculated the annual cured counts
+# The annual data is a snapshot of stats on the last day in the year
+annualData <- dt[Year %in% 2010:2045 & tick %in% days]
+
+# Calculate the mean and std of yearly cured counts
+curedYearSummary <- annualData[, list(mean=mean(cured_ALL), sd=sd(cured_ALL)), by=list(Year,treatment_enrollment_per_PY)]
+#curedSummarySubset <- curedYearSummary[treatment_enrollment_per_PY %in% c(0,0.01,0.05)]
+
+p <- ggplot(curedYearSummary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
+  geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  scale_x_continuous(breaks=seq(2010,2045,5)) +
+  
+  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Total Cured", x="Year", color="treatment_enrollment_per_PY", title="") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+ggsave("Treatment Counts.png", plot=p, width=10, height=8)
+
+
+# Calculated the annual in treatment
+# The annual data is a snapshot of stats on the last day in the year
+annualData <- dt[Year %in% 2010:2045 & tick %in% days]
+
+# Calculate the mean and std of yearly cured counts
+#intreatmentYearSummary <- annualData[, list(mean=mean(intreatment_ALL), sd=sd(intreatment_ALL)), by=list(Year,treatment_enrollment_per_PY)]
+intreatmentYearSummary <- annualData[, list(mean=mean(intreatment_agegrp_LEQ_30), sd=sd(intreatment_agegrp_LEQ_30)), by=list(Year,treatment_enrollment_per_PY)]
+#intreatmentSummarySubset <- intreatmentYearSummary[treatment_enrollment_per_PY %in% c(0,0.01,0.05)]
+
+p <- ggplot(intreatmentYearSummary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
+  geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  scale_x_continuous(breaks=seq(2010,2045,5)) +
+  
+  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+  
+  #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
+  labs(y="Total In Treatment Age <= 30", x="Year", color="treatment_enrollment_per_PY", title="") +
+  theme_minimal() +
+  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  guides(color=guide_legend(title="Enrollment"))
+ggsave("Treatment Counts.png", plot=p, width=10, height=8)
 
 
 

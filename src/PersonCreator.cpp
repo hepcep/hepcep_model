@@ -44,9 +44,10 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		}
 
 		// TODO this seems computationally wasteful..
+		// TODO need a 100% way to find a young PWID as this can still fail.
 		else{  // Sample only from early career persons
 			int remaining_trials;
-			for (remaining_trials = 50; remaining_trials > 0; --remaining_trials) {
+			for (remaining_trials = 250; remaining_trials > 0; --remaining_trials) {
 				int i = (int)generator.next();
 				HCPersonData candidate = personData[i];
 				if (candidate.early_career == true){

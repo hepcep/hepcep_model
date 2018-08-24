@@ -92,7 +92,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	// Initialize statistics collection
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
-	Statistics::init(stats_fname, events_fname, false);
+	string arrivingPersonsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(ARRIVING_PERSONS_OUTPUT_FILE);
+	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, false);
 
 	// TODO put all the data loading into a separate method
 

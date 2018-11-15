@@ -28,7 +28,7 @@ for (d in dirs){
       props$Value <- propsRead[,3]
       colnames(props)<-c("Name", "Value")
       
-      table <-  fread(path)
+      table <-  fread(path, select=colsToKeep)
       
       # Optionally store properties in the table for this run
       table$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
@@ -186,7 +186,7 @@ p <- ggplot(annDataSummary, aes(x=Year_mean)) +
   scale_shape_manual(name="", values = c("NHWhite"=23, "NHBlack"=3, "Hispanic"=25,"ALL"=17, "HR"=16, "nonHR"=20)) +
   labs(y="Prevalence (HCV AB+)", x="Year") +
   theme_minimal() +
-  theme(text = element_text(size=30), legend.position = c(.25, .25), legend.text=element_text(size=24)) +
+  theme(text = element_text(size=30), legend.position = c(.25, .25), legend.text=element_text(size=24)) 
 #  guides(fill=guide_legend(keywidth=0.1,keyheight=1.9,default.unit="inch"))
 ggsave("HCV Prev Race Syringe.png", plot=p, width=8, height=6)
 

@@ -1,6 +1,6 @@
 random.seed = 42
 
-stop.at = 4380 # 10yr + 1yr burn ins
+stop.at = 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -9,7 +9,7 @@ zones.file = ./data/zones.csv
 zones.distance.file = ./data/zones_distance.csv
 
 # this will be passed in when doing sweeps
-run.number = 1;
+run.number = 1
 
 output.directory = ./output
 stats.output.file = stats.csv
@@ -52,13 +52,13 @@ status_report_frequency = -1
 transmissibility = 0.01
 treatment_duration = 84
 treatment_nonadherence = 0.1
-treatment_enrollment_probability_unbiased = 0.5
-treatment_enrollment_probability_HRP = 0.2
-treatment_enrollment_probability_fullnetwork = 0.1
-treatment_enrollment_probability_inpartner = 0.1
-treatment_enrollment_probability_outpartner = 0.1
-treatment_enrollment_start_delay = 0 
-treatment_enrollment_per_PY = 0
+treatment_enrollment_probability_unbiased = 1.0
+treatment_enrollment_probability_HRP = 0.0
+treatment_enrollment_probability_fullnetwork = 0.0
+treatment_enrollment_probability_inpartner = 0.0
+treatment_enrollment_probability_outpartner = 0.0
+treatment_enrollment_start_delay = 2190 
+treatment_enrollment_per_PY = 0.05
 treatment_repeatable = false
 treatment_svr = 0.9
 treatment_susceptibility = 1

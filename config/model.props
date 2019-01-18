@@ -63,3 +63,8 @@ treatment_enrollment_per_PY = 0.05
 treatment_repeatable = false
 treatment_svr = 0.9
 treatment_susceptibility = 1
+
+# NONE or ALL or comma separated list from
+# ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
+# STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
+log.events = NONE

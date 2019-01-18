@@ -9,6 +9,9 @@
 #include <stdio.h>
 
 #include "boost/range/algorithm.hpp"
+#include "boost/tokenizer.hpp"
+#include "boost/algorithm/string.hpp"
+
 
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Random.h"
@@ -25,6 +28,40 @@
 #include "parameters_constants.h"
 
 namespace hepcep {
+
+void init_stats(const std::string& output_directory) {
+	// Initialize statistics collection
+	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
+	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
+	string arrivingPersonsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(ARRIVING_PERSONS_OUTPUT_FILE);
+
+	string filter_string = chi_sim::Parameters::instance()->getStringParameter(EVENT_FILTERS);
+	boost::trim(filter_string);
+	std::shared_ptr<Filter<LogType>> filter;
+
+	if (filter_string == "NONE") {
+		filter = std::make_shared<NeverPassFilter<LogType>>();
+		std::cout << "Event logging is off" << std::endl;
+	} else if (filter_string == "ALL") {
+		filter = std::make_shared<AlwaysPassFilter<LogType>>();
+		std::cout << "Event logging is on - logging all events" << std::endl;
+	} else {
+		std::shared_ptr<ContainsFilter<LogType>> cf = std::make_shared<ContainsFilter<LogType>>();
+		boost::char_separator<char> sep(",");
+		boost::tokenizer<boost::char_separator<char>> tok(filter_string, sep);
+		std::cout << "Event logging is on - logging ";
+		for (auto item : tok) {
+			boost::trim(item);
+			std::cout << item << " ";
+			cf->addItem(LogType::valueOf(item));
+		}
+		std::cout << std::endl;
+		filter = cf;
+	}
+	
+
+	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, filter);
+}
 
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					AbsModelT(moved_data_size, props),
@@ -88,12 +125,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	fo.close();
 
 	network = std::make_shared<Network<HCPerson>>(true);
-
-	// Initialize statistics collection
-	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
-	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
-	string arrivingPersonsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(ARRIVING_PERSONS_OUTPUT_FILE);
-	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, false);
+	init_stats(output_directory);
 
 	// TODO put all the data loading into a separate method
 

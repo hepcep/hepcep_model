@@ -49,6 +49,8 @@ public:
 
     bool operator==(const LogType& rhs) const;
     bool operator!=(const LogType& rhs) const;
+    bool operator<(const LogType& rhs) const;
+    
     std::string stringValue() const;
 
     const LogType::Value value() const;
@@ -56,6 +58,7 @@ public:
     static const std::vector<LogType>& values();
 
     static LogType valueOf(const std::string& string_val);
+
 
 private:
 

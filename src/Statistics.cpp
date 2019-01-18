@@ -73,12 +73,12 @@ void MeanStats::writeHeader(FileOut& out) {
 Statistics* Statistics::instance_ = nullptr;
 
 void Statistics::init(const std::string& fname, const std::string& events_fname,
-		 const std::string& arrivingPersonsFilename, bool eventsEnabled) {
+		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, eventsEnabled);
+	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -113,10 +113,10 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname,
-		const std::string& arrivingPersonsFilename, bool eventsEnabled) :
+		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) :
         		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
 						events_out(events_fname), arrivingPersonsOut(arrivingPersonsFilename),
-						burninMode(false),logEventsEnabled(eventsEnabled) {
+						burninMode(false), filter_(filter) {
 
 	init_metrics(metrics);
 
@@ -231,9 +231,7 @@ void Statistics::recordStats(double tick, int run,
 
 	out << "\n";
 
-	if (logEventsEnabled){
-		writeEvents();
-	}
+	writeEvents();
 
 	for (auto& stat : stats) {
 		stat.second.reset();
@@ -250,10 +248,9 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	if (logEventsEnabled) {
+	if (filter_->evaluate(logType)) {
 		log_events.push_back({tick, logType, person->id(), msg});
 	}
-
 
 	if (logType == LogType::ACTIVATED) {
 		++event_counts.activations_daily;
@@ -285,10 +282,6 @@ void Statistics::logPersonArrival(PersonPtr person){
 
 void Statistics::setBurninMode(bool mode){
 	burninMode = mode;
-}
-
-void Statistics::setLogEventsEnabled(bool enabled){
-	logEventsEnabled = enabled;
 }
 
 int Statistics::getDailyLosses(){

@@ -48,6 +48,10 @@ bool LogType::operator!=(const LogType& rhs) const {
     return val_ != rhs.val_;
 }
 
+bool LogType::operator<(const LogType& rhs) const {
+    return val_ < rhs.val_;
+}
+
 LogType::LogType(const Value& val, const std::string& string_val) :
         val_(val), string_val_(string_val) {
 }

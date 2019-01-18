@@ -11,6 +11,14 @@ library(zoo)
 fileName <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
 
+colsToKeep <- c("tick","run","cured_ALL",
+                "RNApreval_ALL","RNApreval_agegrp_LEQ_30", "RNApreval_agegrp_OVER_30",
+                "infected_daily_agegrp_LEQ_30", "infected_daily_agegrp_OVER_30",
+                "population_agegrp_LEQ_30", "population_agegrp_OVER_30", 
+                "infected_agegrp_LEQ_30", "infected_agegrp_OVER_30",
+                "incidence_daily","population_ALL","infected_ALL",
+                "treatment_recruited_daily")
+
 tableList <- list()
 for (d in dirs){
   path <- paste0(d,fileName)
@@ -36,10 +44,10 @@ for (d in dirs){
       tableList[[d]]  <- table  
     }, 
       warning = function(w) {
-        print(paste0("Error loading file: ", path))
+        print(paste0("Error loading file: ", path, " ", w))
     },
       error = function(e) {
-      print(paste0("Error loading file: ", path))
+        print(paste0("Error loading file: ", path, " ", e))
     }, 
       finally = {
     }
@@ -60,6 +68,7 @@ burninDays <- 365
 days <- seq((burninDays+365), rows, 365)
 
 startYear <- 2010   # First year of simulation
+endYear <- 2030    
 #years <- seq(startYear, (startYear + length(days) - 1))    # list of all sim years in data
 
 # Convert the simulation day tick to the simulated year
@@ -388,7 +397,7 @@ p <- ggplot(annDataSummarySweep) + geom_line(aes(x=Year_mean,y=RNApreval_ALL_mea
   geom_errorbar(aes(x=Year_mean, ymin=RNApreval_ALL_mean-RNApreval_ALL_sd, 
                     ymax=RNApreval_ALL_mean+RNApreval_ALL_sd,color=Enrollment_mean),width=.15) +
   
-  scale_x_continuous(limits=c(2014, 2045)) +
+  scale_x_continuous(limits=c(2010, 2030)) +
   scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.05)) +
   labs(y="HCV RNA Prevalence", x="Year", color="Enrollment") +
   theme_minimal() +
@@ -429,35 +438,37 @@ ggsave("Treatment Prevalence Old.png", plot=p, width=10, height=8)
 
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
-#incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
-
-incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,treatment_enrollment_per_PY,run)]
-
-#incidenceYear <- dt[Year %in% 2010:2045, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,treatment_enrollment_per_PY,run)]
+incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
+#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,treatment_enrollment_per_PY,run)]
+#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,treatment_enrollment_per_PY,run)]
 
 
 # Calculate the mean and std of yearly incidence rate
 incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence)), by=list(Year,treatment_enrollment_per_PY)]
+incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
+incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0.025,0.05,0.075, 0.1)]
 
-incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0,0.025,0.05,0.075, 0.1)]
+# optionally normalize the means relative to the untreated group
+incidenceSummarySubset$mean <- incidenceSummarySubset$mean/incidenceSummaryBaseline$mean
+incidenceSummarySubset$sd <- incidenceSummarySubset$sd/incidenceSummaryBaseline$sd
 
 p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(breaks=seq(2010,2045,5)) +
+  scale_x_continuous(limits = c(2015,2030)) +
   
-  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+#  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
   
 #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
-  labs(y="Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY", title="Age <=30 Incidence") +
+  labs(y="Relative Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY") + #, title="All Incidence") +
   theme_minimal() +
-  theme(text = element_text(size=20), legend.position = c(.85, .80), legend.text=element_text(size=20)) +
+  theme(text = element_text(size=20), legend.position = c(.75, .25), legend.text=element_text(size=20)) +
   guides(color=guide_legend(title="Enrollment"))
-ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
-
+ggsave("Treatment Incidence.png", plot=p, width=10, height=8)
+fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
 
 # Calculated the annual cured counts
 # The annual data is a snapshot of stats on the last day in the year
-annualData <- dt[Year %in% 2010:2045 & tick %in% days]
+annualData <- dt[Year %in% startYear:endYear & tick %in% days]
 
 # Calculate the mean and std of yearly cured counts
 curedYearSummary <- annualData[, list(mean=mean(cured_ALL), sd=sd(cured_ALL)), by=list(Year,treatment_enrollment_per_PY)]
@@ -465,7 +476,7 @@ curedYearSummary <- annualData[, list(mean=mean(cured_ALL), sd=sd(cured_ALL)), b
 
 p <- ggplot(curedYearSummary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(breaks=seq(2010,2045,5)) +
+#  scale_x_continuous(breaks=seq(2010,2045,5)) +
   
   geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
   
@@ -478,14 +489,14 @@ ggsave("Treatment Counts.png", plot=p, width=10, height=8)
 
 
 # Calculate the annual in treatment sum
-treatedYear <- dt[Year %in% 2010:2045, .(treated=sum(treatment_recruited_daily)), by=list(Year,treatment_enrollment_per_PY,run)]
+treatedYear <- dt[Year %in% startYear:endYear, .(treated=sum(treatment_recruited_daily)), by=list(Year,treatment_enrollment_per_PY,run)]
 
 # Calculate the mean and sd of treatment sum
 treatedYearSUmmary <- treatedYear[, list(mean=mean(treated), sd=sd(treated)), by=list(Year,treatment_enrollment_per_PY)]
 
 p <- ggplot(treatedYearSUmmary) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(breaks=seq(2010,2045,5)) +
+#  scale_x_continuous(breaks=seq(2010,2045,5)) +
   
   geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
   
@@ -504,7 +515,7 @@ ggsave("Treatment Counts.png", plot=p, width=10, height=8)
 
 # Calculate the Weekly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
-incidenceWeek <- dt[Year %in% 2010:2045, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
+incidenceWeek <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
                     by=list(Week,treatment_enrollment_per_PY,run)]
 
 # Calculate the mean and std of Weekly incidence rate
@@ -527,7 +538,7 @@ ggsave("Treatment Incidence_2.png", plot=p, width=10, height=8)
 
 # Calculate the monthly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
-incidenceMonth <- dt[Year %in% 2010:2044, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
+incidenceMonth <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), 
                     by=list(Month,treatment_enrollment_per_PY,run)]
 
 # Calculate the mean and std of Weekly incidence rate
@@ -566,7 +577,7 @@ ggplot(foo) + geom_line(aes(x=Month, y=incidence, color=treatment_enrollment_per
 #Experiment with moving average incidence
 
 window = 365
-incidence_daily_rolling_mean = dt[Year %in% 2010:2044, 
+incidence_daily_rolling_mean = dt[Year %in% startYear:endYear, 
                                      .(tick, Year, run, treatment_enrollment_per_PY, 
                                        rm_inc = 365*1000*rollmean(incidence_daily/(population_ALL-infected_ALL), 
                                                                window, fill = NA))]

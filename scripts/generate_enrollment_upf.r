@@ -7,7 +7,7 @@
 
 enrollmentRateStart = 0   # Enrollment start value per_PY
 enrollmentRateEnd = 0.1
-enrollmentRateStep = .005
+enrollmentRateStep = 0.025
 replicates <- 10          # Number of replicates per rate param value 
 
 x <- ""
@@ -25,11 +25,13 @@ for (rate in range){
     x <- paste0(x,"run.number=",i,"\t")
     x <- paste0(x,"random.seed=",seed,"\t")
   
-    x <- paste0(x,"treatment_enrollment_per_PY=",rate)
+    x <- paste0(x,"treatment_enrollment_per_PY=",rate,"\t")
   
+    x <- paste0(x, "treatment_repeatable = true")
+    
     x <- paste0(x,"\n")
   
   }
 }
 
-write(x, file="upf_enrollment_sweep.txt")
+write(x, file="upf_enrollment_sweep_retreat.txt")

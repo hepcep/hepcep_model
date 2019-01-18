@@ -14,6 +14,7 @@ run.number = 1
 output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
+arriving.persons.output.file = arriving_agents.csv
 log.initial.network = false
 
 ab_prob_acute = 0.02
@@ -62,3 +63,8 @@ treatment_enrollment_per_PY = 0.05
 treatment_repeatable = false
 treatment_svr = 0.9
 treatment_susceptibility = 1
+
+# NONE or ALL or comma separated list from
+# ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
+# STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
+log.events = NONE

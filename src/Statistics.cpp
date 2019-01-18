@@ -72,12 +72,13 @@ void MeanStats::writeHeader(FileOut& out) {
 
 Statistics* Statistics::instance_ = nullptr;
 
-void Statistics::init(const std::string& fname, const std::string& events_fname, bool eventsEnabled) {
+void Statistics::init(const std::string& fname, const std::string& events_fname,
+		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, eventsEnabled);
+	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -111,9 +112,11 @@ void init_metrics(std::vector<std::string>& metrics) {
 	metrics.push_back("_ALL");
 }
 
-Statistics::Statistics(const std::string& fname, const std::string& events_fname, bool eventsEnabled) :
-        		stats(), metrics(), log_events(), means(), event_counts(), out(fname), events_out(events_fname), burninMode(false),
-						logEventsEnabled(eventsEnabled) {
+Statistics::Statistics(const std::string& fname, const std::string& events_fname,
+		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) :
+        		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
+						events_out(events_fname), arrivingPersonsOut(arrivingPersonsFilename),
+						burninMode(false), filter_(filter) {
 
 	init_metrics(metrics);
 
@@ -140,6 +143,8 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	out << "\n";
 
 	events_out << "tick,event_type,person_id,other\n";
+
+	arrivingPersonsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
 }
 
 void Statistics::close() {
@@ -147,6 +152,8 @@ void Statistics::close() {
 	out.close();
 	events_out.flush();
 	events_out.close();
+	arrivingPersonsOut.flush();
+	arrivingPersonsOut.close();
 }
 
 Statistics::~Statistics() {
@@ -224,9 +231,7 @@ void Statistics::recordStats(double tick, int run,
 
 	out << "\n";
 
-	if (logEventsEnabled){
-		writeEvents();
-	}
+	writeEvents();
 
 	for (auto& stat : stats) {
 		stat.second.reset();
@@ -243,10 +248,9 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	if (logEventsEnabled) {
+	if (filter_->evaluate(logType)) {
 		log_events.push_back({tick, logType, person->id(), msg});
 	}
-
 
 	if (logType == LogType::ACTIVATED) {
 		++event_counts.activations_daily;
@@ -265,12 +269,19 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 	}
 }
 
-void Statistics::setBurninMode(bool mode){
-	burninMode = mode;
+void Statistics::logPersonArrival(PersonPtr person){
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+
+	arrivingPersonsOut << tick << "," << person->id() << "," << person->getAge() <<
+			"," << person->getGender() << "," << person->getRace() << "," <<
+			person->getZipcode() << "," << person->getHCVState() << "," <<
+			person->getDrugReceptDegree() << "," << person->getDrugGivingDegree();
+
+	arrivingPersonsOut << "\n";
 }
 
-void Statistics::setLogEventsEnabled(bool enabled){
-	logEventsEnabled = enabled;
+void Statistics::setBurninMode(bool mode){
+	burninMode = mode;
 }
 
 int Statistics::getDailyLosses(){

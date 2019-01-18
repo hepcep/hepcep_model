@@ -116,6 +116,11 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 			count++;
 			ID_COUNTER++;  // increment id count
+
+			// Log arriving agent properties
+			if (earlyCareerOnly){
+				Statistics::instance()->logPersonArrival(person);
+			}
 		}
 	}
 }

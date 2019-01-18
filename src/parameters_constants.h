@@ -15,6 +15,8 @@ const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";
 const std::string EVENTS_OUTPUT_FILE = "events.output.file";
+const std::string ARRIVING_PERSONS_OUTPUT_FILE = "arriving.persons.output.file";
+const std::string EVENT_FILTERS = "log.events";
 
 //const std::string NETWORK_FILE = "network.file";
 const std::string ZONES_FILE = "zones.file";

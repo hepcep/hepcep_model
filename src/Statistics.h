@@ -10,6 +10,7 @@
 #include "AggregateStats.h"
 #include "FileOut.h"
 #include "LogType.h"
+#include "Filter.h"
 
 namespace hepcep {
 
@@ -56,18 +57,20 @@ private:
     std::vector<LogEvent> log_events;
     MeanStats means;
     EventCounts event_counts;
-    FileOut out, events_out;
+    FileOut out, events_out, arrivingPersonsOut;
     bool burninMode;
-    bool logEventsEnabled;
+    std::shared_ptr<Filter<LogType>> filter_;
 
-    Statistics(const std::string& fname, const std::string& events_fname, bool eventsEnabled);
+    Statistics(const std::string& fname, const std::string& events_fname,
+    		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter);
 
     void calculatePrevalence(std::map<std::string, double>& prevalences);
     void writeEvents();
 
 public:
     static Statistics* instance();
-    static void init(const std::string& fname, const std::string& events_fname, bool eventsEnabled);
+    static void init(const std::string& fname, const std::string& events_fname,
+    		const std::string&, std::shared_ptr<Filter<LogType>>& filter);
     virtual ~Statistics();
 
     void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);
@@ -76,9 +79,10 @@ public:
     void recordStats(double tick, int run, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
     void close();
     void setBurninMode(bool mode);
-    void setLogEventsEnabled(bool enabled);
 
     int getDailyLosses();
+
+    void logPersonArrival(PersonPtr person);
 
 };
 

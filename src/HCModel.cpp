@@ -29,7 +29,7 @@
 
 namespace hepcep {
 
-void init_stats(const std::string& output_directory) {
+void init_stats(const std::string& output_directory, int run_number) {
 	// Initialize statistics collection
 	string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
 	string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
@@ -60,7 +60,7 @@ void init_stats(const std::string& output_directory) {
 	}
 	
 
-	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, filter);
+	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, filter, run_number);
 }
 
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
@@ -125,7 +125,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	fo.close();
 
 	network = std::make_shared<Network<HCPerson>>(true);
-	init_stats(output_directory);
+	init_stats(output_directory, run);
 
 	// TODO put all the data loading into a separate method
 

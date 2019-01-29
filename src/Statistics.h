@@ -60,9 +60,11 @@ private:
     FileOut out, events_out, arrivingPersonsOut;
     bool burninMode;
     std::shared_ptr<Filter<LogType>> filter_;
+    int run_number_;
 
     Statistics(const std::string& fname, const std::string& events_fname,
-    		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter);
+    		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter,
+            int run_number);
 
     void calculatePrevalence(std::map<std::string, double>& prevalences);
     void writeEvents();
@@ -70,7 +72,7 @@ private:
 public:
     static Statistics* instance();
     static void init(const std::string& fname, const std::string& events_fname,
-    		const std::string&, std::shared_ptr<Filter<LogType>>& filter);
+    		const std::string&, std::shared_ptr<Filter<LogType>>& filter, int run_number);
     virtual ~Statistics();
 
     void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);

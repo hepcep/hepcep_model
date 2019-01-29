@@ -73,12 +73,13 @@ void MeanStats::writeHeader(FileOut& out) {
 Statistics* Statistics::instance_ = nullptr;
 
 void Statistics::init(const std::string& fname, const std::string& events_fname,
-		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) {
+		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter,
+		 int run_number) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter);
+	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter, run_number);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -113,10 +114,10 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname,
-		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter) :
+		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
         		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
 						events_out(events_fname), arrivingPersonsOut(arrivingPersonsFilename),
-						burninMode(false), filter_(filter) {
+						burninMode(false), filter_(filter), run_number_(run_number) {
 
 	init_metrics(metrics);
 
@@ -142,7 +143,7 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	}
 	out << "\n";
 
-	events_out << "tick,event_type,person_id,other\n";
+	events_out << "run,tick,event_type,person_id,other\n";
 
 	arrivingPersonsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
 }
@@ -193,7 +194,7 @@ void Statistics::calculatePrevalence(std::map<std::string, double>& prevalences)
 
 void Statistics::writeEvents() {
 	for (auto& evt : log_events) {
-		events_out << evt.tick << "," << evt.type.stringValue() << "," <<
+		events_out << run_number_ << "," << evt.tick << "," << evt.type.stringValue() << "," <<
 				evt.person << "," << evt.other << "\n";
 	}
 	log_events.clear();
@@ -226,7 +227,7 @@ void Statistics::recordStats(double tick, int run,
 	calculatePrevalence(prevalences);
 	for (auto& metric : metrics) {
 		out << "," << prevalences[PREVALENCE + metric] << "," << prevalences[RNA_PREVALENCE + metric]
-																																				 << "," << prevalences[FRACTION + metric];
+			<< "," << prevalences[FRACTION + metric];
 	}
 
 	out << "\n";

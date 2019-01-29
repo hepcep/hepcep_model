@@ -17,6 +17,14 @@ string cnep_plus_early_file = "cnep_plus_early.file = %s/../data/cnep_plus_early
 string zones_file = "zones.file = %s/../data/zones.csv" % emews_root;
 string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.csv" % emews_root;
 
+(string run_param) get_run_number(string params, int line_num) {
+  if (find(params, "run.number", 0, -1) == -1) {
+    run_param = "run.number=%d\t" % line_num;
+  } else {
+    run_param = "";
+  }
+}
+
 (void v) run_model()
 {
 	string param_file = argv("f"); // e.g. -f="model_params.txt"
@@ -27,8 +35,9 @@ string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.cs
     string stats_output = "stats.output.file = stats.csv";
     string events_output = "events.output.file = events.csv";
     string output = "output.directory = %s/run_%d" % (turbine_output, i);
+    string run_number = get_run_number(pl, i);
 
-    string defaults = "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (stats_output, events_output, output,
+    string defaults = "%s%s\t%s\t%s\t%s\t%s\t%s\t%s" % (run_number, stats_output, events_output, output,
       cnep_plus_file, cnep_plus_early_file, zones_file, zones_distance_file);
     string line = "%s\t%s" % (defaults, pl);
 		printf(line);

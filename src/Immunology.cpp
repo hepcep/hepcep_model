@@ -234,12 +234,24 @@ bool Immunology::isPostTreatment() { //i.e. completed a course of treatment
     return (!in_treatment) & (treatment_start_date != TREATMENT_NOT_STARTED);
 }
 
+/**
+ * Determines if the individual is available for treatment.  Conditions include:
+ *   - can't currently already be in treatment
+ *   - must be currently infected
+ *   - if treatment prohibition is enabled, then cannot have already been
+ *     in treatment....
+ *   - ...unless previous treatment failed due to SVR or adherence
+ */
 bool Immunology::isTreatable(double now) {
-    return (!in_treatment) &&       // if not currently being treated
-            isHcvRNA(now) &&        // if currently infected
-						(!treatment_failed) &&  // if not past treatment failed
-            (params_->treatment_repeatable || !isPostTreatment());  // repeat treatments
+    return (!in_treatment)       // if not currently being treated
+            && isHcvRNA(now)     // if currently infected
+
+            && (params_->treatment_repeatable  // if not repeatable then check conditions.
+            		|| !isPostTreatment()          // Has already been in one treatment
+								|| treatment_failed            // Treatment failure (not re-infect)
+            );
 }
+
 
 HCVState Immunology::getHCVState() {
     return hcv_state;
@@ -355,6 +367,7 @@ void Immunology::startTreatment(bool adherent, double now) {
     }
     //prevent any accidental switch to chronic during treatment
     purgeActions(); //here - to purge any residual actions, such as switch to chronic
+    treatment_failed = false;
     treatment_start_date = now;
     in_treatment = true;
     Statistics::instance()->logStatusChange(LogType::STARTED_TREATMENT, idu_, "");

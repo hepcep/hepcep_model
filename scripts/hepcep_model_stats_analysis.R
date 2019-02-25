@@ -7,6 +7,9 @@ library(data.table)
 library(ggplot2)
 library(zoo)
 
+# Std Err
+std <- function(x) sd(x)/sqrt(length(x))
+
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
@@ -442,29 +445,53 @@ incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,treatment_enrollment_per_PY,run)]
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,treatment_enrollment_per_PY,run)]
 
-
 # Calculate the mean and std of yearly incidence rate
-incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence)), by=list(Year,treatment_enrollment_per_PY)]
+incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), std=std(incidence)), by=list(Year,treatment_enrollment_per_PY)]
 incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
 incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0.025,0.05,0.075, 0.1)]
 
-# optionally normalize the means relative to the untreated group
-incidenceSummarySubset$mean <- incidenceSummarySubset$mean/incidenceSummaryBaseline$mean
-incidenceSummarySubset$sd <- incidenceSummarySubset$sd/incidenceSummaryBaseline$sd
+# The baseline normalization is the no-treatment mean in 2020
+baseline <- incidenceSummaryBaseline[Year==2020]$mean
 
-p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=1) +
-  geom_point(aes(x=Year, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(limits = c(2015,2030)) +
+# optionally normalize the means relative to the untreated group
+#  ... we also normalize the sd by the baseline mean
+incidenceSummarySubset$mean <- incidenceSummarySubset$mean / baseline # incidenceSummaryBaseline$mean
+incidenceSummarySubset$sd <- incidenceSummarySubset$sd / baseline # / incidenceSummaryBaseline$sd
+incidenceSummarySubset$std <- incidenceSummarySubset$std / baseline # / incidenceSummaryBaseline$std
+
+# 95% CI
+z <- 1.960
+
+p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=1) +
+  geom_point(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=2) +
+  scale_x_continuous(limits = c(2019.9,2030.1), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
+  scale_y_continuous(limits = c(0,1.8)) +
   
-#  geom_errorbar(aes(x=Year, ymin=mean-sd, ymax=mean+sd, color=treatment_enrollment_per_PY),width=.15) +
+#  geom_errorbar(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, color=treatment_enrollment_per_PY),width=.15) +
+  
+  geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, fill=treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
   
 #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
   labs(y="Relative Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY") + #, title="All Incidence") +
   theme_minimal() +
-  theme(text = element_text(size=20), legend.position = c(.75, .25), legend.text=element_text(size=20)) +
-  guides(color=guide_legend(title="Enrollment"))
-ggsave("Treatment Incidence.png", plot=p, width=10, height=8)
+  theme(text = element_text(size=24), 
+        legend.position = c(.15, .25), 
+        legend.text=element_text(size=22),
+        legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
+  theme(axis.text=element_text(size=26),axis.title=element_text(size=26)) +
+  
+  guides(color=guide_legend(title="Enrollment"),fill=guide_legend(title="Enrollment"))
+ggsave("Treatment Incidence yes-retreat.png", plot=p, width=10, height=8)
 fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
+
+# Testing Box plots
+ggplot(incidenceYear[treatment_enrollment_per_PY==0.05], aes(x=Year, y=incidence/12, group=Year)) + 
+  geom_boxplot(outlier.colour="red") +
+#  geom_dotplot(binaxis='y', stackdir='center', dotsize=0.3)
+
+  scale_x_continuous(limits = c(2019.5,2030), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) 
+
+
 
 # Calculated the annual cured counts
 # The annual data is a snapshot of stats on the last day in the year

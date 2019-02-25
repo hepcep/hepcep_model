@@ -117,9 +117,9 @@ error_95 <- function(x) qt(0.975,df=length(x)-1)*sd(x)/sqrt(length(x))
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
 
-#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,enrollment_pattern,run)]
+incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,enrollment_pattern,run)]
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,enrollment_pattern,run)]
-incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,enrollment_pattern,run)]
+#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,enrollment_pattern,run)]
 
 # Calculate the mean and std of yearly incidence rate
 incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), error_95=error_95(incidence) ), 

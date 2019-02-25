@@ -48,7 +48,7 @@ ImmunologyParameters::ImmunologyParameters() :
 {}
 
 Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
-        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
+        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED), treatment_failed(false) {
 
 	params_ = std::make_shared<ImmunologyParameters>();
 
@@ -235,10 +235,10 @@ bool Immunology::isPostTreatment() { //i.e. completed a course of treatment
 }
 
 bool Immunology::isTreatable(double now) {
-    return (!in_treatment) &&
-            isHcvRNA(now)
-            && (params_->treatment_repeatable ||
-            (!isPostTreatment()));
+    return (!in_treatment) &&       // if not currently being treated
+            isHcvRNA(now) &&        // if currently infected
+						(!treatment_failed) &&  // if not past treatment failed
+            (params_->treatment_repeatable || !isPostTreatment());  // repeat treatments
 }
 
 HCVState Immunology::getHCVState() {
@@ -342,6 +342,7 @@ void Immunology::leaveTreatment(bool treatment_succeeded) {
     else {
         Statistics::instance()->logStatusChange(LogType::FAILED_TREATMENT, idu_, "");
         hcv_state = HCVState::CHRONIC; //even if entered as acute.  ignore the case where was about to self-limit
+        treatment_failed = true;
 
 //        std::cout << "Treatment failed: " << idu_->id() << std::endl;
     }

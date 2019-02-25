@@ -54,6 +54,7 @@ private:
 
     bool past_cured, past_recovered, in_treatment;
     double treatment_start_date;
+    bool treatment_failed;  // indicates a prior treatment attempt has failed
 
     bool isInTreatmentViralSuppression(double tick);
 

@@ -1,6 +1,6 @@
 random.seed = 42
 
-stop.at = 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
+stop.at = 700 #8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -58,7 +58,7 @@ treatment_enrollment_probability_HRP = 0.0
 treatment_enrollment_probability_fullnetwork = 0.0
 treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
-treatment_enrollment_start_delay = 2190 
+treatment_enrollment_start_delay = 3650 
 treatment_enrollment_per_PY = 0.05
 treatment_repeatable = false
 treatment_svr = 0.9
@@ -67,4 +67,4 @@ treatment_susceptibility = 1
 # NONE or ALL or comma separated list from
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
-log.events = NONE
+log.events = STARTED_TREATMENT

@@ -1,0 +1,49 @@
+[
+    {
+        "name" : "treatment_enrollment_per_PY",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 0.2,
+        "sigma": 0.01
+    },
+
+    {
+        "name" : "treatment_enrollment_probability_unbiased",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 1.0,
+        "sigma": 0.1
+    },
+
+    {
+        "name" : "treatment_enrollment_probability_HRP",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 1.0,
+        "sigma": 0.1
+    },
+
+    {
+        "name" : "treatment_enrollment_probability_fullnetwork",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 1.0,
+        "sigma": 0.1
+    },
+
+    {
+        "name" : "treatment_enrollment_probability_inpartner",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 1.0,
+        "sigma": 0.1
+    },
+
+    {
+        "name" : "treatment_enrollment_probability_outpartner",
+        "type" : "float",
+        "lower" : 0.0,
+        "upper" : 1.0,
+        "sigma": 0.1
+    } 
+]

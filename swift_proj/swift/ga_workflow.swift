@@ -25,7 +25,6 @@ string cnep_plus_early_file = "cnep_plus_early.file = %s/../data/cnep_plus_early
 string zones_file = "zones.file = %s/../data/zones.csv" % emews_root;
 string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.csv" % emews_root;
 
-string strategy = argv("strategy");
 string ga_params = argv("ga_params");
 float mut_prob = string2float(argv("mutation_prob", "0.2"));
 
@@ -46,22 +45,12 @@ instance_dir = '%s'
 count = get_metrics.get_tumor_cell_count(instance_dir, '30240')
 """;
 
-// Testing a dummy model script
-@suppress=unused_output
-app (file so, file se) run_dummy_model (string model_sh, string param_line, string instance)
-{
-    "bash" model_sh param_line emews_root instance;
-}
-
-
 (string zs) run(string params, string instance)
 {
-//    "bash" shfile exec param_file emews_root instance @stdout=out @stderr=err;
-
     string stats_output = "stats.output.file = stats.csv";
     string events_output = "events.output.file = events.csv";
     string output = "output.directory = %s" % (instance);
-    string run_number = "1";
+    string run_number = "";
 	
 	string defaults = "%s%s\t%s\t%s\t%s\t%s\t%s\t%s" % (run_number, stats_output, events_output, output,
       cnep_plus_file, cnep_plus_early_file, zones_file, zones_distance_file);
@@ -70,7 +59,6 @@ app (file so, file se) run_dummy_model (string model_sh, string param_line, stri
 	printf(line);
 	
 	zs = @par=1 hepcep_model_run(config_file, line);
-//	p = propagate(zs);
 }
 
 (string count) read_model_out(string instance) {
@@ -79,7 +67,7 @@ app (file so, file se) run_dummy_model (string model_sh, string param_line, stri
 
    printf(instance); // testing
 
-  count = "1"; 
+  count = "1.5842"; 
 }
 
 (string score) obj(string params, int ga_iter, int param_iter, int trials) {
@@ -91,13 +79,17 @@ app (file so, file se) run_dummy_model (string model_sh, string param_line, stri
 	// i is used as random seed in input xml
     foreach i in [0:trials-1:1] {
       string instance = "%s/instance_%i_%i_%i/" % (turbine_output, ga_iter, param_iter, i+1);
+      
+      string seedparam = "random.seed = %i" % i;
+      string param_line = "%s\t%s" % (params, seedparam);
+      
       make_dir(instance) => {
         
 		// dummy model
 //        run_dummy_model(model_sh,params,instance) => 
 		
 		// real model
-        run(params, instance) =>
+        run(param_line, instance) =>
         results[i] = read_model_out(instance);
       }
     }
@@ -141,6 +133,16 @@ app (file so, file se) run_dummy_model (string model_sh, string param_line, stri
         v = make_void() =>
         c = false;
     }
+	 else if (params == "EQPY_ABORT")
+     {
+        printf("EQPy Aborted");
+        string why = EQPy_get(ME);
+        // TODO handle the abort if necessary
+        // e.g. write intermediate results ...
+        printf("%s", why) =>
+        v = propagate() =>
+        c = false;
+    }
     else
     {
         string param_array[] = split(params, ";");
@@ -160,8 +162,7 @@ app (file so, file se) run_dummy_model (string model_sh, string param_line, stri
 (void o) start (int ME_rank, int num_iter, int pop_size, int trials, int seed) {
   location deap_loc = locationFromRank(ME_rank);
   
-  algo_params = "%d,%d,%d,'%s',%f,'%s'" %  (num_iter, pop_size, seed, 
-                strategy, mut_prob, ga_params);
+  algo_params = "%d,%d,%d,%f,'%s'" %  (num_iter, pop_size, seed, mut_prob, ga_params);
 	
   printf("start: %s", algo_params);	
 	
@@ -187,11 +188,11 @@ app (void o) make_dir(string dirname) {
 main() {
   int random_seed = toint(argv("seed", "0"));
   int num_iter = toint(argv("ni","100")); // -ni=100
-  int num_variations = toint(argv("nv", "5"));
+  int num_trials = toint(argv("nv", "5"));
   int num_pop = toint(argv("np","100")); // -np=100;
 
   printf("NI: %i # num_iter", num_iter);
-  printf("NV: %i # num_variations", num_variations);
+  printf("NV: %i # num_variations", num_trials);
   printf("NP: %i # num_pop", num_pop);
   printf("MUTPB: %f # mut_prob", mut_prob);
 
@@ -200,6 +201,6 @@ main() {
   assert(strlen(emews_root) > 0, "Set EMEWS_PROJECT_ROOT!");
 
   int rank = string2int(r_ranks[0]);
-  start(rank, num_iter, num_pop, num_variations, random_seed); // =>
+  start(rank, num_iter, num_pop, num_trials, random_seed); // =>
 //	@par=1 hepcep_model_run("", "");
 }

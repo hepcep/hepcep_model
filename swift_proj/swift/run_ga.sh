@@ -52,14 +52,13 @@ EQPY=$EMEWS_PROJECT_ROOT/ext/EQ-Py
 # for your EQ/Py based run. $* will pass all of this script's
 # command line arguments to the swift script
 SEED=1234
-ITERS=3
+ITERS=2
 NUM_VARIATIONS=1
 NUM_POP=3
 
 TISD=0.25
 
-#STRATEGY="mu_plus_lambda"
-STRATEGY="simple"
+
 # original was 0.2
 MUTATION_PROB=0.2
 
@@ -91,7 +90,6 @@ swift-t -n $PROCS $MACHINE -p -I $EQPY -I $MODEL_DIR -r $EQPY -r $MODEL_DIR \
     -nv=$NUM_VARIATIONS \
     -np=$NUM_POP \
 	-seed=$SEED \
-    -strategy=$STRATEGY \
     -mutation_prob=$MUTATION_PROB \
 	-ga_params="$EMEWS_PROJECT_ROOT/data/ga_params.json" \
 	-config_file=$CONFIG_FILE

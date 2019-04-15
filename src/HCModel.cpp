@@ -611,7 +611,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 	if(enrMethod == EnrollmentMethod::UNBIASED) {
 		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
 			PersonPtr person = candidates[next_candidate_idx];
-			if(person->isTreatable()) {
+			if(person->getTestedHCV()) {
 				enrolled.insert(person);
 			}
 		}
@@ -619,7 +619,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 	else if(enrMethod == EnrollmentMethod::HRP) {
 		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
 			PersonPtr person = candidates[next_candidate_idx];
-			if(person->isTreatable() && person->isInHarmReduction()) {
+			if(person->getTestedHCV() && person->isInHarmReduction()) {
 				enrolled.insert(person);
 			}
 		}
@@ -627,7 +627,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 	else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
 		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
 			PersonPtr person = candidates[next_candidate_idx];
-			if(! person->isTreatable()) {
+			if(! person->getTestedHCV()) {
 				continue;
 			}
 			enrolled.insert(person);
@@ -642,13 +642,13 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 
 			for (EdgePtrT<HCPerson> edge : inEdges){
 				PersonPtr other = edge->v1();   // Other agent is edge v1
-				if (other->isTreatable()){
+				if (other->getTestedHCV()){
 					enrolled.insert(other);
 				}
 			}
 			for (EdgePtrT<HCPerson> edge : outEdges){
 				PersonPtr other = edge->v2();  // Other agent is edge v2
-				if (other->isTreatable()){
+				if (other->getTestedHCV()){
 					enrolled.insert(other);
 				}
 			}
@@ -661,7 +661,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 			int rand_idx = std::round(roll * (candidates.size()-1));
 
 			PersonPtr person = candidates[rand_idx];
-			if(! person->isTreatable()) {
+			if(! person->getTestedHCV()) {
 				continue;
 			}
 			enrolled.insert(person);
@@ -673,7 +673,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 
 				for (EdgePtrT<HCPerson> edge : inEdges){
 					PersonPtr other = edge->v1();   // Other agent is edge v1
-					if (other->isTreatable()){
+					if (other->getTestedHCV()){
 						enrolled.insert(other);
 						break; //only one
 					}
@@ -685,7 +685,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 
 				for (EdgePtrT<HCPerson> edge : outEdges){
 					PersonPtr other = edge->v2();  // Other agent is edge v2
-					if (other->isTreatable()){
+					if (other->getTestedHCV()){
 						enrolled.insert(other);
 						break; //only one
 					}

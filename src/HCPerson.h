@@ -125,6 +125,7 @@ public:
 	bool isInHarmReduction() const;
 	bool isPostTreatment() const;
 	bool isTreatable() const;
+	bool getTestedHCV() const;
 
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 

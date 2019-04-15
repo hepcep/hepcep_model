@@ -109,6 +109,7 @@ public:
     bool isPostTreatment();
     bool isTreatable(double now);
     HCVState getHCVState();
+    bool getTestedHCV(double now);
 
     double getTreatmentStartDate();
 

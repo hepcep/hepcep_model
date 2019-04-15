@@ -328,6 +328,11 @@ bool HCPerson::isHcvRNA() const{
 	return immunology->isHcvRNA(tick);
 }
 
+bool HCPerson::getTestedHCV() const {
+	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+  return immunology->getTestedHCV(tick);
+}
+
 // Returns true if the last infection date tick is now (today)
 bool HCPerson::isInfectedToday() const{
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();

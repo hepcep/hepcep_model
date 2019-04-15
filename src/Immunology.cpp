@@ -253,14 +253,17 @@ bool Immunology::isTreatable(double now) {
   			return false;
 	  }
 	}
-
-	// The final check is performing an HCV RNA test
-  // Log that an HCV RNA test has occured.
-  Statistics::instance()->logStatusChange(LogType::HCVRNA_TEST, idu_, "");
-
   return isHcvRNA(now);    // if currently infected
 }
 
+// Similar to isTreatable() check, but logs an HCV test event which is typically
+//   called when testing a person for treatment, but not in other cases, e.g. simple logging.
+bool Immunology::getTestedHCV(double now){
+	 // Log that an HCV RNA test has occured.
+	  Statistics::instance()->logStatusChange(LogType::HCVRNA_TEST, idu_, "");
+
+	  return (isTreatable(now));
+}
 
 HCVState Immunology::getHCVState() {
     return hcv_state;
@@ -370,10 +373,10 @@ void Immunology::leaveTreatment(bool treatment_succeeded) {
 }
 
 void Immunology::startTreatment(bool adherent, double now) {
-    if(! isTreatable(now)) {
-        std::cout << "Agent cannot be treated [doubly recruited?] ..." << (*idu_) << std::endl;
-        return;
-    }
+//    if(! isTreatable(now)) {
+//        std::cout << "Agent cannot be treated [doubly recruited?] ..." << (*idu_) << std::endl;
+//        return;
+//    }
     //prevent any accidental switch to chronic during treatment
     purgeActions(); //here - to purge any residual actions, such as switch to chronic
     treatment_failed = false;

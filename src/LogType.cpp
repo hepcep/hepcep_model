@@ -25,6 +25,7 @@ const LogType LogType::STARTED_TREATMENT(LogType::started_treatment, "STARTED_TR
 const LogType LogType::CURED(LogType::cured, "CURED");
 const LogType LogType::REGULAR_STATUS(LogType::regular_status, "REGULAR_STATUS");
 const LogType LogType::FAILED_TREATMENT(LogType::failed_treatment, "FAILED_TREATMENT");
+const LogType LogType::HCVRNA_TEST(LogType::hcvrna_test, "HCVRNA_TEST");
 
 const std::vector<LogType> LogType::values_({LogType::ACTIVATED,
     LogType::EXPOSED,
@@ -38,7 +39,8 @@ const std::vector<LogType> LogType::values_({LogType::ACTIVATED,
     LogType::STARTED_TREATMENT,
     LogType::CURED,
     LogType::REGULAR_STATUS,
-    LogType::FAILED_TREATMENT});
+    LogType::FAILED_TREATMENT,
+		LogType::HCVRNA_TEST});
 
 bool LogType::operator==(const LogType& rhs) const {
     return val_ == rhs.val_;

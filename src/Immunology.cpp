@@ -243,13 +243,22 @@ bool Immunology::isPostTreatment() { //i.e. completed a course of treatment
  *   - ...unless previous treatment failed due to SVR or adherence
  */
 bool Immunology::isTreatable(double now) {
-    return (!in_treatment)       // if not currently being treated
-            && isHcvRNA(now)     // if currently infected
+	if (in_treatment){
+		return false;      // if not currently being treated
+	}
 
-            && (params_->treatment_repeatable  // if not repeatable then check conditions.
-            		|| !isPostTreatment()          // Has already been in one treatment
-								|| treatment_failed            // Treatment failure (not re-infect)
-            );
+	if (!(params_->treatment_repeatable)){          // if not repeatable then check conditions.
+  	if (isPostTreatment() || treatment_failed){   // Has already been in one treatment)
+		                                              // or Treatment failure (not re-infect))
+  			return false;
+	  }
+	}
+
+	// The final check is performing an HCV RNA test
+  // Log that an HCV RNA test has occured.
+  Statistics::instance()->logStatusChange(LogType::HCVRNA_TEST, idu_, "");
+
+  return isHcvRNA(now);    // if currently infected
 }
 
 

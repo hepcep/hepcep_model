@@ -10,6 +10,9 @@ library(zoo)
 # Std Err
 std <- function(x) sd(x)/sqrt(length(x))
 
+dt <- NULL
+table <- NULL
+
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
@@ -451,7 +454,7 @@ incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
 incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0.025,0.05,0.075, 0.1)]
 
 # The baseline normalization is the no-treatment mean in 2020
-baseline <- incidenceSummaryBaseline[Year==2020]$mean
+baseline <- incidenceSummaryBaseline[Year==2019]$mean
 
 # optionally normalize the means relative to the untreated group
 #  ... we also normalize the sd by the baseline mean

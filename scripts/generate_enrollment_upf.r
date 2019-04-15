@@ -5,9 +5,9 @@
 # Eric Tatara
 #
 
-enrollmentRateStart = 0   # Enrollment start value per_PY
-enrollmentRateEnd = 0.1
-enrollmentRateStep = 0.025
+enrollmentRateStart = .3   # Enrollment start value per_PY
+enrollmentRateEnd = 0.5
+enrollmentRateStep = 0.05
 replicates <- 20          # Number of replicates per rate param value 
 
 x <- ""
@@ -34,4 +34,4 @@ for (rate in range){
   }
 }
 
-write(x, file="upf_enrollment_sweep_retreat2.txt")
+write(x, file="upf_enrollment_sweep_retreat3.txt")

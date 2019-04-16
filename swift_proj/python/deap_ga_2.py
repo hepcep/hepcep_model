@@ -71,9 +71,22 @@ def queue_map(obj_func, pops):
 
     eqpy.OUT_put(create_list_of_params(pops))
     result = eqpy.IN_get()
-    split_result = result.split(';')
     
-    return [(float(x),) for x in split_result]
+    printf("received result: " + result)
+    
+    split_result = result.split(';')
+       
+    # GA Single objective
+#    return [(float(x),) for x in split_result]
+    
+    
+    # GA Multi objective
+    y = [x for x in split_result]   # list of strings   
+    list_of_lists = [a.split(',') for a in y]   #list of list of strings
+    tuple_of_tuples = tuple(tuple(x) for x in list_of_lists)
+    data = [tuple(float(x) for x in tup) for tup in tuple_of_tuples]  # convert to floats
+    
+    return data
 
 def make_random_params():
     """
@@ -144,11 +157,12 @@ def run():
     # parse params
     printf("Parameters: {}".format(params))
     (num_iter, num_pop, seed, mut_prob, ga_params_file) = eval('{}'.format(params))
+    
     random.seed(seed)
     global ga_params
     ga_params = ga_utils.create_parameters(ga_params_file)
 
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0,-1.0))
+    creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0))
     creator.create("Individual", list, fitness=creator.FitnessMin)
     toolbox = base.Toolbox()
     
@@ -166,20 +180,24 @@ def run():
 
     pop = toolbox.population(n=num_pop)
 
-    hof = tools.HallOfFame(1)
+    hof = tools.ParetoFront()
+#    hof = tools.HallOfFame(1)
+    
     stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean)
-    stats.register("std", numpy.std)
-    stats.register("min", numpy.min)
-    stats.register("max", numpy.max)
+    stats.register("avg", numpy.mean, axis=0)
+    stats.register("std", numpy.std, axis=0)
+    stats.register("min", numpy.min, axis=0)
+    stats.register("max", numpy.max, axis=0)
     stats.register("ts", timestamp)
 
+    logbook = tools.Logbook()
+    logbook.header = "gen", "evals", "std", "min", "avg", "max"
+    
     # num_iter-1 generations since the initial population is evaluated once first
 #    mutpb = mut_prob
     
 #    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=mutpb, ngen=num_iter - 1,
 #                                   stats=stats, halloffame=hof, verbose=True)
-
 
     NGEN = num_iter - 1
     CXPB = 0.5
@@ -196,6 +214,7 @@ def run():
     # no actual selection is done
     pop = toolbox.select(pop, len(pop))
     
+    hof.update(pop)
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(invalid_ind), **record)
 #    print(logbook.stream)
@@ -221,20 +240,24 @@ def run():
             ind.fitness.values = fit
 
         # Select the next generation population
-        pop = toolbox.select(pop + offspring, MU)
+        hof.update(pop)
+        pop = toolbox.select(pop + offspring, num_pop)
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
         
 #        print(logbook.stream)
-
-
-    
-
     end_time = time.time()
 
-    fitnesses = [str(p.fitness.values[0]) for p in pop]
+    fitnesses = [str(p.fitness.values) for p in pop]
 
+    # TODO log HOF Pareto front 
+    # hof contains the list of individuals on the front.   
+#    treat_count_obj = [i.fitness.values[0] for i in hof]
+#    yearly_inci_obj = [i.fitness.values[1] for i in hof]
+ 
+    hof_out =  [str(p.fitness.values) for p in hof]
+ 
     eqpy.OUT_put("DONE")
     # return the final population
-    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}".format(create_list_of_json_strings(pop), ';'.join(fitnesses),
-        start_time, log, end_time))
+    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}".format(create_list_of_params(pop), ';'.join(fitnesses),
+        create_list_of_params(hof), ';'.join(hof_out), logbook))

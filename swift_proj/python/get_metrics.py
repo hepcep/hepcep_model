@@ -30,8 +30,14 @@ def get_model_outputs(instance_dir):
     # Open the model stats file and return relevant stats
     fname = '{}/stats.csv'.format(instance_dir)
     
+    # The yearly incidence rate per 1000-PY is calculated as:
+    #  incidence = 1000*sum(incidence_daily/(population_ALL-infected_ALL))
     yearly_incidence = '-2'
-    incidence_col = 175 # col number in excel for daily incidence
+    
+    # Columns in the model stats.csv output
+    incidence_col = 175      # col number in excel for daily 
+    population_col = 138
+    infected_col = 57
     
     if os.path.exists(fname):
         with open(fname) as f_in:
@@ -41,8 +47,14 @@ def get_model_outputs(instance_dir):
             inc_total = 0
             for line in lines:
                 vals = line.strip().split(",")
-                inc_total += int(vals[incidence_col-1])
-             
+                
+                incidence_daily = int(vals[incidence_col-1])
+                population_ALL = int(vals[population_col-1])
+                infected_ALL = int(vals[infected_col-1])
+                
+                inc_total += incidence_daily / (population_ALL - infected_ALL)
+            
+            inc_total *= 1000            
             yearly_incidence = str(inc_total)
             
     return test_count + ',' + treatment_count + ',' + yearly_incidence

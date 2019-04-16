@@ -171,7 +171,7 @@ model_outs = get_metrics.get_model_outputs(instance_dir)
 	
   printf("start: %s", algo_params);	
 	
-    EQPy_init_package(deap_loc,"deap_ga") =>
+    EQPy_init_package(deap_loc,"deap_ga_2") =>
     EQPy_get(deap_loc) =>
     EQPy_put(deap_loc, algo_params) =>
       loop(deap_loc, trials) => {

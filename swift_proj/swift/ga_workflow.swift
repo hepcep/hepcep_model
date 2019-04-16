@@ -30,19 +30,20 @@ float mut_prob = string2float(argv("mutation_prob", "0.2"));
 
 string result_template =
 """
-x <- c(%s)
-x <- x[ x >= 0 ]
+import get_metrics
 
-res <- ifelse(length(x) > 0, mean(x), 9999999999)
+scores = '%s'
+
+combined_scores = get_metrics.combine_scores(scores)
 """;
 
-string count_template =
+string model_out_template =
 """
 import get_metrics
 
 instance_dir = '%s'
-# '30240'
-count = get_metrics.get_tumor_cell_count(instance_dir, '30240')
+
+model_outs = get_metrics.get_model_outputs(instance_dir)
 """;
 
 (string zs) run(string params, string instance)
@@ -61,45 +62,45 @@ count = get_metrics.get_tumor_cell_count(instance_dir, '30240')
 	zs = @par=1 hepcep_model_run(config_file, line);
 }
 
-(string count) read_model_out(string instance) {
-//  code = count_template % instance;
-// count = python_persist(code, "str(count)");
+// Returns a comma-separated event count from a single model instance
+(string model_outs) read_model_out(string instance) {
+  code = model_out_template % instance;
+  model_outs = python_persist(code, "model_outs");
 
-   printf(instance); // testing
-
-  count = "1.5842"; 
+  printf("model outs: " + model_outs);
 }
 
+// The returned score is a comma-separated set of mean objective values for a single
+//   GA individual.  The values are averaged over the set of trials.  
 (string score) obj(string params, int ga_iter, int param_iter, int trials) {
-    string results[];
-    
-	// test model.sh
-	string model_sh = emews_root+"/scripts/dummy_model.sh";
+    string results[];  
 	
-	// i is used as random seed in input xml
+	// i is used as random seed in input
     foreach i in [0:trials-1:1] {
       string instance = "%s/instance_%i_%i_%i/" % (turbine_output, ga_iter, param_iter, i+1);
       
+      // Add the model run random seed parameter based on the trial count
       string seedparam = "random.seed = %i" % i;
       string param_line = "%s\t%s" % (params, seedparam);
       
-      make_dir(instance) => {
-        
-		// dummy model
-//        run_dummy_model(model_sh,params,instance) => 
-		
-		// real model
+      make_dir(instance) => {    // create instance dir
+        // run model instance
         run(param_line, instance) =>
         results[i] = read_model_out(instance);
       }
     }
 
-	// TODO return the proper scores from the model out
-    score = string_join(results, ",");
+	// Combine the results for each random trial in a colon-separated list
+    all_scores = string_join(results, ":");
+    
+    printf("scores: " + all_scores);
 
-//    string code = result_template % result;
-//   score = R(code, "toString(res)");
-   
+    string code = result_template % all_scores;
+    string combined_scores = python_persist(code, "combined_scores");
+    printf("combined scores: " + combined_scores);
+  
+    score = combined_scores;  
+//    score = "1.5842";   //testing - changed to combined scores
 }
 
 (void v) loop (location ME, int trials) {
@@ -152,8 +153,12 @@ count = get_metrics.get_tumor_cell_count(instance_dir, '30240')
             results[j] = obj(p, i, j, trials);
         }
 
+        // The returned multi-objective is a semicolon-separated list for each
+        // individual, and each individual is a comma-separated list of objective.
+        
         string res = join(results, ";");
-        //printf("passing %s", res);
+        printf("passing result: %s", res);
+        
         EQPy_put(ME, res) => c = true;
     }
   }

@@ -29,7 +29,7 @@ export PROCS=36
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if MACHINE flag (see below) is not set
 export QUEUE=bdwall
-export WALLTIME=00:10:00
+export WALLTIME=00:20:00
 export PPN=36
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -53,8 +53,8 @@ EQPY=$EMEWS_PROJECT_ROOT/ext/EQ-Py
 # command line arguments to the swift script
 SEED=1234
 ITERS=2
-NUM_VARIATIONS=1
-NUM_POP=3
+NUM_VARIATIONS=2
+NUM_POP=4
 
 TISD=0.25
 

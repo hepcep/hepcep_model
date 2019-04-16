@@ -1,46 +1,85 @@
-import os, sys, glob
+import os, sys, glob, statistics
 
-def get_tumor_cell_count(instance_dir, max_time):
+def get_model_outputs(instance_dir):
     """
-    @return tumor cell count value from fname or -2, if file doesn't exist, or
+    @return count value from fname or -2, if file doesn't exist, or
     -1 if run terminated prematurely.
     """
-    tumor_cell_count = '-2'
-    fname = '{}/output/metrics.txt'.format(instance_dir)
+    
+    # Open the model event log and count event occurrences
+    test_count = '-2'
+    treatment_count = '-2'
+
+    fname = '{}/events.csv'.format(instance_dir)
     if os.path.exists(fname):
         with open(fname) as f_in:
-            tumor_cell_count = '-1'
-            line = f_in.readlines()[-1].strip()
-            items = line.split("\t")
-            if len(items) > 1 and items[0] == max_time:
-                tumor_cell_count = items[1]
+            test_c = 0
+            treatment_c = 0
+            
+            # Each log line is only one type of model event
+            for line in f_in:
+                if ('HCVRNA_TEST' in line):
+                    test_c += 1
+                if ('STARTED_TREATMENT' in line):
+                    treatment_c += 1
+           
 
-    return tumor_cell_count
+            test_count = str(test_c)
+            treatment_count = str(treatment_c)
+    
+    # Open the model stats file and return relevant stats
+    fname = '{}/stats.csv'.format(instance_dir)
+    
+    yearly_incidence = '-2'
+    incidence_col = 175 # col number in excel for daily incidence
+    
+    if os.path.exists(fname):
+        with open(fname) as f_in:
+            # read the last 365 lines for yearly totals
+            lines = f_in.readlines()[-365:]
+                        
+            inc_total = 0
+            for line in lines:
+                vals = line.strip().split(",")
+                inc_total += int(vals[incidence_col-1])
+             
+            yearly_incidence = str(inc_total)
+            
+    return test_count + ',' + treatment_count + ',' + yearly_incidence
 
-def main(root_dir, upf, results_file):
-    #import pandas as pd
+# Combines the scores input string which is a colon-delmitted set of comma-separated
+# stochastic model output metrics that should be merged, eg. return the mean value.
+#
+#  For example, scores = "2627,1467,684:2519,1437,672"
 
-    #df = pd.read_csv(upf)
-    #df['instance'] = df.index + 1
-    #df['tumor_cell_count'] = -2
+def combine_scores(scores):
+    all_scores = scores.split(":")    # colon-separated all run scores
+    
+    test_count = []
+    treatment_count = []
+    yearly_incidence = []
+    
+    if len(all_scores) == 1:    # if only run stochastic model run just return
+        return all_scores
+    
+    for run, rs in enumerate(all_scores):
+        run_scores = rs.split(",")  # comma-separated scores for single run
+        
+        print(run_scores)
+        
+        test_count.append(float(run_scores[0]))
+        treatment_count.append(float(run_scores[1]))
+        yearly_incidence.append(float(run_scores[2]))
+            
+    combined_scores = ""    
+    
+    # Omit test counts for now
+#    combined_scores += str(statistics.mean(test_count))
+#    combined_scores += ","
+    combined_scores += str(statistics.mean(treatment_count))
+    combined_scores += ","
+    combined_scores += str(statistics.mean(yearly_incidence))  
+            
+    return combined_scores
+    
 
-    files = glob.glob('{}/instance_*'.format(root_dir))
-
-    with open(results_file, 'w') as f_out:
-        f_out.write('directory,instance,tumor_cell_count\n')
-        for f in files:
-            # only makes sense with upf
-            #instance = int(f[f.rfind("_") + 1 :])
-            idx = f.find("instance_")
-            end = f.rfind("_")
-            instance = f[idx + len('instance_') : end]
-            count = int(get_tumor_cell_count(f))
-            f_out.write("{},{},{}\n".format(os.path.basename(f), instance, count))
-            # df.ix[instance - 1, 'tumor_cell_count'] = count
-            #print('{} {}: {}'.format(instance, f, count))
-            #print(df.head())
-
-    #df.to_csv(results_file, index=False)
-
-if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3])

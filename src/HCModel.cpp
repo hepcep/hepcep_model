@@ -69,6 +69,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					personData(),
 					zoneMap(),
 					zoneDistanceMap(),
+					zoneInteractionRateMap(),
 					zonePopulation(),
 					effectiveZonePopulation(),
 					treatmentEnrollmentProb(),
@@ -261,6 +262,8 @@ void HCModel::performInitialLinking(){
 	double total_recept_edge_target = 0;
 	double total_give_edge_target = 0;
 
+
+
 	// Add each person to the network as a vertex.
 	for (auto entry : local_persons) {
 		PersonPtr & person = entry.second;
@@ -317,19 +320,21 @@ void HCModel::performLinking(){
 		const ZonePtr & zone1 = entry1.first;
 
 		// Skip if zone population is zero
-		if (entry1.second.size() == 0){
-			continue;
-		}
+//		if (entry1.second.size() == 0){
+//			continue;
+//		}
 
 		for (auto entry2 : effectiveZonePopulation){
 			const ZonePtr & zone2 = entry2.first;
 
 			// Skip if zone population is zero
-			if (entry2.second.size() == 0){
-				continue;
-			}
+//			if (entry2.second.size() == 0){
+//				continue;
+//			}
 
-			double rate = interactionRate(zone1, zone2);
+//			double rate = interactionRate(zone1, zone2);
+
+			double rate = zoneInteractionRateMap[zone1->getZipcode()][zone2->getZipcode()];
 
 			if (rate == 0.0) {
 				continue;
@@ -460,6 +465,7 @@ void HCModel::zoneCensus(){
 
 	zonePopulation.clear();
 	effectiveZonePopulation.clear();
+	zoneInteractionRateMap.clear();
 
 	totalIDUPopulation  = 0;
 
@@ -494,6 +500,23 @@ void HCModel::zoneCensus(){
 		std::vector<PersonPtr> & myAgents = zonePopulation[zone];
 
 		myAgents.push_back(person);
+	}
+
+	// Calculate the inter-zonal interaction rates, based on the zone populations
+	for (auto entry1 : effectiveZonePopulation){
+		const ZonePtr & zone1 = entry1.first;
+
+		// This map holds the distance to every other zip column.
+		std::map<std::string, double> rateMap;
+
+  	for (auto entry2 : effectiveZonePopulation){
+			const ZonePtr & zone2 = entry2.first;
+
+			double rate = interactionRate(zone1, zone2);
+
+			rateMap[zone2->getZipcode()] = rate;
+		}
+  	zoneInteractionRateMap[zone1->getZipcode()] = rateMap;
 	}
 }
 

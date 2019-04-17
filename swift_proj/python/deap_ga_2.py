@@ -74,8 +74,8 @@ def queue_map(obj_func, pops):
     
     printf("received result: " + result)
     
-    split_result = result.split(';')  
-    
+    split_result = result.split(';')
+       
     # GA Single objective
 #    return [(float(x),) for x in split_result]
     
@@ -87,7 +87,6 @@ def queue_map(obj_func, pops):
     data = [tuple(float(x) for x in tup) for tup in tuple_of_tuples]  # convert to floats
     
     return data
-        
 
 def make_random_params():
     """
@@ -158,6 +157,7 @@ def run():
     # parse params
     printf("Parameters: {}".format(params))
     (num_iter, num_pop, seed, mut_prob, ga_params_file) = eval('{}'.format(params))
+    
     random.seed(seed)
     global ga_params
     ga_params = ga_utils.create_parameters(ga_params_file)
@@ -165,40 +165,99 @@ def run():
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0))
     creator.create("Individual", list, fitness=creator.FitnessMin)
     toolbox = base.Toolbox()
+    
     toolbox.register("individual", tools.initIterate, creator.Individual,
                      make_random_params)
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", obj_func)
     toolbox.register("mate", cxUniform, indpb=0.5)
+    
     mutate_indpb = mut_prob
     toolbox.register("mutate", custom_mutate, indpb=mutate_indpb)
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select", tools.selNSGA2)
     toolbox.register("map", queue_map)
 
     pop = toolbox.population(n=num_pop)
 
-    hof = tools.HallOfFame(1)
+    hof = tools.ParetoFront()
+#    hof = tools.HallOfFame(1)
+    
     stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean)
-    stats.register("std", numpy.std)
-    stats.register("min", numpy.min)
-    stats.register("max", numpy.max)
+    stats.register("avg", numpy.mean, axis=0)
+    stats.register("std", numpy.std, axis=0)
+    stats.register("min", numpy.min, axis=0)
+    stats.register("max", numpy.max, axis=0)
     stats.register("ts", timestamp)
 
-    # num_iter-1 generations since the initial population is evaluated once first
-    mutpb = mut_prob
-    start_time = time.time()
+    logbook = tools.Logbook()
+    logbook.header = "gen", "evals", "std", "min", "avg", "max"
     
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=mutpb, ngen=num_iter - 1,
-                                   stats=stats, halloffame=hof, verbose=True)
-   
+    # num_iter-1 generations since the initial population is evaluated once first
+#    mutpb = mut_prob
+    
+#    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=mutpb, ngen=num_iter - 1,
+#                                   stats=stats, halloffame=hof, verbose=True)
 
+    NGEN = num_iter - 1
+    CXPB = 0.5
+    
+    start_time = time.time()
+
+    # Evaluate the individuals with an invalid fitness
+    invalid_ind = [ind for ind in pop if not ind.fitness.valid]
+    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+
+    # This is just to assign the crowding distance to the individuals
+    # no actual selection is done
+    pop = toolbox.select(pop, len(pop))
+    
+    hof.update(pop)
+    record = stats.compile(pop)
+    logbook.record(gen=0, evals=len(invalid_ind), **record)
+#    print(logbook.stream)
+
+    # Begin the generational process
+    for gen in range(1, NGEN):
+        # Vary the population
+        offspring = tools.selTournamentDCD(pop, len(pop))
+        offspring = [toolbox.clone(ind) for ind in offspring]
+        
+        for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+            if random.random() <= CXPB:
+                toolbox.mate(ind1, ind2)
+            
+            toolbox.mutate(ind1)
+            toolbox.mutate(ind2)
+            del ind1.fitness.values, ind2.fitness.values
+        
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+
+        # Select the next generation population
+        hof.update(pop)
+        pop = toolbox.select(pop + offspring, num_pop)
+        record = stats.compile(pop)
+        logbook.record(gen=gen, evals=len(invalid_ind), **record)
+        
+#        print(logbook.stream)
     end_time = time.time()
 
-    fitnesses = [str(p.fitness.values[0]) for p in pop]
+    fitnesses = [str(p.fitness.values) for p in pop]
 
+    # TODO log HOF Pareto front 
+    # hof contains the list of individuals on the front.   
+#    treat_count_obj = [i.fitness.values[0] for i in hof]
+#    yearly_inci_obj = [i.fitness.values[1] for i in hof]
+ 
+    hof_out =  [str(p.fitness.values) for p in hof]
+ 
     eqpy.OUT_put("DONE")
     # return the final population
-    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}".format(create_list_of_json_strings(pop), ';'.join(fitnesses),
-        start_time, log, end_time))
+    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}".format(create_list_of_params(pop), ';'.join(fitnesses),
+        create_list_of_params(hof), ';'.join(hof_out), logbook))

@@ -69,7 +69,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					personData(),
 					zoneMap(),
 					zoneDistanceMap(),
-					zoneInteractionRateMap(),
 					zonePopulation(),
 					effectiveZonePopulation(),
 					treatmentEnrollmentProb(),
@@ -116,7 +115,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
 
 	std::cout << "HepCEP Model Initialization." << std::endl;
-//	std::cout << "Output dir: " << output_directory << std::endl;
+	std::cout << "Output dir: " << output_directory << std::endl;
 
 	std::string props_file = chi_sim::unique_file_name(props.getProperty(OUTPUT_DIRECTORY) + "/model.props");
 	FileOut fo(props_file);
@@ -132,18 +131,18 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	// Load persons
 	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
-//	std::cout << "CNEP+ file: " << cnep_file << std::endl;
+	std::cout << "CNEP+ file: " << cnep_file << std::endl;
 	loadPersonData(cnep_file, personData);
-//	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
+	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
 
 	// Load zones
 	std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
-//	std::cout << "Zones file: " << zones_file << std::endl;
+	std::cout << "Zones file: " << zones_file << std::endl;
 	loadZones(zones_file, zoneMap);
-//	std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
+	std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
 
 	std::string zones_distance_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
-//	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
+	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
 	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
@@ -262,8 +261,6 @@ void HCModel::performInitialLinking(){
 	double total_recept_edge_target = 0;
 	double total_give_edge_target = 0;
 
-
-
 	// Add each person to the network as a vertex.
 	for (auto entry : local_persons) {
 		PersonPtr & person = entry.second;
@@ -285,8 +282,8 @@ void HCModel::performInitialLinking(){
 				(total_edges/total_give_edge_target < DENSITY_TARGET) &&
 				(iteration < MAXITER)) {
 
-//		std::cout << "> Total edges: " << total_edges << ". target in: " << total_recept_edge_target
-//				<< ". target out: " << total_give_edge_target << std::endl;
+		std::cout << "> Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+				<< ". target out: " << total_give_edge_target << std::endl;
 
 		zoneCensus();
 		performLinking();
@@ -295,8 +292,8 @@ void HCModel::performInitialLinking(){
 		total_edges = network->edgeCount();
 		iteration ++;
 	}
-//	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
-//				<< ". target out: " << total_give_edge_target << std::endl;
+	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+				<< ". target out: " << total_give_edge_target << std::endl;
 
 	if (iteration == MAXITER) {
 		std::cout << "Initial linking reached the maximum number of iterations (" << MAXITER << ")" << std::endl;
@@ -320,21 +317,19 @@ void HCModel::performLinking(){
 		const ZonePtr & zone1 = entry1.first;
 
 		// Skip if zone population is zero
-//		if (entry1.second.size() == 0){
-//			continue;
-//		}
+		if (entry1.second.size() == 0){
+			continue;
+		}
 
 		for (auto entry2 : effectiveZonePopulation){
 			const ZonePtr & zone2 = entry2.first;
 
 			// Skip if zone population is zero
-//			if (entry2.second.size() == 0){
-//				continue;
-//			}
+			if (entry2.second.size() == 0){
+				continue;
+			}
 
-//			double rate = interactionRate(zone1, zone2);
-
-			double rate = zoneInteractionRateMap[zone1->getZipcode()][zone2->getZipcode()];
+			double rate = interactionRate(zone1, zone2);
 
 			if (rate == 0.0) {
 				continue;
@@ -465,7 +460,6 @@ void HCModel::zoneCensus(){
 
 	zonePopulation.clear();
 	effectiveZonePopulation.clear();
-	zoneInteractionRateMap.clear();
 
 	totalIDUPopulation  = 0;
 
@@ -501,23 +495,6 @@ void HCModel::zoneCensus(){
 
 		myAgents.push_back(person);
 	}
-
-	// Calculate the inter-zonal interaction rates, based on the zone populations
-	for (auto entry1 : effectiveZonePopulation){
-		const ZonePtr & zone1 = entry1.first;
-
-		// This map holds the distance to every other zip column.
-		std::map<std::string, double> rateMap;
-
-  	for (auto entry2 : effectiveZonePopulation){
-			const ZonePtr & zone2 = entry2.first;
-
-			double rate = interactionRate(zone1, zone2);
-
-			rateMap[zone2->getZipcode()] = rate;
-		}
-  	zoneInteractionRateMap[zone1->getZipcode()] = rateMap;
-	}
 }
 
 /*
@@ -536,7 +513,7 @@ void HCModel::burnInControl() {
 	personCreator->setBurnInPeriod(true, burnInDays);
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-//	std::cout << "Scheduling burnin end for " << tick << " + " <<  burnInDays << std::endl;
+	std::cout << "Scheduling burnin end for " << tick << " + " <<  burnInDays << std::endl;
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(tick + burnInDays,
 			repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::burnInEnd)));
@@ -559,7 +536,7 @@ void HCModel::burnInEnd() {
 			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 	}
 
-	std::cout << "**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
+	std::cout << "\n**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
 
 void HCModel::treatment(){

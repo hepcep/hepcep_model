@@ -43,7 +43,6 @@ protected:
 
 	std::map<std::string,ZonePtr> zoneMap;
 	std::map<std::string, std::map<std::string,double>> zoneDistanceMap;
-	std::map<std::string, std::map<std::string,double>> zoneInteractionRateMap;
 	std::map<ZonePtr, std::vector<PersonPtr>> zonePopulation;
 	std::map<ZonePtr, std::vector<PersonPtr>> effectiveZonePopulation;
 

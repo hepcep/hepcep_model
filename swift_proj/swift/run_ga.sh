@@ -23,13 +23,13 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=36
+export PROCS=432
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if MACHINE flag (see below) is not set
 export QUEUE=bdwall
-export WALLTIME=00:15:00
+export WALLTIME=36:00:00
 export PPN=36
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -52,11 +52,11 @@ EQPY=$EMEWS_PROJECT_ROOT/ext/EQ-Py
 # for your EQ/Py based run. $* will pass all of this script's
 # command line arguments to the swift script
 SEED=1234
-ITERS=5
-NUM_VARIATIONS=2
+ITERS=20
+NUM_VARIATIONS=4
 
 # Population size needs to be a multiple of 4 for NSGA2
-NUM_POP=16
+NUM_POP=100
 
 # original was 0.2
 MUTATION_PROB=0.2

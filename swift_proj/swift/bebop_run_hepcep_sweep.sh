@@ -7,12 +7,11 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-PATH=/lcrc/project/MRSA/bebop/sfw/swift-t-38569e3/stc/bin:$PATH
+#PATH=/lcrc/project/MRSA/bebop/sfw/swift-t-38569e3/stc/bin:$PATH
 
 # uncomment to turn on swift/t logging. Can also set TURBINE_LOG,
 # TURBINE_DEBUG, and ADLB_DEBUG to 0 to turn off logging
 # export TURBINE_LOG=1 TURBINE_DEBUG=1 ADLB_DEBUG=1
-THIS=$( cd $( dirname $0 ) ; /bin/pwd )
 export EMEWS_PROJECT_ROOT=$( cd $( dirname $0 )/.. ; /bin/pwd )
 # source some utility functions used by EMEWS in this script
 source "${EMEWS_PROJECT_ROOT}/etc/emews_utils.sh"
@@ -22,13 +21,13 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=102
+export PROCS=1044
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 export QUEUE=bdwall
-export WALLTIME=01:00:00
+export WALLTIME=07:30:00
 export PPN=36
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -38,7 +37,7 @@ export TURBINE_JOBNAME="${EXPID}_job"
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$R_HOME/lib
 # if python packages can't be found, then uncommited and set this
 # export PYTHONPATH=/path/to/python/packages
-
+export PYTHONPATH=$EMEWS_PROJECT_ROOT/python:$EMEWS_PROJECT_ROOT/ext/EQ-Py
 
 # TODO edit command line arguments as appropriate
 # for your run. Note that the default $* will pass all of this script's
@@ -64,13 +63,11 @@ USER_VARS=()
 # log variables and script to to TURBINE_OUTPUT directory
 log_script
 
-module load jdk
-
 # echo's anything following this standard out
 set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_no_retreat3.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_method_sweep_no_retreat.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

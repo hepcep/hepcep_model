@@ -83,11 +83,10 @@ model_outs = get_metrics.get_model_outputs(instance_dir)
       string seedparam = "random.seed = %i" % i;
       string param_line = "%s\t%s" % (params, seedparam);
       
-      make_dir(instance) => {    // create instance dir
-        // run model instance
-        run(param_line, instance) =>
-        results[i] = read_model_out(instance);
-      }
+      make_dir(instance) =>                        // create instance dir
+        run(param_line, instance) =>               // run model instance
+        results[i] = read_model_out(instance) =>   // read instance results
+        rm_dir(instance);                          // delete instance dir
     }
 
 	// Combine the results for each random trial in a colon-separated list
@@ -100,7 +99,6 @@ model_outs = get_metrics.get_model_outputs(instance_dir)
     printf("combined scores: " + combined_scores);
   
     score = combined_scores;  
-//    score = "1.5842";   //testing - changed to combined scores
 }
 
 (void v) loop (location ME, int trials) {

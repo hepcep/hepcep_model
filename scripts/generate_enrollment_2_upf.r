@@ -8,9 +8,9 @@
 library(gtools)
 library(data.table)
 
-enrollmentRateStart = 0.005   # Enrollment start value per_PY
-enrollmentRateEnd = 0.02
-enrollmentRateStep = .005
+enrollmentRateStart = 0.025   # Enrollment start value per_PY
+enrollmentRateEnd = 0.1
+enrollmentRateStep = .025
 replicates <- 10          # Number of replicates per rate param value 
 
 x <- ""
@@ -27,7 +27,10 @@ range <- seq(enrollmentRateStart,enrollmentRateEnd, by=enrollmentRateStep)
 
 npermut <- nrow(validpermut)
 
-for (rate in range){     # Loop over each entrollment rate
+for (rate in range){     # Loop over each entrollment 
+  
+  print(rate)  # show progress
+  
   for (p in 1:npermut){  # Loop over each treatment combination
     seed <- 0   # Reset the seed counter so that each replicate uses the same set of seeds
     for (rep in 1:replicates){
@@ -36,6 +39,7 @@ for (rate in range){     # Loop over each entrollment rate
       
       x <- paste0(x,"run.number=",i,"\t")
       x <- paste0(x,"random.seed=",seed,"\t")
+      x <- paste0(x, "treatment_repeatable = false\t")
       
       x <- paste0(x,"treatment_enrollment_per_PY=",rate,"\t")
       
@@ -53,7 +57,7 @@ for (rate in range){     # Loop over each entrollment rate
     }
   }
 }
-write(x, file="upf_enrollment_method_sweep.txt")
+write(x, file="upf_enrollment_method_sweep_no_retreat.txt")
 
 
 

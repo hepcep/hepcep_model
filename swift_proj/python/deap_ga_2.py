@@ -192,14 +192,8 @@ def run():
 
     logbook = tools.Logbook()
     logbook.header = "gen", "evals", "std", "min", "avg", "max"
-    
-    # num_iter-1 generations since the initial population is evaluated once first
-#    mutpb = mut_prob
-    
-#    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=mutpb, ngen=num_iter - 1,
-#                                   stats=stats, halloffame=hof, verbose=True)
-
-    NGEN = num_iter - 1
+   
+    NGEN = num_iter + 1
     CXPB = 0.5
     
     start_time = time.time()
@@ -217,7 +211,9 @@ def run():
     hof.update(pop)
     record = stats.compile(pop)
     logbook.record(gen=0, evals=len(invalid_ind), **record)
-#    print(logbook.stream)
+
+    hof_out_all = ""
+    hof_out_params_all = ""
 
     # Begin the generational process
     for gen in range(1, NGEN):
@@ -240,24 +236,36 @@ def run():
             ind.fitness.values = fit
 
         # Select the next generation population
-        hof.update(pop)
         pop = toolbox.select(pop + offspring, num_pop)
+        hof.update(pop)
         record = stats.compile(pop)
         logbook.record(gen=gen, evals=len(invalid_ind), **record)
+         
+        hof_out = str(gen) + "\t" + ';'.join([str(p.fitness.values) for p in hof]) + "\n"
+        hof_out_params = str(gen) + "\t" + create_list_of_params(hof) + "\n"
         
-#        print(logbook.stream)
+        hof_out_all += hof_out
+        hof_out_params_all += hof_out_params
+        
+        # log GA info to experiment folder on the fly (append)
+        with open("./pareto.txt", "a") as myfile:
+            myfile.write(hof_out)
+            
+        with open("./pareto_params.txt", "a") as myfile:
+            myfile.write(hof_out_params)
+        
+        # Write log (full overwrite)    
+        with open("./stats_log.txt", "w") as myfile:
+            myfile.write(str(logbook))
+
+        
     end_time = time.time()
 
     fitnesses = [str(p.fitness.values) for p in pop]
-
-    # TODO log HOF Pareto front 
-    # hof contains the list of individuals on the front.   
-#    treat_count_obj = [i.fitness.values[0] for i in hof]
-#    yearly_inci_obj = [i.fitness.values[1] for i in hof]
- 
     hof_out =  [str(p.fitness.values) for p in hof]
  
     eqpy.OUT_put("DONE")
     # return the final population
-    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}".format(create_list_of_params(pop), ';'.join(fitnesses),
-        create_list_of_params(hof), ';'.join(hof_out), logbook))
+    eqpy.OUT_put("{}\n{}\n{}\n{}\n{}\n{}\n{}".format(create_list_of_params(pop), ';'.join(fitnesses),
+        create_list_of_params(hof), ';'.join(hof_out), logbook,
+        hof_out_params_all, hof_out_all))

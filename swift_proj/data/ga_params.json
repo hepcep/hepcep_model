@@ -2,8 +2,8 @@
     {
         "name" : "treatment_enrollment_per_PY",
         "type" : "float",
-        "lower" : 0.0,
-        "upper" : 0.2,
+        "lower" : 0.01,
+        "upper" : 0.1,
         "sigma": 0.01
     },
 

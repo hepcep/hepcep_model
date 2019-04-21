@@ -7,6 +7,7 @@ library(data.table)
 library(ggplot2)
 library(zoo)
 
+system.time({
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
@@ -63,7 +64,10 @@ for (d in dirs){
     
   }
 }
+})
 
+# C: 291.55  107.00  314.27 
+# X: 277.07  104.78 1023.00 
 dt <- rbindlist(tableList)  # Stack the list of tables into a single DT
 tableList <- NULL           # clear mem
 

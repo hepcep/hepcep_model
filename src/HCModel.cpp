@@ -150,7 +150,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	personCreator = std::make_shared<PersonCreator>();
 
 	// Burn-in needs to be set after person creator but before generating persons
-	burnInControl();
+	burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
 
 	personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
 

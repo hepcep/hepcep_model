@@ -9,8 +9,13 @@
 #define SRC_NETWORK_UTILS_H_
 
 #include <fstream>
+#include <iterator>
+#include <iostream>
+
+#include "boost/tokenizer.hpp"
 
 #include "Network.h"
+#include "gml.h"
 
 const std::string INDENT_1 = "  ";
 const std::string INDENT_2 = "    ";
@@ -72,7 +77,6 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network,
     out << "]\n";
     out.flush();
     out.close();
-
 }
 
 template<typename VertexType>
@@ -80,6 +84,10 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network) {
     write_network(fname, network, &vnoop_writer<VertexType>, &enoop_writer<VertexType>);
 }
 
+template<typename VertexType>
+void read_network(const std::string& fname) {
+    read_gml(fname);
+}
 
 }
 

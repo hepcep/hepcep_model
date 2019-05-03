@@ -19,10 +19,7 @@ SIGN (\-|\+)
 \[   { return LEFT_BRACKET; }
 \]   { return RIGHT_BRACKET; }
 graph { return GRAPH; }
-node { return NODE; }
-edge { return EDGE; }
-
 \"([^\\\"]|\\.)*\" { yylval.sval = strdup(yytext); return STRING_LITERAL; }
-[a-zA-Z0-9]+     { yylval.sval = strdup(yytext); return ID; }
+[a-zA-Z0-9_]+     { yylval.sval = strdup(yytext); return ID; }
 . { return *yytext; }
 %%

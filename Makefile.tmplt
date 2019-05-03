@@ -1,5 +1,6 @@
 model_src :=
 test_src :=
+c_src :=
 
 CXX = mpicxx
 CXXLD = mpicxx
@@ -15,20 +16,19 @@ CXX_FLAGS = $(CXX_DEBUG_FLAGS) -fopenmp
 INCLUDES :=
 LIBS :=
 
-REPAST_ROOT =  $(HOME)/sfw/repast_hpc-2.2.0
-REPAST_INCLUDE =  $(REPAST_ROOT)/include
-REPAST_LIB_DIR = $(REPAST_ROOT)/lib
+REPAST_LIB_DIR = $(HOME)/sfw/repast_hpc-2.2.0/lib
 REPAST_LIB = repast_hpc-2.2.0
+REPAST_INCLUDE = $(HOME)/sfw/repast_hpc-2.2.0/include
+
+BOOST_INCLUDE =  $(HOME)/sfw/Boost/Boost_1.61/include
+BOOST_LIB_DIR =  $(HOME)/sfw/Boost/Boost_1.61/lib
+BOOST_LIBS = -lboost_mpi-mt -lboost_system-mt -lboost_filesystem-mt
+
 
 CHISIM_ROOT =  $(HOME)/sfw/chiSIM-0.2
 CHISIM_LIB_DIR = $(CHISIM_ROOT)/lib
 CHISIM_INCLUDE = $(CHISIM_ROOT)/include
 CHISIM_LIB = chiSIM-0.2
-
-BOOST_ROOT = $(HOME)/sfw/boost/1.58
-BOOST_INCLUDE = $(BOOST_ROOT)/include
-BOOST_LIB_DIR =  $(BOOST_ROOT)/lib
-BOOST_LIBS = -lboost_mpi-mt -lboost_system-mt -lboost_filesystem-mt
 
 # these are not necessary unless you are creating a tcl wrapper
 # to use with swift/T
@@ -80,6 +80,7 @@ include ../test/module.mk
 # objects used by both executable and tests
 OBJECTS :=
 OBJECTS += $(subst .cpp,.o, $(addprefix $(BUILD_DIR)/, $(model_src)))
+OBJECTS += $(subst .c,.o, $(addprefix $(BUILD_DIR)/, $(c_src)))
 
 # objects and deps for executable
 EXEC_OBJECTS := $(OBJECTS)
@@ -115,8 +116,7 @@ all: model tests
 model : $(EXEC_OBJECTS)
 	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIBS) $(RPATHS) -o $(NAME)
 	
-		
-hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o
+hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o 
 	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIB_LDFLAGS) $(LIBS) $(RPATHS) $(TCL_LIB) -o $(SWIFT_MODEL_DIR)/$(TCL_LIB_NAME)
 	LEAF_PKG=hepcep_model LEAF_VERSION=0.0 \
 	LEAF_SO=$(TCL_LIB_NAME) LEAF_TCL=hepcep_model.tcl \
@@ -125,16 +125,29 @@ hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o
 ../src/hepcep_model_wrapper.cpp :  $(SWIFT_MODEL_DIR)/hepcep_model.i ../src/run.h
 	$(SWIG) -c++ -o $(@) $(<)
 	$(SED) -i.bu "s/Hepcep_model_Init/Tclhepcep_model_Init/" $(@)
-
+	
 		
 tests : $(TEST_OBJECTS)
 	$(CXXLD) $(filter-out %.d, $^) $(LIBS) $(RPATHS) $(GTEST_LIB) -lpthread -o $(TEST_NAME)
+
+$(BUILD_DIR)/gml.tab.c $(BUILD_DIR)/gml.tab.h : ../grammar/gml.y
+	bison -d -o $(BUILD_DIR)/gml.tab.c ../grammar/gml.y
+
+$(BUILD_DIR)/lex.yy.c : ../grammar/gml.lex $(BUILD_DIR)/gml.tab.c 
+	flex -o $(BUILD_DIR)/lex.yy.c ../grammar/gml.lex
+
+gml_parser : $(BUILD_DIR)/lex.yy.c
+	cp $(BUILD_DIR)/gml.tab.c $(BUILD_DIR)/gml.tab.h  $(SRC_DIR)
+	cp $(BUILD_DIR)/lex.yy.c $(SRC_DIR)
 
 # -Wno-deprecated-declarations to turn off boost auto_ptr warnings
 $(BUILD_DIR)/%.o : %.cpp
 	@-mkdir -p $(dir $@)
 	$(CXX) $(CXX_FLAGS) -Wno-deprecated-declarations $(LIB_CXX_FLAGS) $(INCLUDES) $(TEST_INCLUDES) -c $< -o $@
-	
+
+$(BUILD_DIR)/%.o : %.c
+	@-mkdir -p $(dir $@)
+	$(CXX) $(CXX_FLAGS) -Wno-deprecated-declarations $(LIB_CXX_FLAGS) $(INCLUDES) $(TEST_INCLUDES) -c $< -o $@
 
 clean:
 	rm -fv $(NAME) $(TEST_NAME)

@@ -7,7 +7,7 @@
 
 namespace hepcep {
 
-enum class AttributeType{INT, FLOAT, STRING, NODE, EDGE};
+enum class AttributeType{INT, FLOAT, STRING, NODE, EDGE, LIST};
 
 
 struct Attribute {
@@ -37,14 +37,16 @@ struct StringAttribute : public Attribute {
     void evaluate(const std::string& prefix);
 };
 
-struct ListAttribute : public Attribute {
+struct NamedListAttribute : public Attribute {
     std::vector<Attribute*>* attributes_;
-    ListAttribute(AttributeType type, const std::string& name, std::vector<Attribute*>* list);
+    NamedListAttribute(AttributeType type, const std::string& name, std::vector<Attribute*>* list);
     void evaluate(const std::string& prefix);
 };
 
 
 std::vector<Attribute*>* make_attribute_list(Attribute* a);
+
+NamedListAttribute* make_list(const std::string& id, std::vector<Attribute*>* attributes);
 
 struct Graph {
     std::vector<Attribute*> nodes;

@@ -34,10 +34,10 @@ namespace hepcep {
         std::cout << prefix << name_ << ": " << value_ << std::endl;
     }
 
-    ListAttribute::ListAttribute(AttributeType type, const std::string& name, std::vector<Attribute*>* list): 
+    NamedListAttribute::NamedListAttribute(AttributeType type, const std::string& name, std::vector<Attribute*>* list): 
         Attribute(type, name), attributes_(list) {}
 
-    void ListAttribute::evaluate(const std::string& prefix) {
+    void NamedListAttribute::evaluate(const std::string& prefix) {
         std::cout << prefix << name_ << std::endl;
         const std::string indent = prefix + "  ";
         for (auto a : (*attributes_)) {
@@ -75,6 +75,17 @@ namespace hepcep {
 
     std::vector<Attribute*>* make_attribute_list(Attribute* a) {
         return new std::vector<Attribute*>({a});
+    }
+
+    NamedListAttribute *make_list(const std::string& id, std::vector<Attribute*>* attributes) {
+        std::string name = id;
+        AttributeType type = AttributeType::LIST;
+        if (id == "node") {
+            type = AttributeType::NODE;
+        } else if (id == "edge") {
+            type = AttributeType::EDGE;
+        }
+        return new NamedListAttribute(type, id, attributes);
     }
 
     void read_gml(const std::string& fname) {

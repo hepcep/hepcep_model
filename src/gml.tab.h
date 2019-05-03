@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_GML_TAB_H_INCLUDED
-# define YY_YY_GML_TAB_H_INCLUDED
+#ifndef YY_YY_BUILD_GML_TAB_H_INCLUDED
+# define YY_YY_BUILD_GML_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -48,12 +48,10 @@ extern int yydebug;
     LEFT_BRACKET = 258,
     RIGHT_BRACKET = 259,
     GRAPH = 260,
-    NODE = 261,
-    EDGE = 262,
-    INT = 263,
-    FLOAT = 264,
-    ID = 265,
-    STRING_LITERAL = 266
+    INT = 261,
+    FLOAT = 262,
+    ID = 263,
+    STRING_LITERAL = 264
   };
 #endif
 
@@ -62,7 +60,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 22 "gml.y" /* yacc.c:1909  */
+#line 22 "../grammar/gml.y" /* yacc.c:1909  */
 
     int ival;
     double dval;
@@ -73,7 +71,7 @@ union YYSTYPE
     std::vector<hepcep::Attribute*>* attribute_list;
 
 
-#line 77 "gml.tab.h" /* yacc.c:1909  */
+#line 75 "./build/gml.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -86,4 +84,4 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_GML_TAB_H_INCLUDED  */
+#endif /* !YY_YY_BUILD_GML_TAB_H_INCLUDED  */

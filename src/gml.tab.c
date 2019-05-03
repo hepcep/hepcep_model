@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "gml.y" /* yacc.c:339  */
+#line 1 "../grammar/gml.y" /* yacc.c:339  */
 
     #include <cstdio>
     #include <iostream>
@@ -83,7 +83,7 @@
     Graph* gml_graph;
 
 
-#line 87 "gml.tab.c" /* yacc.c:339  */
+#line 87 "./build/gml.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -103,8 +103,8 @@
 
 /* In a future release of Bison, this section will be replaced
    by #include "gml.tab.h".  */
-#ifndef YY_YY_GML_TAB_H_INCLUDED
-# define YY_YY_GML_TAB_H_INCLUDED
+#ifndef YY_YY_BUILD_GML_TAB_H_INCLUDED
+# define YY_YY_BUILD_GML_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -121,12 +121,10 @@ extern int yydebug;
     LEFT_BRACKET = 258,
     RIGHT_BRACKET = 259,
     GRAPH = 260,
-    NODE = 261,
-    EDGE = 262,
-    INT = 263,
-    FLOAT = 264,
-    ID = 265,
-    STRING_LITERAL = 266
+    INT = 261,
+    FLOAT = 262,
+    ID = 263,
+    STRING_LITERAL = 264
   };
 #endif
 
@@ -135,7 +133,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 22 "gml.y" /* yacc.c:355  */
+#line 22 "../grammar/gml.y" /* yacc.c:355  */
 
     int ival;
     double dval;
@@ -146,7 +144,7 @@ union YYSTYPE
     std::vector<hepcep::Attribute*>* attribute_list;
 
 
-#line 150 "gml.tab.c" /* yacc.c:355  */
+#line 148 "./build/gml.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -159,11 +157,11 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_GML_TAB_H_INCLUDED  */
+#endif /* !YY_YY_BUILD_GML_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 167 "gml.tab.c" /* yacc.c:358  */
+#line 165 "./build/gml.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -405,21 +403,21 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   28
+#define YYLAST   15
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  12
+#define YYNTOKENS  10
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  14
+#define YYNRULES  9
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  26
+#define YYNSTATES  17
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   266
+#define YYMAXUTOK   264
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -454,15 +452,14 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11
+       5,     6,     7,     8,     9
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    54,    54,    59,    61,    65,    67,    69,    73,    78,
-      83,    85,    89,    91,    93
+       0,    49,    49,    54,    59,    61,    65,    67,    69,    71
 };
 #endif
 
@@ -472,8 +469,8 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "LEFT_BRACKET", "RIGHT_BRACKET", "GRAPH",
-  "NODE", "EDGE", "INT", "FLOAT", "ID", "STRING_LITERAL", "$accept",
-  "graph", "items", "item", "node", "edge", "kvs", "kv", YY_NULLPTR
+  "INT", "FLOAT", "ID", "STRING_LITERAL", "$accept", "graph", "list",
+  "kvs", "kv", YY_NULLPTR
 };
 #endif
 
@@ -482,15 +479,14 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266
+       0,   256,   257,   258,   259,   260,   261,   262,   263,   264
 };
 # endif
 
-#define YYPACT_NINF -14
+#define YYPACT_NINF -8
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-14)))
+  (!!((Yystate) == (-8)))
 
 #define YYTABLE_NINF -1
 
@@ -501,9 +497,8 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      15,     0,    11,     7,   -14,    12,    19,    10,    -2,   -14,
-     -14,   -14,   -14,    13,    13,   -14,   -14,   -14,   -14,   -14,
-       2,   -14,     6,   -14,   -14,   -14
+      -3,     0,    11,     4,    -8,    -2,    -8,     2,    -8,     4,
+      -8,    -8,    -8,    -8,    -8,     5,    -8
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -511,21 +506,20 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,     0,     1,     0,     0,     0,     0,     4,
-       5,     6,     7,     0,     0,    12,    13,    14,     2,     3,
-       0,    11,     0,     8,    10,     9
+       0,     0,     0,     0,     1,     0,     9,     0,     5,     0,
+       6,     7,     8,     2,     4,     0,     3
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -14,   -14,   -14,    16,   -14,   -14,    14,   -13
+      -8,    -8,    -8,     6,    -7
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     8,     9,    10,    11,    20,    12
+      -1,     2,     6,     7,     8
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -533,39 +527,34 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      21,    21,    18,     3,     5,     6,    23,    24,     7,    24,
-      25,     4,     7,     5,     6,    13,     7,     7,    15,    16,
-       1,    17,    14,     7,    19,     0,     0,     0,    22
+      14,     9,     1,     3,    10,    11,    13,    12,    14,    16,
+       5,     4,     5,     5,     0,    15
 };
 
 static const yytype_int8 yycheck[] =
 {
-      13,    14,     4,     3,     6,     7,     4,    20,    10,    22,
-       4,     0,    10,     6,     7,     3,    10,    10,     8,     9,
-       5,    11,     3,    10,     8,    -1,    -1,    -1,    14
+       7,     3,     5,     3,     6,     7,     4,     9,    15,     4,
+       8,     0,     8,     8,    -1,     9
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     5,    13,     3,     0,     6,     7,    10,    14,    15,
-      16,    17,    19,     3,     3,     8,     9,    11,     4,    15,
-      18,    19,    18,     4,    19,     4
+       0,     5,    11,     3,     0,     8,    12,    13,    14,     3,
+       6,     7,     9,     4,    14,    13,     4
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    12,    13,    14,    14,    15,    15,    15,    16,    17,
-      18,    18,    19,    19,    19
+       0,    10,    11,    12,    13,    13,    14,    14,    14,    14
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     4,     2,     1,     1,     1,     1,     4,     4,
-       2,     1,     2,     2,     2
+       0,     2,     4,     4,     2,     1,     2,     2,     2,     1
 };
 
 
@@ -1242,85 +1231,55 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 55 "gml.y" /* yacc.c:1646  */
+#line 50 "../grammar/gml.y" /* yacc.c:1646  */
     { (yyval.graph) = new Graph((yyvsp[-1].attribute_list)); gml_graph = (yyval.graph); delete (yyvsp[-1].attribute_list); }
-#line 1248 "gml.tab.c" /* yacc.c:1646  */
+#line 1237 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 59 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute_list) = (yyvsp[-1].attribute_list); (yyvsp[-1].attribute_list)->push_back((yyvsp[0].attribute)); }
-#line 1254 "gml.tab.c" /* yacc.c:1646  */
+#line 55 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute) = make_list((yyvsp[-3].sval), (yyvsp[-1].attribute_list)); }
+#line 1243 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 61 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute_list) = make_attribute_list((yyvsp[0].attribute)); }
-#line 1260 "gml.tab.c" /* yacc.c:1646  */
+#line 59 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute_list) = (yyvsp[-1].attribute_list); (yyvsp[-1].attribute_list)->push_back((yyvsp[0].attribute)); }
+#line 1249 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 65 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = (yyvsp[0].attribute); }
-#line 1266 "gml.tab.c" /* yacc.c:1646  */
+#line 61 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute_list) = make_attribute_list((yyvsp[0].attribute)); }
+#line 1255 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 67 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = (yyvsp[0].attribute); }
-#line 1272 "gml.tab.c" /* yacc.c:1646  */
+#line 65 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute) = new IntAttribute((yyvsp[-1].sval), (yyvsp[0].ival)); }
+#line 1261 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 69 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = (yyvsp[0].attribute); }
-#line 1278 "gml.tab.c" /* yacc.c:1646  */
+#line 67 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute) = new FloatAttribute((yyvsp[-1].sval), (yyvsp[0].dval)); }
+#line 1267 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 74 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new ListAttribute(AttributeType::NODE, "node", (yyvsp[-1].attribute_list)); }
-#line 1284 "gml.tab.c" /* yacc.c:1646  */
+#line 69 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute) = new StringAttribute((yyvsp[-1].sval) , (yyvsp[0].sval)); }
+#line 1273 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 79 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new ListAttribute(AttributeType::EDGE, "edge", (yyvsp[-1].attribute_list)); }
-#line 1290 "gml.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 10:
-#line 83 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute_list) = (yyvsp[-1].attribute_list); (yyvsp[-1].attribute_list)->push_back((yyvsp[0].attribute)); }
-#line 1296 "gml.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 11:
-#line 85 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute_list) = make_attribute_list((yyvsp[0].attribute)); }
-#line 1302 "gml.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 12:
-#line 89 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new IntAttribute((yyvsp[-1].sval), (yyvsp[0].ival)); }
-#line 1308 "gml.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 13:
-#line 91 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new FloatAttribute((yyvsp[-1].sval), (yyvsp[0].dval)); }
-#line 1314 "gml.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 14:
-#line 93 "gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new StringAttribute((yyvsp[-1].sval) , (yyvsp[0].sval)); }
-#line 1320 "gml.tab.c" /* yacc.c:1646  */
+#line 71 "../grammar/gml.y" /* yacc.c:1646  */
+    { (yyval.attribute) = (yyvsp[0].attribute); }
+#line 1279 "./build/gml.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1324 "gml.tab.c" /* yacc.c:1646  */
+#line 1283 "./build/gml.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1548,7 +1507,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 103 "gml.y" /* yacc.c:1906  */
+#line 81 "../grammar/gml.y" /* yacc.c:1906  */
 
 // int main(int, char**) {
 //   // open a file handle to a particular file:

@@ -15,7 +15,9 @@ output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
 arriving.persons.output.file = arriving_agents.csv
-log.initial.network = false
+# 0 for init network, n to log at tick n, and END to log at end
+# comment out for no net logging
+# log.network.at = 0, END
 
 ab_prob_acute = 0.02
 ab_prob_chronic = 0.67

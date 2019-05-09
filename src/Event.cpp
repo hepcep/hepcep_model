@@ -10,7 +10,8 @@
 namespace hepcep {
 
 
-Event::Event(repast::Functor* func) : func_(func), canceled(false) { }
+Event::Event(double scheduled_for, EventFuncType ef_type, repast::Functor* func) : scheduled_for_(scheduled_for),
+    ef_type_(ef_type), func_(func), canceled(false) { }
 
 Event::~Event(){
     delete func_;
@@ -25,7 +26,6 @@ void Event::operator()() {
         (*func_)();
     }
 }
-
 
 }
 

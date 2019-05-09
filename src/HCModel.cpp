@@ -26,8 +26,28 @@
 #include "PersonDataLoader.h"
 #include "ZoneLoader.h"
 #include "parameters_constants.h"
+#include "serialize.h"
 
 namespace hepcep {
+
+class WriteNet : public repast::Functor {
+	private:
+		std::string fname_;
+		NetworkPtr<HCPerson> network_;
+		double at_;
+	
+	public:
+		WriteNet(const std::string& fname, double at, NetworkPtr<HCPerson> network);
+		virtual ~WriteNet() {}
+		void operator()();
+};
+
+WriteNet::WriteNet(const std::string& fname, double at, NetworkPtr<HCPerson> network) : fname_(fname),
+	network_(network),  at_(at) {}
+
+void WriteNet::operator()() {
+	write_network(fname_, at_, network_, &write_person, &write_edge);
+}
 
 void init_stats(const std::string& output_directory, int run_number) {
 	// Initialize statistics collection
@@ -187,11 +207,29 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	performInitialLinking();
 
 	// Log the initial network topology
-	double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);
-
-	if (logNetwork){
-		std::string fname(output_directory + "/net_initial.gml");
-		write_network(fname, network, &writePerson, &writeEdge);
+	// double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);
+	if (chi_sim::Parameters::instance()->contains(LOG_NETWORK_AT)) {
+		std::string log_net_at = chi_sim::Parameters::instance()->getStringParameter(LOG_NETWORK_AT);
+		boost::char_separator<char> sep(",");
+		boost::tokenizer<boost::char_separator<char>> tok(log_net_at, sep);
+		std::cout << "Logging Network at: " << log_net_at << "." << std::endl;
+		for (auto item : tok) {
+			boost::trim(item);
+			if (item == "END" || item == "end") {
+				double at =  chi_sim::Parameters::instance()->getDoubleParameter("stop.at");
+				std::string fname(output_directory + "/net_" + item + ".gml");
+				runner.scheduleEndEvent(boost::make_shared<WriteNet>(fname, at, network));
+			} else {
+				double at = std::stod(item);
+				if (at == 0) {
+					std::string fname(output_directory + "/net_initial.gml");
+					write_network(fname, 0, network, &write_person, &write_edge);
+				} else {
+					std::string fname(output_directory + "/net_" + item + ".gml");
+					runner.scheduleEvent(at + .1, boost::make_shared<WriteNet>(fname, at, network));
+				}
+			}
+		}
 	}
 
 
@@ -400,11 +438,13 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	double dist = zoneDistanceMap[person1->getZipcode()][person2->getZipcode()];
 
-	network->addEdge(person1, person2)->putAttribute("distance", dist);
+	EdgePtrT<HCPerson> edge = network->addEdge(person1, person2);
+	edge->putAttribute("distance", dist);
 
 	// Schedule the p1 -> p2 edge removal in the future
 	double edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
 	double endTime = tick + edgeLifespan;
+	edge->putAttribute("ends_at", endTime);
 
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	EndRelationshipFunctor* endRelationshipEvent1 = new EndRelationshipFunctor(person1,person2,network);
@@ -417,11 +457,14 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	if (network->outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
 		return;
 	}
-	network->addEdge(person2, person1)->putAttribute("distance", dist);
+	
+	edge = network->addEdge(person2, person1);
+	edge->putAttribute("distance", dist);
 
 	// Schedule the p2 -> p1 edge removal in the future
 	edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
 	endTime = tick + edgeLifespan;
+	edge->putAttribute("ends_at", endTime);
 
 	EndRelationshipFunctor* endRelationshipEvent2 = new EndRelationshipFunctor(person2,person1,network);
 	runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent2));
@@ -693,31 +736,6 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 			}
 		}
 	}
-
-}
-
-void writePerson(HCPerson* person, AttributeWriter& write) {
-	write("age", person->getAge());
-	write("age_started", person->getAgeStarted());
-	write("race", "\"" + person->getRace().stringValue() +"\"");
-	write("gender", "\"" + person->getGender().stringValue() +"\"");
-	write("syringe_source", "\"" + person->getSyringeSource().stringValue() +"\"");
-	write("zipcode", "\"" + person->getZipcode() +"\"");
-
-	write("hcv", "\"" + person->getHCVState().stringValue() +"\"");
-
-	write("drug_in_deg", person->getDrugReceptDegree());
-	write("drug_out_deg", person->getDrugGivingDegree());
-	write("inject_intens", person->getInjectionIntensity());
-	write("frac_recept", person->getFractionReceptSharing());
-
-	write("lat", person->getZone()->getLat() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-	write("lon", person->getZone()->getLon() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-
-}
-
-void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {
-	write("distance", edge->getAttribute("distance", 0));
 }
 
 // random generator function used in std lib functions that need a random generator

@@ -20,12 +20,32 @@
 
 namespace hepcep {
 
+HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunology> imm) :  AbsPersonT(id),
+		gender(Gender::FEMALE), race(Race::OTHER),
+		syringeSource(HarmReduction::NON_HARM_REDUCTION),
+		lastExposureDate(-1.0),
+		lastInfectionDate(-1.0),
+		deactivateAt(-1.0) , immunology(imm) 
+{
+	age = data.age;
+	ageStarted = data.ageStarted;
+	drug_outDegree = data.drug_outDegree;
+	drug_inDegree = data.drug_inDegree;
+	fractionReceptSharing = data.fractionReceptSharing;
+	race = Race::valueOf(data.race);
+	gender = Gender::valueOf(data.gender);
+	injectionIntensity = data.injectionIntensity;
+	zipCode = data.zipCode;
+	syringeSource = HarmReduction::valueOf(data.syringeSource);
+}
+
 
 HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		gender(Gender::FEMALE), race(Race::OTHER),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0),
-		lastInfectionDate(-1.0){
+		lastInfectionDate(-1.0),
+		deactivateAt(-1.0) {
 
 
 	immunology = std::make_shared<Immunology>(this);
@@ -86,6 +106,10 @@ void HCPerson::step(NetworkPtr<HCPerson> network) {
 	}
 
   age += 1.0 / 365.0;
+}
+
+double HCPerson::getDeactivateAt() const {
+	return deactivateAt;
 }
 
 /*
@@ -211,6 +235,7 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 	// Schedule death deactivate method
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	residualTimeInApk += tick;
+	deactivateAt = residualTimeInApk;
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	runner.scheduleEvent(residualTimeInApk, repast::Schedule::FunctorPtr(
 			new repast::MethodFunctor<HCPerson>(this, &HCPerson::deactivate)));
@@ -367,5 +392,7 @@ bool HCPerson::isActive() const{
 void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 	immunology->setHCVInitState(tick,hcvState,0);
 }
+
+
 
 } /* namespace hepcep */

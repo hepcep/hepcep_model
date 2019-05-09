@@ -83,7 +83,7 @@
     Graph* gml_graph;
 
 
-#line 87 "./build/gml.tab.c" /* yacc.c:339  */
+#line 87 "../src/gml.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -103,8 +103,8 @@
 
 /* In a future release of Bison, this section will be replaced
    by #include "gml.tab.h".  */
-#ifndef YY_YY_BUILD_GML_TAB_H_INCLUDED
-# define YY_YY_BUILD_GML_TAB_H_INCLUDED
+#ifndef YY_YY_SRC_GML_TAB_H_INCLUDED
+# define YY_YY_SRC_GML_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -144,7 +144,7 @@ union YYSTYPE
     std::vector<hepcep::Attribute*>* attribute_list;
 
 
-#line 148 "./build/gml.tab.c" /* yacc.c:355  */
+#line 148 "../src/gml.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -157,11 +157,11 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_BUILD_GML_TAB_H_INCLUDED  */
+#endif /* !YY_YY_SRC_GML_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 165 "./build/gml.tab.c" /* yacc.c:358  */
+#line 165 "../src/gml.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1233,53 +1233,53 @@ yyreduce:
         case 2:
 #line 50 "../grammar/gml.y" /* yacc.c:1646  */
     { (yyval.graph) = new Graph((yyvsp[-1].attribute_list)); gml_graph = (yyval.graph); delete (yyvsp[-1].attribute_list); }
-#line 1237 "./build/gml.tab.c" /* yacc.c:1646  */
+#line 1237 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
 #line 55 "../grammar/gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = make_list((yyvsp[-3].sval), (yyvsp[-1].attribute_list)); }
-#line 1243 "./build/gml.tab.c" /* yacc.c:1646  */
+    { (yyval.attribute) = make_list((yyvsp[-3].sval), (yyvsp[-1].attribute_list)); delete (yyvsp[-1].attribute_list); }
+#line 1243 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
 #line 59 "../grammar/gml.y" /* yacc.c:1646  */
     { (yyval.attribute_list) = (yyvsp[-1].attribute_list); (yyvsp[-1].attribute_list)->push_back((yyvsp[0].attribute)); }
-#line 1249 "./build/gml.tab.c" /* yacc.c:1646  */
+#line 1249 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
 #line 61 "../grammar/gml.y" /* yacc.c:1646  */
     { (yyval.attribute_list) = make_attribute_list((yyvsp[0].attribute)); }
-#line 1255 "./build/gml.tab.c" /* yacc.c:1646  */
+#line 1255 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
 #line 65 "../grammar/gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new IntAttribute((yyvsp[-1].sval), (yyvsp[0].ival)); }
-#line 1261 "./build/gml.tab.c" /* yacc.c:1646  */
+    { (yyval.attribute) = new IntAttribute((yyvsp[-1].sval), (yyvsp[0].ival)); free((yyvsp[-1].sval)); }
+#line 1261 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
 #line 67 "../grammar/gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new FloatAttribute((yyvsp[-1].sval), (yyvsp[0].dval)); }
-#line 1267 "./build/gml.tab.c" /* yacc.c:1646  */
+    { (yyval.attribute) = new FloatAttribute((yyvsp[-1].sval), (yyvsp[0].dval)); free((yyvsp[-1].sval)); }
+#line 1267 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
 #line 69 "../grammar/gml.y" /* yacc.c:1646  */
-    { (yyval.attribute) = new StringAttribute((yyvsp[-1].sval) , (yyvsp[0].sval)); }
-#line 1273 "./build/gml.tab.c" /* yacc.c:1646  */
+    { (yyval.attribute) = new StringAttribute((yyvsp[-1].sval) , (yyvsp[0].sval)); free((yyvsp[-1].sval)); free((yyvsp[0].sval)); }
+#line 1273 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 71 "../grammar/gml.y" /* yacc.c:1646  */
     { (yyval.attribute) = (yyvsp[0].attribute); }
-#line 1279 "./build/gml.tab.c" /* yacc.c:1646  */
+#line 1279 "../src/gml.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1283 "./build/gml.tab.c" /* yacc.c:1646  */
+#line 1283 "../src/gml.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

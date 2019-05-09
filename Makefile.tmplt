@@ -1,6 +1,5 @@
 model_src :=
 test_src :=
-c_src :=
 
 CXX = mpicxx
 CXXLD = mpicxx
@@ -11,7 +10,7 @@ SED = sed
 CXX_RELEASE_FLAGS = -Wall -O2 -g0 -std=c++11 -MMD -MP
 CXX_DEBUG_FLAGS = -Wall -O0 -g3 -std=c++11 -MMD -MP
 
-CXX_FLAGS = $(CXX_DEBUG_FLAGS) -fopenmp
+CXX_FLAGS = $(CXX_RELEASE_FLAGS) -fopenmp
 
 INCLUDES :=
 LIBS :=
@@ -80,7 +79,7 @@ include ../test/module.mk
 # objects used by both executable and tests
 OBJECTS :=
 OBJECTS += $(subst .cpp,.o, $(addprefix $(BUILD_DIR)/, $(model_src)))
-OBJECTS += $(subst .c,.o, $(addprefix $(BUILD_DIR)/, $(c_src)))
+PARSER_OBJECTS := $(BUILD_DIR)/gml.tab.o $(BUILD_DIR)/lex.yy.o
 
 # objects and deps for executable
 EXEC_OBJECTS := $(OBJECTS)
@@ -113,10 +112,10 @@ SWIFT_MODEL_DIR=../swift_proj/model
 
 all: model tests
 
-model : $(EXEC_OBJECTS)
+model : $(EXEC_OBJECTS) $(PARSER_OBJECTS)
 	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIBS) $(RPATHS) -o $(NAME)
 	
-hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o 
+hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o $(PARSER_OBJECTS)
 	$(CXXLD) -fopenmp $(filter-out %.d, $^) $(LIB_LDFLAGS) $(LIBS) $(RPATHS) $(TCL_LIB) -o $(SWIFT_MODEL_DIR)/$(TCL_LIB_NAME)
 	LEAF_PKG=hepcep_model LEAF_VERSION=0.0 \
 	LEAF_SO=$(TCL_LIB_NAME) LEAF_TCL=hepcep_model.tcl \
@@ -127,14 +126,14 @@ hepcep_tcl_lib: $(LIB_OBJECTS) $(BUILD_DIR)/hepcep_model_wrapper.o
 	$(SED) -i.bu "s/Hepcep_model_Init/Tclhepcep_model_Init/" $(@)
 	
 		
-tests : $(TEST_OBJECTS)
+tests : $(TEST_OBJECTS) $(PARSER_OBJECTS)
 	$(CXXLD) $(filter-out %.d, $^) $(LIBS) $(RPATHS) $(GTEST_LIB) -lpthread -o $(TEST_NAME)
 
-$(BUILD_DIR)/gml.tab.c $(BUILD_DIR)/gml.tab.h : ../grammar/gml.y
-	bison -d -o $(BUILD_DIR)/gml.tab.c ../grammar/gml.y
+../src/gml.tab.c ../src/gml.tab.h : ../grammar/gml.y
+	bison -d -o ../src/gml.tab.c ../grammar/gml.y
 
-$(BUILD_DIR)/lex.yy.c : ../grammar/gml.lex $(BUILD_DIR)/gml.tab.c 
-	flex -o $(BUILD_DIR)/lex.yy.c ../grammar/gml.lex
+../src/lex.yy.c : ../grammar/gml.lex ../src/gml.tab.c 
+	flex -o  ../src/lex.yy.c ../grammar/gml.lex
 
 gml_parser : $(BUILD_DIR)/lex.yy.c
 	cp $(BUILD_DIR)/gml.tab.c $(BUILD_DIR)/gml.tab.h  $(SRC_DIR)

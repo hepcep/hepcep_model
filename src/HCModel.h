@@ -105,9 +105,6 @@ public:
 
 };
 
-void writePerson(HCPerson* person, AttributeWriter& write);
-void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write);
-
 // random generator function used in std lib functions that need a random generator
 int myrandom (int i);
 

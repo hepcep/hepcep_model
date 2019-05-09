@@ -19,6 +19,7 @@
 namespace hepcep {
 
 class HCPerson;
+class AttributeWriter;
 
 struct ImmunologyParameters {
 
@@ -44,6 +45,9 @@ using IPPtr = std::shared_ptr<ImmunologyParameters>;
 class Immunology {
 
 private:
+    friend void write_immunology(std::shared_ptr<Immunology>, AttributeWriter&);
+    friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*);
+
     IPPtr params_;
 
     // this is a pointer and not a shared_ptr because

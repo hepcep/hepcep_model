@@ -33,6 +33,14 @@ void AttributeWriter::operator() (const std::string& name, double value) {
     out_ << std::setprecision(8) << std::fixed << INDENT_2 << name << " " << value << "\n";
 }
 
+void AttributeWriter::operator() (const std::string& name, int value) {
+    out_ << INDENT_2 << name << " " << value << "\n";
+}
+
+void AttributeWriter::operator() (const std::string& name, unsigned int value) {
+    out_ << INDENT_2 << name << " " << value << "\n";
+}
+
 void AttributeWriter::operator() (const std::string& name, const std::string& value) {
     out_ << INDENT_2 << name << " " << value << "\n";
 }

@@ -9,9 +9,18 @@
 #include "gtest/gtest.h"
 #include "boost/filesystem.hpp"
 
+#include "chi_sim/Parameters.h"
+#include "repast_hpc/Properties.h"
+#include "repast_hpc/RepastProcess.h"
+
 #include "Network.h"
 #include "Edge.h"
 #include "network_utils.h"
+#include "HCPerson.h"
+#include "ZoneLoader.h"
+#include "serialize.h"
+#include "Filter.h"
+#include "Statistics.h"
 
 using namespace hepcep;
 
@@ -486,12 +495,122 @@ TEST(NetworkTests, testAttribWriting) {
     net->addEdge(one, four)->putAttribute("distance", 1832.0);
     net->addEdge(three, four)->putAttribute("distance", 324);
 
-    write_network(fname, net, &write_agent, &write_edge);
+    write_network(fname, 0, net, &write_agent, &write_edge);
+}
+
+std::shared_ptr<Edge<HCPerson>> find_edge(NetworkPtr<HCPerson>& net, unsigned int source, unsigned int target) {
+	for (auto iter = net->edgesBegin(); iter != net->edgesEnd(); ++iter) {
+		if ((*iter)->v1()->id() == source && (*iter)->v2()->id() == target) {
+			return (*iter);
+		}
+	}
+
+	return nullptr;
 }
 
 TEST(NetworkTests, testReadNetwork) {
+	repast::Properties props("../config/test.props");
+	chi_sim::Parameters::initialize(props);
+	std::shared_ptr<Filter<LogType>> filter = std::make_shared<NeverPassFilter<LogType>>();
+	Statistics::init("../test_output/stats.csv", "../test_output/events.csv", 
+		"../test_output/persons.csv", filter, 1);
+
+
 	std::string fname("../test_data/net_2.gml");
-	read_network<Agent>(fname);
+	std::map<std::string,ZonePtr> zone_map;
+	loadZones("../data/zones.csv", zone_map);
+	NetworkPtr<HCPerson> net = read_network<HCPerson>(fname, &read_person, &read_edge, zone_map);
+
+	ASSERT_EQ(4, net->vertexCount());
+	std::map<unsigned int, PersonPtr> map;
+	for (auto iter = net->verticesBegin(); iter != net->verticesEnd(); ++iter) {
+		map.emplace((*iter)->id(), *iter);
+	}
+	ASSERT_EQ(4, map.size());
+	for (int i = 1; i < 5; ++i) {
+		ASSERT_TRUE(map.find(i) != map.end());
+	}
+
+	ASSERT_EQ(5, net->edgeCount());
+	std::shared_ptr<Edge<HCPerson>> edge = find_edge(net, 3, 1);
+	ASSERT_TRUE(edge);
+	ASSERT_EQ(12.343, edge->getAttribute("distance"));
+	ASSERT_EQ(480.1, edge->getAttribute("ends_at"));
+
+	edge = find_edge(net, 1, 2);
+	ASSERT_TRUE(edge);
+	ASSERT_EQ(2.34300000, edge->getAttribute("distance"));
+	ASSERT_EQ(302.1, edge->getAttribute("ends_at"));
+
+	edge = find_edge(net, 1, 4);
+	ASSERT_TRUE(edge);
+	ASSERT_EQ(1832.00000000, edge->getAttribute("distance"));
+	ASSERT_EQ(2000.1, edge->getAttribute("ends_at"));
+
+	edge = find_edge(net, 3, 4);
+	ASSERT_TRUE(edge);
+	ASSERT_EQ(324.0, edge->getAttribute("distance"));
+	ASSERT_EQ(324.1, edge->getAttribute("ends_at"));
+
+	edge = find_edge(net, 4, 3);
+	ASSERT_TRUE(edge);
+	ASSERT_EQ(324.0, edge->getAttribute("distance"));
+	ASSERT_EQ(1002.1, edge->getAttribute("ends_at"));
+
+	PersonPtr person = map[3];
+	ASSERT_EQ(51.24657535, person->getAge());
+	ASSERT_EQ(30.39743820, person->getAgeStarted());
+	ASSERT_EQ(Race::HISPANIC, person->getRace());
+	ASSERT_EQ(Gender::MALE, person->getGender());
+	ASSERT_EQ(HarmReduction::NON_HARM_REDUCTION, person->getSyringeSource());
+	ASSERT_EQ("60647", person->getZipcode());
+	ASSERT_EQ(30, person->getDrugReceptDegree());
+	ASSERT_EQ(0, person->getDrugGivingDegree());
+	ASSERT_EQ(2.88931634, person->getInjectionIntensity());
+	ASSERT_EQ(0.41437703, person->getFractionReceptSharing());
+	ASSERT_EQ(278.0, person->getLastExposureDate());
+	ASSERT_EQ(278.0, person->getLastInfectionDate());
+	ASSERT_EQ(true, person->isActive());
+	// 300 is when the graph was recorded to deactivate minus that much
+	// elapsed
+    ASSERT_EQ(2430.50722435, person->getDeactivateAt());
+
+	// person methods that call immunology
+	ASSERT_EQ(HCVState::RECOVERED, person->getHCVState());
+	ASSERT_EQ(false, person->isInTreatment());
+
+	// trigger some events
+	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+ 	repast::Schedule schedule = runner.schedule();
+
+	// should trigger edge 1->2 dissolution
+	schedule.execute();
+	ASSERT_EQ(4, net->edgeCount());
+	ASSERT_FALSE(find_edge(net, 1, 2));
+
+	// should trigger leave exposed on person 3, changing HCV state
+	schedule.execute();
+	ASSERT_EQ(HCVState::INFECTIOUS_ACUTE, person->getHCVState());
+
+	// triggers leave acute
+	schedule.execute();
+	ASSERT_TRUE(person->getHCVState() == HCVState::CHRONIC || 
+				person->getHCVState() == HCVState::RECOVERED);
+
+	// triggers deactivate on person 2
+	ASSERT_EQ(true, map[2]->isActive());
+	schedule.execute();
+	ASSERT_EQ(false, map[2]->isActive());
+
+	// should trigger edge 3->4 dissolution
+	schedule.execute();
+	ASSERT_EQ(3, net->edgeCount());
+	ASSERT_FALSE(find_edge(net, 3, 4));
+
+	// triggers end treament on person 4
+	ASSERT_EQ(true, map[4]->isInTreatment());
+	schedule.execute();
+	ASSERT_EQ(false, map[4]->isInTreatment());
 }
 
 

@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_BUILD_GML_TAB_H_INCLUDED
-# define YY_YY_BUILD_GML_TAB_H_INCLUDED
+#ifndef YY_YY_SRC_GML_TAB_H_INCLUDED
+# define YY_YY_SRC_GML_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -71,7 +71,7 @@ union YYSTYPE
     std::vector<hepcep::Attribute*>* attribute_list;
 
 
-#line 75 "./build/gml.tab.h" /* yacc.c:1909  */
+#line 75 "../src/gml.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -84,4 +84,4 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_BUILD_GML_TAB_H_INCLUDED  */
+#endif /* !YY_YY_SRC_GML_TAB_H_INCLUDED  */

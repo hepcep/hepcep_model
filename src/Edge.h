@@ -29,6 +29,7 @@ public:
 	virtual ~Edge();
 
 	double getAttribute(const std::string& name, double default_value);
+	double getAttribute(const std::string& name);
 	void putAttribute(const std::string& name, double value);
 
 	std::shared_ptr<V> v1() const {
@@ -67,6 +68,11 @@ double Edge<V>::getAttribute(const std::string& name, double default_value) {
     auto iter = attributes.find(name);
     if (iter == attributes.end()) return default_value;
     return iter->second;
+}
+
+template<typename V>
+double Edge<V>::getAttribute(const std::string& name) {
+	return attributes.at(name);
 }
 
 template<typename V>

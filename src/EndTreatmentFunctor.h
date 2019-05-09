@@ -24,6 +24,10 @@ public:
     virtual ~EndTreatmentFunctor();
 
     void operator()();
+    bool isSuccess() const {
+        return success;
+    }
+
 };
 
 } /* namespace hepcep */

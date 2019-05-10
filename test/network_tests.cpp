@@ -519,8 +519,10 @@ TEST(NetworkTests, testReadNetwork) {
 	std::string fname("../test_data/net_2.gml");
 	std::map<std::string,ZonePtr> zone_map;
 	loadZones("../data/zones.csv", zone_map);
-	NetworkPtr<HCPerson> net = read_network<HCPerson>(fname, &read_person, &read_edge, zone_map);
+	double serialized_at;
+	NetworkPtr<HCPerson> net = read_network<HCPerson>(fname, &read_person, &read_edge, zone_map, &serialized_at);
 
+	ASSERT_EQ(300.0, serialized_at);
 	ASSERT_EQ(4, net->vertexCount());
 	std::map<unsigned int, PersonPtr> map;
 	for (auto iter = net->verticesBegin(); iter != net->verticesEnd(); ++iter) {

@@ -19,6 +19,9 @@ arriving.persons.output.file = arriving_agents.csv
 # comment out for no net logging
 # log.network.at = 0, END
 
+resume.from.saved.net = false
+resume.from.save.net.file = ./data/net.gml
+
 ab_prob_acute = 0.02
 ab_prob_chronic = 0.67
 attrition_rate = 0.024

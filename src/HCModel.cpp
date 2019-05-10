@@ -144,16 +144,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	}
 	fo.close();
 
-	network = std::make_shared<Network<HCPerson>>(true);
 	init_stats(output_directory, run);
 
-	// TODO put all the data loading into a separate method
 
-	// Load persons
-	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
-	std::cout << "CNEP+ file: " << cnep_file << std::endl;
-	loadPersonData(cnep_file, personData);
-//	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
+	// TODO put all the data loading into a separate method
 
 	// Load zones
 	std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
@@ -165,21 +159,45 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
-	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
+		// personData and personCreator are used to create initial persons and arriving new persons
+		// so we need it regardless of how the initial population is 
+		// created.
+		std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
+		std::cout << "CNEP+ file: " << cnep_file << std::endl;
+		loadPersonData(cnep_file, personData);
+		personCreator = std::make_shared<PersonCreator>();
 
-	personCreator = std::make_shared<PersonCreator>();
+	// starting tick: tick at which to start scheduled events. If the model 
+	// is resumed from a serialized state then we want to start at the time
+	// it was serialized + 1
+	double start_at = 1;
 
-	// Burn-in needs to be set after person creator but before generating persons
-	burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
+	bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
+	if (resume) {
+		std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
+		double serialized_at;
+		network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
+		for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
+			local_persons.emplace((*iter)->id(), (*iter));
+		}
+		start_at = serialized_at + 1;
+	} else {
+		network = std::make_shared<Network<HCPerson>>(true);
+		int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
-	personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
+		// Burn-in needs to be set after person creator but before generating persons
+		burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
+
+		personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
+		performInitialLinking();
+	}
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
 	// Schedule model events
 	// Model step
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
+	runner.scheduleEvent(start_at, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
 
 	// Model end
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
@@ -188,11 +206,11 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	//      step method to ensure the correct order.
 
 	// Zone census schedule
-	runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
+	runner.scheduleEvent(start_at + 0.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
 
 	// Dynamic network linking schedule
 	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
-	runner.scheduleEvent(1.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
+	runner.scheduleEvent(start_at + 0.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
 	// Treatment schedule
 	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
@@ -201,10 +219,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	double enrollmentStart = burnInDays + treatmentStartDelay;
 
 	if (treatmentEnrollPerPY > 0){
-		runner.scheduleEvent(enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
+		runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
 	}
-
-	performInitialLinking();
 
 	// Log the initial network topology
 	// double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);

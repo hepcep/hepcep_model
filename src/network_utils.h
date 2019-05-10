@@ -98,16 +98,20 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network) {
     write_network(fname, 0, network, &vnoop_writer<VertexType>, &enoop_writer<VertexType>);
 }
 
+/**
+ *
+ * @param serialized_at output parameter that will contain the tick at which the network
+ * was serialized.
+ */
 template<typename VertexType>
 NetworkPtr<VertexType> read_network(const std::string& fname, VertexReader<VertexType> vertex_reader, 
-    EdgeReader<VertexType> edge_reader, std::map<std::string,ZonePtr>& zone_map) 
+    EdgeReader<VertexType> edge_reader, std::map<std::string,ZonePtr>& zone_map, double* serialized_at) 
 {
     Graph* gml_graph = read_gml(fname);
-    double graph_tick = 0;
     bool directed = false;
     for (auto attribute : gml_graph->attributes) {
         if (attribute->name_ == "tick") {
-            graph_tick = dynamic_cast<FloatAttribute*>(attribute)->value_;
+            (*serialized_at) = dynamic_cast<FloatAttribute*>(attribute)->value_;
         } else if (attribute->name_ == "directed") {
             directed = (bool)dynamic_cast<IntAttribute*>(attribute)->value_;
         }

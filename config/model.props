@@ -58,13 +58,13 @@ treatment_enrollment_probability_HRP = 0.0
 treatment_enrollment_probability_fullnetwork = 0.0
 treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
-treatment_enrollment_start_delay = 2190 
+treatment_enrollment_start_delay = 3650 
 treatment_enrollment_per_PY = 0.05
-treatment_repeatable = false
+treatment_repeatable = true
 treatment_svr = 0.9
 treatment_susceptibility = 1
 
 # NONE or ALL or comma separated list from
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
-# STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
-log.events = NONE
+# STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT, HCVRNA_TEST
+log.events = STARTED_TREATMENT

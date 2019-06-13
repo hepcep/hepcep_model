@@ -24,6 +24,11 @@ SRC = HCPlace.cpp \
 	LogType.cpp \
 	FileOut.cpp \
 	Distributions.cpp \
-	EnrollmentMethod.cpp
+	EnrollmentMethod.cpp \
+	gml.cpp
+
+C_SRC = gml.tab.c \
+		lex.yy.c
 	
 model_src += $(SRC)
+c_src += $(C_SRC)

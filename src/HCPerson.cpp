@@ -90,7 +90,6 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 
 
 HCPerson::~HCPerson() {
-    //std::cout << "Destruct Person " << id() << std::endl;
     immunology->purgeActions();
 }
 
@@ -154,10 +153,9 @@ bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays,
 }
 
 void HCPerson::deactivate(){
-  Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
-
-  active = false;
-	immunology->deactivate();
+    Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
+    active = false;
+    immunology->deactivate();
 
 	// TODO schedule this may not be needed depending on how we implement reporting
 	//	if(my_status != null) {

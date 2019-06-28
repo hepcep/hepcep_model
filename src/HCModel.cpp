@@ -165,7 +165,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 		std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
 		std::cout << "CNEP+ file: " << cnep_file << std::endl;
 		loadPersonData(cnep_file, personData);
-		personCreator = std::make_shared<PersonCreator>();
 
 	// starting tick: tick at which to start scheduled events. If the model 
 	// is resumed from a serialized state then we want to start at the time
@@ -177,11 +176,19 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 		std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
 		double serialized_at;
 		network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
+		unsigned int max_id = 0;
 		for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
-			local_persons.emplace((*iter)->id(), (*iter));
+			unsigned int id = (*iter)->id();
+			if (id > max_id) {
+				max_id = id;
+			}
+			local_persons.emplace(id, (*iter));
 		}
 		start_at = serialized_at + 1;
+		personCreator = std::make_shared<PersonCreator>(max_id + 1);
+		std::cout << "Resuming from " << fname << ", starting at: " << start_at << std::endl;
 	} else {
+		personCreator = std::make_shared<PersonCreator>(1);
 		network = std::make_shared<Network<HCPerson>>(true);
 		int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 

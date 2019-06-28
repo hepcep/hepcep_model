@@ -21,11 +21,11 @@ protected:
 	double burnInDays = 0;
 	double probInfectedNewArriving;
 	double statusReportFrequency;
+	unsigned int id_counter;
 
 public:
-	static unsigned int ID_COUNTER;
 
-	PersonCreator();
+	PersonCreator(unsigned int starting_id);
 	
   virtual ~PersonCreator();
 	

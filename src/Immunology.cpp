@@ -48,8 +48,9 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_repeatable(false)
 {}
 
-Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
-        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED), treatment_failed(false) {
+Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE),  scheduled_actions(), past_cured(false),
+        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED), treatment_failed(false)
+    {
 
 	params_ = std::make_shared<ImmunologyParameters>();
 
@@ -68,12 +69,13 @@ Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIB
 
 }
 
-Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
-        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
+Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE),
+        scheduled_actions(), past_cured(false), past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }
 
-Immunology::Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), past_cured(false),
+Immunology::Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), 
+        scheduled_actions(), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }

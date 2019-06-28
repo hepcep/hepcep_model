@@ -142,7 +142,7 @@ PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& z
     // udpates immunology with the specified person (among other things)
     read_immunology(imm_list, imm, person.get());
     
-    person->setZone(zoneMap[data.zipCode]);
+    person->setZone(zoneMap.at(data.zipCode));
     person->active = (bool)node->getAttribute<int>("active");
     person->lastExposureDate = node->getAttribute<double>("last_exposure_date");
     person->lastInfectionDate = node->getAttribute<double>("last_infection_date");

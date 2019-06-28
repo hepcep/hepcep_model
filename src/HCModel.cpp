@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 
 #include "boost/range/algorithm.hpp"
 #include "boost/tokenizer.hpp"
@@ -184,7 +185,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 			}
 			local_persons.emplace(id, (*iter));
 		}
-		start_at = serialized_at + 1;
+		start_at = floor(serialized_at) + 1;
 		personCreator = std::make_shared<PersonCreator>(max_id + 1);
 		std::cout << "Resuming from " << fname << ", starting at: " << start_at << std::endl;
 	} else {

@@ -196,7 +196,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 		// Burn-in needs to be set after person creator but before generating persons
 		burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
 
-		personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
+		personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
 		performInitialLinking();
 	}
 
@@ -314,7 +314,7 @@ void HCModel::generateArrivingPersons(){
 
 	int newCount = gen.next();
 
-	personCreator->create_persons(local_persons, personData, zoneMap, newCount, true);
+	personCreator->create_persons(local_persons, personData, zoneMap, network, newCount, true);
 }
 
 void HCModel::performInitialLinking(){
@@ -330,7 +330,7 @@ void HCModel::performInitialLinking(){
 		total_recept_edge_target += person->getDrugReceptDegree();
 		total_give_edge_target += person->getDrugGivingDegree();
 
-		network->addVertex(person);
+//		network->addVertex(person);
 	}
 
 	int iteration = 0;

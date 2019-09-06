@@ -34,7 +34,7 @@ public:
 	 */
 	void create_persons(std::map<unsigned int, PersonPtr>& persons,
 			std::vector<HCPersonData> & personData,  std::map<std::string,ZonePtr>& zoneMap,
-			unsigned int person_count, bool earlyCareerOnly);
+			NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly);
 
 	void setBurnInPeriod(bool burnInMode, double burnInPeriod);
 

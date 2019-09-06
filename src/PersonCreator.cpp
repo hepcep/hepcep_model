@@ -26,7 +26,7 @@ PersonCreator::PersonCreator(unsigned int starting_id) : burnInMode(false), burn
 // TODO change to return a vector that we can emplace into a map in HCModel
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
-		unsigned int person_count, bool earlyCareerOnly){
+		NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly){
 
 	unsigned int count = 1;
 
@@ -112,6 +112,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 
 			persons[id_counter] = person;
+			network->addVertex(person);
 
 	//		std::cout << "new per age: " << person->getAge() << std::endl;
 

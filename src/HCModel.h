@@ -58,6 +58,7 @@ protected:
 	double treatmentEnrollPerPY;
 	double linkingTimeWindow;
 	double homophily;
+    double burnInDays;
 
 	// not used in initial version
 	void nextActSelected(PersonPtr& person, chi_sim::NextPlace<HCPlace>& next_act) override {

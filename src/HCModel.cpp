@@ -114,13 +114,15 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
+    
+    burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
 	double treatment_enrollment_probability_unbiased = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_UNBIASED);
 	double treatment_enrollment_probability_HRP = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_HRP);
 	double treatment_enrollment_probability_fullnetwork = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK);
 	double treatment_enrollment_probability_inpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_INPARTNER);
 	double treatment_enrollment_probability_outpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_OUTPARTNER);
-
+    
 	treatmentEnrollmentProb[EnrollmentMethod::UNBIASED] = treatment_enrollment_probability_unbiased;
 	treatmentEnrollmentProb[EnrollmentMethod::HRP] = treatment_enrollment_probability_HRP;
 	treatmentEnrollmentProb[EnrollmentMethod::FULLNETWORK] = treatment_enrollment_probability_fullnetwork;
@@ -174,6 +176,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
 	if (resume) {
+        burnInDays = 0;
 		std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
 		double serialized_at;
 		network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
@@ -194,7 +197,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 		int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
 		// Burn-in needs to be set after person creator but before generating persons
-		burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
+		burnInControl(); 
 
 		personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
 		performInitialLinking();
@@ -221,7 +224,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	runner.scheduleEvent(start_at + 0.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
 	// Treatment schedule
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+	
 	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
@@ -569,9 +572,6 @@ void HCModel::zoneCensus(){
  * - should be called before the agents are created
  */
 void HCModel::burnInControl() {
-
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
-
 	if(burnInDays <= 0) {
 		return;
 	}
@@ -589,7 +589,6 @@ void HCModel::burnInControl() {
 
 void HCModel::burnInEnd() {
 
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 	Statistics::instance()->setBurninMode(false);
 	personCreator->setBurnInPeriod(false, -1);
 

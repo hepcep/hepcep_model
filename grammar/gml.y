@@ -52,7 +52,7 @@ graph:
 
 list: 
     ID LEFT_BRACKET kvs RIGHT_BRACKET
-    { $$ = make_list($1, $3); }
+    { $$ = make_list($1, $3); delete $3; }
     ;
 
 kvs:
@@ -62,11 +62,11 @@ kvs:
     ;
 
 kv:
-    ID INT { $$ = new IntAttribute($1, $2); }
+    ID INT { $$ = new IntAttribute($1, $2); free($1); }
     |
-    ID FLOAT { $$ = new FloatAttribute($1, $2); }
+    ID FLOAT { $$ = new FloatAttribute($1, $2); free($1); }
     |
-    ID STRING_LITERAL { $$ = new StringAttribute($1 , $2); }
+    ID STRING_LITERAL { $$ = new StringAttribute($1 , $2); free($1); free($2); }
     |
     list { $$ = $1; }
     ;

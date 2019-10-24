@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 
 #include "boost/range/algorithm.hpp"
 #include "boost/tokenizer.hpp"
@@ -26,8 +27,28 @@
 #include "PersonDataLoader.h"
 #include "ZoneLoader.h"
 #include "parameters_constants.h"
+#include "serialize.h"
 
 namespace hepcep {
+
+class WriteNet : public repast::Functor {
+	private:
+		std::string fname_;
+		NetworkPtr<HCPerson> network_;
+		double at_;
+	
+	public:
+		WriteNet(const std::string& fname, double at, NetworkPtr<HCPerson> network);
+		virtual ~WriteNet() {}
+		void operator()();
+};
+
+WriteNet::WriteNet(const std::string& fname, double at, NetworkPtr<HCPerson> network) : fname_(fname),
+	network_(network),  at_(at) {}
+
+void WriteNet::operator()() {
+	write_network(fname_, at_, network_, &write_person, &write_edge);
+}
 
 void init_stats(const std::string& output_directory, int run_number) {
 	// Initialize statistics collection
@@ -93,13 +114,15 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
+    
+    burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 
 	double treatment_enrollment_probability_unbiased = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_UNBIASED);
 	double treatment_enrollment_probability_HRP = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_HRP);
 	double treatment_enrollment_probability_fullnetwork = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK);
 	double treatment_enrollment_probability_inpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_INPARTNER);
 	double treatment_enrollment_probability_outpartner = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PROBABILITY_OUTPARTNER);
-
+    
 	treatmentEnrollmentProb[EnrollmentMethod::UNBIASED] = treatment_enrollment_probability_unbiased;
 	treatmentEnrollmentProb[EnrollmentMethod::HRP] = treatment_enrollment_probability_HRP;
 	treatmentEnrollmentProb[EnrollmentMethod::FULLNETWORK] = treatment_enrollment_probability_fullnetwork;
@@ -124,16 +147,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	}
 	fo.close();
 
-	network = std::make_shared<Network<HCPerson>>(true);
 	init_stats(output_directory, run);
 
-	// TODO put all the data loading into a separate method
 
-	// Load persons
-	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
-	std::cout << "CNEP+ file: " << cnep_file << std::endl;
-	loadPersonData(cnep_file, personData);
-//	std::cout << "CNEP+ profiles loaded: " << personData.size() << std::endl;
+	// TODO put all the data loading into a separate method
 
 	// Load zones
 	std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
@@ -145,21 +162,53 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
-	int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
+		// personData and personCreator are used to create initial persons and arriving new persons
+		// so we need it regardless of how the initial population is 
+		// created.
+		std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
+		std::cout << "CNEP+ file: " << cnep_file << std::endl;
+		loadPersonData(cnep_file, personData);
 
-	personCreator = std::make_shared<PersonCreator>();
+	// starting tick: tick at which to start scheduled events. If the model 
+	// is resumed from a serialized state then we want to start at the time
+	// it was serialized + 1
+	double start_at = 1;
 
-	// Burn-in needs to be set after person creator but before generating persons
-	burnInControl(); // TODO: needs to accept burnin days (move burnInDays reading from below to above this)
+	bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
+	if (resume) {
+        burnInDays = 0;
+		std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
+		double serialized_at;
+		network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
+		unsigned int max_id = 0;
+		for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
+			unsigned int id = (*iter)->id();
+			if (id > max_id) {
+				max_id = id;
+			}
+			local_persons.emplace(id, (*iter));
+		}
+		start_at = floor(serialized_at) + 1;
+		personCreator = std::make_shared<PersonCreator>(max_id + 1);
+		std::cout << "Resuming from " << fname << ", starting at: " << start_at << std::endl;
+	} else {
+		personCreator = std::make_shared<PersonCreator>(1);
+		network = std::make_shared<Network<HCPerson>>(true);
+		int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
-	personCreator->create_persons(local_persons, personData, zoneMap, personCount, false);
+		// Burn-in needs to be set after person creator but before generating persons
+		burnInControl(); 
+
+		personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
+		performInitialLinking();
+	}
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
 
 	// Schedule model events
 	// Model step
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
+	runner.scheduleEvent(start_at, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::step)));
 
 	// Model end
 	runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::atEnd)));
@@ -168,30 +217,46 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	//      step method to ensure the correct order.
 
 	// Zone census schedule
-	runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
+	runner.scheduleEvent(start_at + 0.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::zoneCensus)));
 
 	// Dynamic network linking schedule
 	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
-	runner.scheduleEvent(1.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
+	runner.scheduleEvent(start_at + 0.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
 	// Treatment schedule
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
+	
 	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
 
 	if (treatmentEnrollPerPY > 0){
-		runner.scheduleEvent(enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
+		runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
 	}
 
-	performInitialLinking();
-
 	// Log the initial network topology
-	double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);
-
-	if (logNetwork){
-		std::string fname(output_directory + "/net_initial.gml");
-		write_network(fname, network, &writePerson, &writeEdge);
+	// double logNetwork = chi_sim::Parameters::instance()->getBooleanParameter(LOG_INITIAL_NETWORK);
+	if (chi_sim::Parameters::instance()->contains(LOG_NETWORK_AT)) {
+		std::string log_net_at = chi_sim::Parameters::instance()->getStringParameter(LOG_NETWORK_AT);
+		boost::char_separator<char> sep(",");
+		boost::tokenizer<boost::char_separator<char>> tok(log_net_at, sep);
+		std::cout << "Logging Network at: " << log_net_at << "." << std::endl;
+		for (auto item : tok) {
+			boost::trim(item);
+			if (item == "END" || item == "end") {
+				double at =  chi_sim::Parameters::instance()->getDoubleParameter("stop.at");
+				std::string fname(output_directory + "/net_" + item + ".gml");
+				runner.scheduleEndEvent(boost::make_shared<WriteNet>(fname, at, network));
+			} else {
+				double at = std::stod(item);
+				if (at == 0) {
+					std::string fname(output_directory + "/net_initial.gml");
+					write_network(fname, 0, network, &write_person, &write_edge);
+				} else {
+					std::string fname(output_directory + "/net_" + item + ".gml");
+					runner.scheduleEvent(at + .1, boost::make_shared<WriteNet>(fname, at, network));
+				}
+			}
+		}
 	}
 
 
@@ -252,7 +317,7 @@ void HCModel::generateArrivingPersons(){
 
 	int newCount = gen.next();
 
-	personCreator->create_persons(local_persons, personData, zoneMap, newCount, true);
+	personCreator->create_persons(local_persons, personData, zoneMap, network, newCount, true);
 }
 
 void HCModel::performInitialLinking(){
@@ -268,7 +333,7 @@ void HCModel::performInitialLinking(){
 		total_recept_edge_target += person->getDrugReceptDegree();
 		total_give_edge_target += person->getDrugGivingDegree();
 
-		network->addVertex(person);
+//		network->addVertex(person);
 	}
 
 	int iteration = 0;
@@ -400,11 +465,13 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	double dist = zoneDistanceMap[person1->getZipcode()][person2->getZipcode()];
 
-	network->addEdge(person1, person2)->putAttribute("distance", dist);
+	EdgePtrT<HCPerson> edge = network->addEdge(person1, person2);
+	edge->putAttribute("distance", dist);
 
 	// Schedule the p1 -> p2 edge removal in the future
 	double edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
 	double endTime = tick + edgeLifespan;
+	edge->putAttribute("ends_at", endTime);
 
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 	EndRelationshipFunctor* endRelationshipEvent1 = new EndRelationshipFunctor(person1,person2,network);
@@ -417,11 +484,14 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 	if (network->outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
 		return;
 	}
-	network->addEdge(person2, person1)->putAttribute("distance", dist);
+	
+	edge = network->addEdge(person2, person1);
+	edge->putAttribute("distance", dist);
 
 	// Schedule the p2 -> p1 edge removal in the future
 	edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
 	endTime = tick + edgeLifespan;
+	edge->putAttribute("ends_at", endTime);
 
 	EndRelationshipFunctor* endRelationshipEvent2 = new EndRelationshipFunctor(person2,person1,network);
 	runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent2));
@@ -502,9 +572,6 @@ void HCModel::zoneCensus(){
  * - should be called before the agents are created
  */
 void HCModel::burnInControl() {
-
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
-
 	if(burnInDays <= 0) {
 		return;
 	}
@@ -522,7 +589,6 @@ void HCModel::burnInControl() {
 
 void HCModel::burnInEnd() {
 
-	double burnInDays = chi_sim::Parameters::instance()->getDoubleParameter(BURN_IN_DAYS);
 	Statistics::instance()->setBurninMode(false);
 	personCreator->setBurnInPeriod(false, -1);
 
@@ -693,31 +759,6 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 			}
 		}
 	}
-
-}
-
-void writePerson(HCPerson* person, AttributeWriter& write) {
-	write("age", person->getAge());
-	write("age_started", person->getAgeStarted());
-	write("race", "\"" + person->getRace().stringValue() +"\"");
-	write("gender", "\"" + person->getGender().stringValue() +"\"");
-	write("syringe_source", "\"" + person->getSyringeSource().stringValue() +"\"");
-	write("zipcode", "\"" + person->getZipcode() +"\"");
-
-	write("hcv", "\"" + person->getHCVState().stringValue() +"\"");
-
-	write("drug_in_deg", person->getDrugReceptDegree());
-	write("drug_out_deg", person->getDrugGivingDegree());
-	write("inject_intens", person->getInjectionIntensity());
-	write("frac_recept", person->getFractionReceptSharing());
-
-	write("lat", person->getZone()->getLat() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-	write("lon", person->getZone()->getLon() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-
-}
-
-void writeEdge(Edge<HCPerson>* edge, AttributeWriter& write) {
-	write("distance", edge->getAttribute("distance", 0));
 }
 
 // random generator function used in std lib functions that need a random generator

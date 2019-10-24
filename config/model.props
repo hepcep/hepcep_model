@@ -1,6 +1,6 @@
 random.seed = 42
 
-stop.at = 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
+stop.at = 8030 # 4015.999999 # 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -15,7 +15,12 @@ output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
 arriving.persons.output.file = arriving_agents.csv
-log.initial.network = false
+# 0 for init network, n to log at tick n, and END to log at end
+# comment out for no net logging
+#log.network.at = 0 # END
+
+resume.from.saved.net = false
+#resume.from.saved.net.file = ./data/net.gml
 
 ab_prob_acute = 0.02
 ab_prob_chronic = 0.67

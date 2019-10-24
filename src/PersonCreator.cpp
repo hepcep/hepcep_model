@@ -15,17 +15,18 @@
 
 namespace hepcep {
 
-unsigned int PersonCreator::ID_COUNTER = 1;
 
-PersonCreator::PersonCreator() {
-	statusReportFrequency = chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY);
-	probInfectedNewArriving = chi_sim::Parameters::instance()->getDoubleParameter(PROB_INFECTED_NEW_ARRIVING);
+
+PersonCreator::PersonCreator(unsigned int starting_id) : burnInMode(false), burnInDays(0),
+	probInfectedNewArriving(chi_sim::Parameters::instance()->getDoubleParameter(PROB_INFECTED_NEW_ARRIVING)),
+	statusReportFrequency(chi_sim::Parameters::instance()->getDoubleParameter(STATUS_REPORT_FREQUENCY)),
+	id_counter(starting_id) {
 }
 
 // TODO change to return a vector that we can emplace into a map in HCModel
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
-		unsigned int person_count, bool earlyCareerOnly){
+		NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly){
 
 	unsigned int count = 1;
 
@@ -63,7 +64,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 		}
 		else {
-			auto person = std::make_shared<HCPerson>(ID_COUNTER, data);
+			auto person = std::make_shared<HCPerson>(id_counter, data);
 
 			person->setZone(zoneMap[data.zipCode]);
 
@@ -110,12 +111,13 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 
 			Statistics::instance()->logStatusChange(LogType::ACTIVATED, person, "");
 
-			persons[ID_COUNTER] = person;
+			persons[id_counter] = person;
+			network->addVertex(person);
 
 	//		std::cout << "new per age: " << person->getAge() << std::endl;
 
-			count++;
-			ID_COUNTER++;  // increment id count
+			++count;
+			++id_counter;  // increment id count
 
 			// Log arriving agent properties
 			if (earlyCareerOnly){

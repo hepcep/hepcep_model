@@ -5,6 +5,7 @@
  *      Author: nick
  */
 #include <limits>
+#include <memory>
 
 #include "repast_hpc/Random.h"
 #include "repast_hpc/RepastProcess.h"
@@ -47,8 +48,9 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_repeatable(false)
 {}
 
-Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
-        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED), treatment_failed(false) {
+Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE),  scheduled_actions(), past_cured(false),
+        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED), treatment_failed(false)
+    {
 
 	params_ = std::make_shared<ImmunologyParameters>();
 
@@ -67,12 +69,13 @@ Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIB
 
 }
 
-Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE), past_cured(false),
-        past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
+Immunology::Immunology(HCPerson* idu, IPPtr params) : params_(params), idu_(idu), hcv_state(HCVState::SUSCEPTIBLE),
+        scheduled_actions(), past_cured(false), past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }
 
-Immunology::Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), past_cured(false),
+Immunology::Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : params_(params), idu_(idu), hcv_state(alter_state), 
+        scheduled_actions(), past_cured(false),
         past_recovered(false), in_treatment(false), treatment_start_date(TREATMENT_NOT_STARTED) {
 
 }
@@ -157,7 +160,8 @@ bool Immunology::receiveInfectiousDose(double now) {
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     double exposed_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_naive_to_infectious).next();
 
-    EventPtr leave_exposed_evt = boost::make_shared<Event>(new MethodFunctor<Immunology, void>(this, &Immunology::leaveExposed));
+    EventPtr leave_exposed_evt = boost::make_shared<Event>(exposed_end_time, EventFuncType::LEAVE_EXPOSED,
+        new MethodFunctor<Immunology, void>(this, &Immunology::leaveExposed));
     scheduled_actions.push_back(leave_exposed_evt);
     runner.scheduleEvent(exposed_end_time, leave_exposed_evt);
 
@@ -169,7 +173,8 @@ bool Immunology::receiveInfectiousDose(double now) {
         acute_end_time =  now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_rechallenged).next();
     }
 
-    EventPtr leave_acute_evt = boost::make_shared<Event>(new MethodFunctor<Immunology, bool>(this, &Immunology::leaveAcute));
+    EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
+        new MethodFunctor<Immunology, bool>(this, &Immunology::leaveAcute));
     scheduled_actions.push_back(leave_acute_evt);
     runner.scheduleEvent(acute_end_time, leave_acute_evt);
 
@@ -315,7 +320,8 @@ void Immunology::setHCVInitState(double now, HCVState state, int logging) {
         {
             double acute_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
             repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-            EventPtr leave_acute_evt = boost::make_shared<Event>(new MethodFunctor<Immunology, bool>(this, &Immunology::leaveAcute));
+            EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
+                new MethodFunctor<Immunology, bool>(this, &Immunology::leaveAcute));
             scheduled_actions.push_back(leave_acute_evt);
             runner.scheduleEvent(acute_end_time, leave_acute_evt);
             if (logging > 0) {
@@ -361,7 +367,7 @@ void Immunology::leaveTreatment(bool treatment_succeeded) {
         hcv_state = HCVState::CURED;
         Statistics::instance()->logStatusChange(LogType::CURED, idu_, "");
 
-//        std::cout << "Treatment success: " << idu_->id() << std::endl;
+        //std::cout << "Treatment success: " << idu_->id() << std::endl;
     }
     else {
         Statistics::instance()->logStatusChange(LogType::FAILED_TREATMENT, idu_, "");
@@ -388,7 +394,8 @@ void Immunology::startTreatment(bool adherent, double now) {
     double treatment_end_time = now + repast::Random::instance()->createNormalGenerator(params_->treatment_duration, 1).next();
 
     bool treatment_succeeds = (repast::Random::instance()->nextDouble() < params_->treatment_svr) && adherent;
-    EventPtr treatment_end_evt = boost::make_shared<Event>(new EndTreatmentFunctor(treatment_succeeds, this));
+    EventPtr treatment_end_evt = boost::make_shared<Event>(treatment_end_time, EventFuncType::END_TREATMENT,
+        new EndTreatmentFunctor(treatment_succeeds, this));
     scheduled_actions.push_back(treatment_end_evt);
     runner.scheduleEvent(treatment_end_time, treatment_end_evt);
 }
@@ -396,5 +403,6 @@ void Immunology::startTreatment(bool adherent, double now) {
 
 Immunology::~Immunology() {
 }
+
 
 } /* namespace crx */

@@ -11,10 +11,14 @@
 #include <fstream>
 #include <iterator>
 #include <iostream>
+#include <memory>
+#include <map>
+
 
 #include "boost/tokenizer.hpp"
 
 #include "Network.h"
+#include "Zone.h"
 #include "gml.h"
 
 const std::string INDENT_1 = "  ";
@@ -32,6 +36,8 @@ public:
 
     void operator() (const std::string& name, double value);
     void operator() (const std::string& name, const std::string& value);
+    void operator() (const std::string& name, int value);
+    void operator() (const std::string& name, unsigned int value);
 };
 
 void open_ofstream(const std::string& fname, std::ofstream& out);
@@ -49,9 +55,16 @@ using EdgeAttribWriter = void (*)(Edge<VertexType>*, AttributeWriter& write);
 template<typename VertexType>
 using VertexAttribWriter = void (*)(VertexType*, AttributeWriter& write);
 
+template<typename VertexType>
+using VertexReader = std::shared_ptr<VertexType> (*)(NamedListAttribute*, std::map<std::string,ZonePtr>&);
 
 template<typename VertexType>
-void write_network(const std::string& fname, NetworkPtr<VertexType> network,
+using EdgeReader = void (*)(NamedListAttribute*, NetworkPtr<VertexType>& ,
+    std::map<unsigned int, std::shared_ptr<VertexType>>&);
+
+
+template<typename VertexType>
+void write_network(const std::string& fname, double tick, NetworkPtr<VertexType> network,
         VertexAttribWriter<VertexType> vwriter, EdgeAttribWriter<VertexType> ewriter) {
 
     std::ofstream out;
@@ -60,6 +73,7 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network,
 
     out << "graph [\n";
     out << INDENT_1 << "directed " << (network->isDirected() ? 1 : 0) << "\n";
+    write("tick", tick); 
     for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
         out << INDENT_1 << "node [\n" << INDENT_2 << "id " << (*iter)->id() << "\n";
         vwriter((*iter).get(), write);
@@ -81,12 +95,41 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network,
 
 template<typename VertexType>
 void write_network(const std::string& fname, NetworkPtr<VertexType> network) {
-    write_network(fname, network, &vnoop_writer<VertexType>, &enoop_writer<VertexType>);
+    write_network(fname, 0, network, &vnoop_writer<VertexType>, &enoop_writer<VertexType>);
 }
 
+/**
+ *
+ * @param serialized_at output parameter that will contain the tick at which the network
+ * was serialized.
+ */
 template<typename VertexType>
-void read_network(const std::string& fname) {
-    read_gml(fname);
+NetworkPtr<VertexType> read_network(const std::string& fname, VertexReader<VertexType> vertex_reader, 
+    EdgeReader<VertexType> edge_reader, std::map<std::string,ZonePtr>& zone_map, double* serialized_at) 
+{
+    Graph* gml_graph = read_gml(fname);
+    bool directed = false;
+    for (auto attribute : gml_graph->attributes) {
+        if (attribute->name_ == "tick") {
+            (*serialized_at) = dynamic_cast<FloatAttribute*>(attribute)->value_;
+        } else if (attribute->name_ == "directed") {
+            directed = (bool)dynamic_cast<IntAttribute*>(attribute)->value_;
+        }
+    }
+    NetworkPtr<VertexType> net = std::make_shared<Network<VertexType>>(directed);
+    std::map<unsigned int, std::shared_ptr<VertexType>> vertex_map;
+    for (auto n : gml_graph->nodes) {
+        std::shared_ptr<VertexType> person = vertex_reader(dynamic_cast<NamedListAttribute*>(n), zone_map);
+        net->addVertex(person);
+        vertex_map.emplace(person->id(), person);
+    }
+
+    for (auto e : gml_graph->edges) {
+        edge_reader(dynamic_cast<NamedListAttribute*>(e), net, vertex_map);
+    }
+    delete gml_graph;
+
+    return net;
 }
 
 }

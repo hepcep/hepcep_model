@@ -29,6 +29,8 @@ namespace hepcep {
 using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, int>;
 using PersonPtr = std::shared_ptr<HCPerson>;
 
+class AttributeWriter;
+
 
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
@@ -49,7 +51,12 @@ struct HCPersonData {
 
 class HCPerson : public AbsPersonT {
 
+private:
+	friend void write_person(HCPerson* person, AttributeWriter& write);
+	friend PersonPtr read_person(NamedListAttribute*, std::map<std::string,ZonePtr>&);
+
 protected:
+
 	std::string label;
 
 	double age;         // age in years
@@ -65,6 +72,7 @@ protected:
 	double fractionReceptSharing;
 	double lastExposureDate;
 	double lastInfectionDate;
+	double deactivateAt;
 
 	ZonePtr myZone;
 
@@ -72,9 +80,13 @@ protected:
 
 	bool active = false;
 
+
 public:
 	HCPerson(unsigned int id);
 	HCPerson(unsigned int id, HCPersonData& data);
+
+	// for deserialization, don't use otherwise!!
+	HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunology> imm);
 
 	virtual ~HCPerson();
 
@@ -127,9 +139,15 @@ public:
 	bool isTreatable() const;
 	bool getTestedHCV() const;
 
+	double getDeactivateAt() const;
+
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 
 };
+
+
+void writePerson(HCPerson* person, AttributeWriter& write);
+
 } /* namespace hepcep */
 
 #endif /* SRC_HCPERSON_H_ */

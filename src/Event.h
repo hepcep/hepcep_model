@@ -9,19 +9,28 @@
 #define SRC_EVENT_H_
 
 #include <memory>
+#include "boost/shared_ptr.hpp"
 
 #include "repast_hpc/Schedule.h"
+#include "network_utils.h"
+
 
 namespace hepcep {
+
+// used by serialization mechanism to recreate the functors for the events
+enum class EventFuncType{LEAVE_EXPOSED, LEAVE_ACUTE, END_TREATMENT};
 
 class Event : public repast::Functor {
 
 private:
+    friend void write_event(int idx, boost::shared_ptr<Event>, AttributeWriter&);
+    double scheduled_for_;
+    EventFuncType ef_type_;
     repast::Functor* func_;
     bool canceled;
 
 public:
-    Event(repast::Functor* func);
+    Event(double scheduled_for, EventFuncType ef_type, repast::Functor* func);
     virtual ~Event();
 
     void cancel();
@@ -45,8 +54,6 @@ public:
         (obj->*fptr)();
     }
 };
-
-
 
 } /* namespace hepcep */
 

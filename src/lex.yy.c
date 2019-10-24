@@ -1,6 +1,6 @@
-#line 2 "./build/lex.yy.c"
+#line 2 "../src/lex.yy.c"
 
-#line 4 "./build/lex.yy.c"
+#line 4 "../src/lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -467,8 +467,8 @@ char *yytext;
   #include "gml.tab.h"
 
   int line_num = 1;
-#line 471 "./build/lex.yy.c"
-#line 472 "./build/lex.yy.c"
+#line 471 "../src/lex.yy.c"
+#line 472 "../src/lex.yy.c"
 
 #define INITIAL 0
 
@@ -687,7 +687,7 @@ YY_DECL
 	{
 #line 14 "../grammar/gml.lex"
 
-#line 691 "./build/lex.yy.c"
+#line 691 "../src/lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -801,7 +801,7 @@ YY_RULE_SETUP
 #line 25 "../grammar/gml.lex"
 ECHO;
 	YY_BREAK
-#line 805 "./build/lex.yy.c"
+#line 805 "../src/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

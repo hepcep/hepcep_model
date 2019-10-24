@@ -1,6 +1,6 @@
 random.seed = 42
 
-stop.at = 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
+stop.at = 8030 # 4015.999999 # 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -17,10 +17,10 @@ events.output.file = events.csv
 arriving.persons.output.file = arriving_agents.csv
 # 0 for init network, n to log at tick n, and END to log at end
 # comment out for no net logging
-# log.network.at = 0, END
+#log.network.at = 0 # END
 
 resume.from.saved.net = false
-resume.from.save.net.file = ./data/net.gml
+#resume.from.saved.net.file = ./data/net.gml
 
 ab_prob_acute = 0.02
 ab_prob_chronic = 0.67
@@ -63,7 +63,7 @@ treatment_enrollment_probability_HRP = 0.0
 treatment_enrollment_probability_fullnetwork = 0.0
 treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
-treatment_enrollment_start_delay = 2190 
+treatment_enrollment_start_delay = 3650 
 treatment_enrollment_per_PY = 0.05
 treatment_repeatable = false
 treatment_svr = 0.9
@@ -72,4 +72,4 @@ treatment_susceptibility = 1
 # NONE or ALL or comma separated list from
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT
-log.events = NONE
+log.events = STARTED_TREATMENT

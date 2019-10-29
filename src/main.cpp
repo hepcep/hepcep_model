@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 
 		} catch (std::exception& ex) {
 			std::cerr << "Error while running the model: " << ex.what() << std::endl;
-			throw ex;
+			exit(1);
 		}
 	} else {
 		if (world.rank() == 0)

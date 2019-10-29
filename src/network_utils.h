@@ -16,15 +16,20 @@
 
 
 #include "boost/tokenizer.hpp"
+#include "boost/filesystem.hpp"
 
 #include "Network.h"
 #include "Zone.h"
 #include "gml.h"
 
-const std::string INDENT_1 = "  ";
-const std::string INDENT_2 = "    ";
+
+namespace fs = boost::filesystem; 
+
 
 namespace hepcep {
+
+const std::string INDENT_1 = "  ";
+const std::string INDENT_2 = "    ";
 
 class AttributeWriter {
 private:
@@ -107,29 +112,35 @@ template<typename VertexType>
 NetworkPtr<VertexType> read_network(const std::string& fname, VertexReader<VertexType> vertex_reader, 
     EdgeReader<VertexType> edge_reader, std::map<std::string,ZonePtr>& zone_map, double* serialized_at) 
 {
-    Graph* gml_graph = read_gml(fname);
-    bool directed = false;
-    for (auto attribute : gml_graph->attributes) {
-        if (attribute->name_ == "tick") {
-            (*serialized_at) = dynamic_cast<FloatAttribute*>(attribute)->value_;
-        } else if (attribute->name_ == "directed") {
-            directed = (bool)dynamic_cast<IntAttribute*>(attribute)->value_;
+    fs::path p(fname);
+    if (fs::exists(p)) {
+        Graph* gml_graph = read_gml(fname);
+        bool directed = false;
+        for (auto attribute : gml_graph->attributes) {
+            if (attribute->name_ == "tick") {
+                (*serialized_at) = dynamic_cast<FloatAttribute*>(attribute)->value_;
+            } else if (attribute->name_ == "directed") {
+                directed = (bool)dynamic_cast<IntAttribute*>(attribute)->value_;
+            }
         }
-    }
-    NetworkPtr<VertexType> net = std::make_shared<Network<VertexType>>(directed);
-    std::map<unsigned int, std::shared_ptr<VertexType>> vertex_map;
-    for (auto n : gml_graph->nodes) {
-        std::shared_ptr<VertexType> person = vertex_reader(dynamic_cast<NamedListAttribute*>(n), zone_map);
-        net->addVertex(person);
-        vertex_map.emplace(person->id(), person);
-    }
+        NetworkPtr<VertexType> net = std::make_shared<Network<VertexType>>(directed);
+        std::map<unsigned int, std::shared_ptr<VertexType>> vertex_map;
+        for (auto n : gml_graph->nodes) {
+            std::shared_ptr<VertexType> person = vertex_reader(dynamic_cast<NamedListAttribute*>(n), zone_map);
+            net->addVertex(person);
+            vertex_map.emplace(person->id(), person);
+        }
 
-    for (auto e : gml_graph->edges) {
-        edge_reader(dynamic_cast<NamedListAttribute*>(e), net, vertex_map);
-    }
-    delete gml_graph;
+        for (auto e : gml_graph->edges) {
+            edge_reader(dynamic_cast<NamedListAttribute*>(e), net, vertex_map);
+        }
+        delete gml_graph;
 
-    return net;
+        return net;
+    } 
+    
+    throw std::invalid_argument("Serialized network file " + fname + " not found.");
+    
 }
 
 }

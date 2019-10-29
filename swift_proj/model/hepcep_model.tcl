@@ -6,7 +6,7 @@ namespace eval hepcep_model {
       set z [ lindex $outputs 0 ]
       set config [ lindex $inputs 0 ]
 		  set params [ lindex $inputs 1 ]
-      rule $config "hepcep_model::hepcep_model_tcl_body $z $config $params" {*}$args type $turbine::WORK
+      rule [ list $config $params ]  "hepcep_model::hepcep_model_tcl_body $z $config $params" {*}$args type $turbine::WORK
     }
 
     proc report_time { msg rank t } {

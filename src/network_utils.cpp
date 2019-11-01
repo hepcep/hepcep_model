@@ -45,4 +45,6 @@ void AttributeWriter::operator() (const std::string& name, const std::string& va
     out_ << INDENT_2 << name << " " << value << "\n";
 }
 
+
+
 }

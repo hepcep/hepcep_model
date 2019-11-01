@@ -5,6 +5,8 @@
  *      Author: nick
  */
 
+#include <iomanip>
+
 #include "repast_hpc/RepastProcess.h"
 
 //#include "chi_sim/CSVReader.h"
@@ -25,7 +27,7 @@ std::string quote_string(const std::string& str) {
     return "\"" + str + "\"";
 }
 
-void write_person(HCPerson* person, AttributeWriter& write) {
+void write_person(HCPerson* person, AttributeWriter& write, double tick) {
 	write("age", person->getAge());
 	write("age_started", person->getAgeStarted());
 	write("race", "\"" + person->getRace().stringValue() +"\"");
@@ -46,10 +48,10 @@ void write_person(HCPerson* person, AttributeWriter& write) {
 	write("active", person->isActive());
     write("deactivate_at", person->getDeactivateAt());
 
-	write_immunology(person->immunology, write);
+	write_immunology(person->immunology, write, tick);
 }
 
-void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPerson* person) {
+void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPerson* person, double serialized_at) {
     imm->idu_ = person;
     imm->hcv_state = HCVState::valueOf(list->getAttribute<string>("hcv_state"));
     imm->in_treatment = (bool)list->getAttribute<int>("in_treatment");
@@ -83,7 +85,8 @@ void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPer
                 NamedListAttribute* evt_list = dynamic_cast<NamedListAttribute*>(kv.second);
                 if (!(bool)evt_list->getAttribute<int>("canceled")) {
                     double at = evt_list->getAttribute<double>("scheduled_for");
-                    if (at >= 0) {
+                    if (at >= 0 && at > serialized_at) {
+                        // std::cout << person->id() << ": scheduling event for " << at << std::endl;
                         EventFuncType ft = static_cast<EventFuncType>(evt_list->getAttribute<int>("ef_type"));
                         boost::shared_ptr<Event> evt;
                         if (ft == EventFuncType::LEAVE_ACUTE) {
@@ -101,25 +104,25 @@ void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPer
                         //std::cout << "evt scheduled at " << at << std::endl;
                         imm->scheduled_actions.push_back(evt);
                         runner.scheduleEvent(at, evt);
-                    }
+                    } 
                 }
             }
         }
     }
 }
 
-void write_event(int idx, boost::shared_ptr<Event> evt, AttributeWriter& write) {
-    write("event_" + std::to_string(idx), "[");
-    write("canceled", evt->canceled);
-    write("scheduled_for", evt->scheduled_for_);
-    write("ef_type", static_cast<int>(evt->ef_type_));
+void write_event(int idx, boost::shared_ptr<Event> evt, std::stringstream& ss) {
+    ss << "          event_" + std::to_string(idx) <<  " [\n";
+    ss << "          canceled "  <<  evt->canceled << "\n";
+    ss <<  std::setprecision(8) << std::fixed << "          scheduled_for " <<  evt->scheduled_for_ << "\n";
+    ss << "          ef_type " << static_cast<int>(evt->ef_type_) << "\n";
     if (evt->ef_type_ == EventFuncType::END_TREATMENT) {
-        write("success", dynamic_cast<EndTreatmentFunctor*>(evt->func_)->isSuccess());
+        ss << "          success " <<  dynamic_cast<EndTreatmentFunctor*>(evt->func_)->isSuccess() << "\n";
     }
-    write("", "]");
+    ss << "]";;
 }
 
-PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap) {
+PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap, double serialized_at) {
     unsigned int id = node->getAttribute<int>("id");
     HCPersonData data;
     data.age = node->getAttribute<double>("age");
@@ -140,7 +143,7 @@ PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& z
     std::shared_ptr<Immunology> imm = std::make_shared<Immunology>(nullptr);
     PersonPtr person = std::make_shared<HCPerson>(id, data, imm);
     // udpates immunology with the specified person (among other things)
-    read_immunology(imm_list, imm, person.get());
+    read_immunology(imm_list, imm, person.get(), serialized_at);
     
     person->setZone(zoneMap.at(data.zipCode));
     person->active = (bool)node->getAttribute<int>("active");
@@ -159,7 +162,7 @@ PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& z
     return person;
 }
 
-void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write) {
+void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick) {
     write("immunology", "[");
     write("hcv_state", quote_string(imm->getHCVState().stringValue()));
     write("past_cured", imm->past_cured);
@@ -169,13 +172,21 @@ void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write) {
     write("treatment_failed", imm->treatment_failed);
 
     if (imm->scheduled_actions.size() > 0) {
-        write("events", "[");
+        std::stringstream ss;
         int i = 0;
         for (auto evt : imm->scheduled_actions) {
-            write_event(i, evt, write);
-            i++;
+            if (evt->scheduled_for() > tick) {
+                //std::cout << "writing future event scheduled for " << evt->scheduled_for() << std::endl;
+                write_event(i, evt, ss);
+                i++;
+            }
         }
-        write("", "]");
+
+        if (!ss.str().empty()) {
+            write("events", "[");
+            write("", ss.str());
+            write("", "]");
+        }
     }
     
     write("params", "[");

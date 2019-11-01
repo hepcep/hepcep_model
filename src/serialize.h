@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+#include <sstream>
 
 #include "HCPerson.h"
 #include "Network.h"
@@ -20,21 +21,21 @@ namespace hepcep {
 
 
 
-PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap);
+PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap, double);
 
 void read_edge(NamedListAttribute* edge_list, NetworkPtr<HCPerson>& net, 
     std::map<unsigned int, std::shared_ptr<HCPerson>>& vertex_map);
 
-void write_person(HCPerson* person, AttributeWriter& write); 
+void write_person(HCPerson* person, AttributeWriter& write, double tick); 
 
 void write_edge(Edge<HCPerson>* edge, AttributeWriter& write);
 
 void read_immunology(NamedListAttribute* list, std::shared_ptr<Immunology> imm, 
-    HCPerson* person);
+    HCPerson* person, double serialized_at);
 
-void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write);
+void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick);
 
-void write_event(int idx, boost::shared_ptr<Event> evt, AttributeWriter& write);
+void write_event(int idx, boost::shared_ptr<Event> evt, std::stringstream& ss);
 
 
 }

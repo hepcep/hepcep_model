@@ -58,10 +58,10 @@ template<typename VertexType>
 using EdgeAttribWriter = void (*)(Edge<VertexType>*, AttributeWriter& write);
 
 template<typename VertexType>
-using VertexAttribWriter = void (*)(VertexType*, AttributeWriter& write);
+using VertexAttribWriter = void (*)(VertexType*, AttributeWriter& write, double);
 
 template<typename VertexType>
-using VertexReader = std::shared_ptr<VertexType> (*)(NamedListAttribute*, std::map<std::string,ZonePtr>&);
+using VertexReader = std::shared_ptr<VertexType> (*)(NamedListAttribute*, std::map<std::string,ZonePtr>&, double);
 
 template<typename VertexType>
 using EdgeReader = void (*)(NamedListAttribute*, NetworkPtr<VertexType>& ,
@@ -81,7 +81,7 @@ void write_network(const std::string& fname, double tick, NetworkPtr<VertexType>
     write("tick", tick); 
     for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
         out << INDENT_1 << "node [\n" << INDENT_2 << "id " << (*iter)->id() << "\n";
-        vwriter((*iter).get(), write);
+        vwriter((*iter).get(), write, tick);
         out << INDENT_1 << "]\n";
 
     }
@@ -116,17 +116,24 @@ NetworkPtr<VertexType> read_network(const std::string& fname, VertexReader<Verte
     if (fs::exists(p)) {
         Graph* gml_graph = read_gml(fname);
         bool directed = false;
+        double tick = -1;
         for (auto attribute : gml_graph->attributes) {
             if (attribute->name_ == "tick") {
-                (*serialized_at) = dynamic_cast<FloatAttribute*>(attribute)->value_;
+                tick = dynamic_cast<FloatAttribute*>(attribute)->value_;
+                (*serialized_at) = tick;
             } else if (attribute->name_ == "directed") {
                 directed = (bool)dynamic_cast<IntAttribute*>(attribute)->value_;
             }
         }
+
+        if (tick == -1) {
+            throw std::invalid_argument("Serialized network file " + fname + " does not contain tick attribute");
+        }
+
         NetworkPtr<VertexType> net = std::make_shared<Network<VertexType>>(directed);
         std::map<unsigned int, std::shared_ptr<VertexType>> vertex_map;
         for (auto n : gml_graph->nodes) {
-            std::shared_ptr<VertexType> person = vertex_reader(dynamic_cast<NamedListAttribute*>(n), zone_map);
+            std::shared_ptr<VertexType> person = vertex_reader(dynamic_cast<NamedListAttribute*>(n), zone_map, tick);
             net->addVertex(person);
             vertex_map.emplace(person->id(), person);
         }

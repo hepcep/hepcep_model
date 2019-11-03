@@ -27,6 +27,10 @@ void Event::operator()() {
     }
 }
 
+double Event::scheduled_for() const {
+    return scheduled_for_;
+}
+
 }
 
 

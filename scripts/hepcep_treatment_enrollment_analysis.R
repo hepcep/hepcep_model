@@ -7,9 +7,12 @@ library(data.table)
 library(ggplot2)
 library(zoo)
 
-system.time({
+# Std Err
+std <- function(x) sd(x)/sqrt(length(x))
+
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
+eventsFileName <- "events.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
 
 colsToKeep <- c("tick","run","cured_ALL",
@@ -64,10 +67,7 @@ for (d in dirs){
     
   }
 }
-})
 
-# C: 291.55  107.00  314.27 
-# X: 277.07  104.78 1023.00 
 dt <- rbindlist(tableList)  # Stack the list of tables into a single DT
 tableList <- NULL           # clear mem
 
@@ -106,18 +106,10 @@ dt$enrollment_pattern <- paste0(dt[,treatment_enrollment_per_PY],"_", dt[,tep_HR
                                 dt[,tep_fullnetwork],":",dt[,tep_inpartner],":",
                                 dt[,tep_outpartner],":",dt[,tep_unbiased])
 
-# Std Err
-se <- function(x) sd(x)/sqrt(length(x))
-
-# 95% confidence interval on t-distribution
-error_95 <- function(x) qt(0.975,df=length(x)-1)*sd(x)/sqrt(length(x))
 
 # TODO change DT to exclude tick 0 and tick 1:burninDays in all data sets
 #!(tick %in% 1:burninDays)
 
-# ##### GRAPHS #####
-
-# ##### INCIDENCE #####
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count 
 
@@ -126,8 +118,17 @@ incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,enrollment_pattern,run)]
 
 # Calculate the mean and std of yearly incidence rate
-incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), error_95=error_95(incidence) ), 
+incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), std=std(incidence) ), 
                                   by=list(Year,enrollment_pattern)]
+
+# The baseline normalization is the no-treatment mean in 2019
+baseline <- 12.914
+
+# normalize the means relative to the baseline
+#  ... we also normalize the sd by the baseline mean
+incidenceSummary$mean <- incidenceSummary$mean / baseline # incidenceSummaryBaseline$mean
+incidenceSummary$sd <- incidenceSummary$sd / baseline # / incidenceSummaryBaseline$sd
+incidenceSummary$std <- incidenceSummary$std / baseline # / incidenceSummaryBaseline$std
 
 # find the top 20 incidence at end year and sort mean low to high
 finalIncidence <- incidenceSummary[Year == endYear][order(mean)][1:20,]
@@ -139,7 +140,8 @@ incidenceSummaryTop <- incidenceSummary[enrollment_pattern %in% finalIncidence$e
 incidenceSummaryNoTreat <- incidenceSummary[enrollment_pattern == "0_0.0:0.0:0.0:0.0:1.0"]
 
 # Plot the mean incidence groups by enrollment pattern
-treatmentStartYear <- 2010
+treatmentStartYear <- 2020
+
 p <- ggplot(incidenceSummary) + geom_line(aes(x=Year, y=mean, group=enrollment_pattern), 
                                           size=0.1, alpha=0.4, color='black') +
      geom_line(data=incidenceSummaryTop, aes(x=Year, y=mean, group=enrollment_pattern), 
@@ -166,15 +168,17 @@ p <- ggplot(incidenceSummary) + geom_line(aes(x=Year, y=mean, group=enrollment_p
 
 ggsave("Treatment Incidence.png", plot=p, width=10, height=8)
 
+# 95% CI
+z <- 1.960
 
 # Plot errors on final incidences
 p <- ggplot(finalIncidence, aes(y=reorder(enrollment_pattern,-mean), x=mean)) +
 #     geom_point() + geom_errorbarh(aes(xmax = mean+sd, xmin = mean-sd, height = .2), color='blue') + 
-     geom_point() + geom_errorbarh(aes(xmax = mean+error_95, xmin = mean-error_95, height = .2), color='blue') +
+     geom_point() + geom_errorbarh(aes(xmax = mean+z*std, xmin = mean-z*std, height = .2), color='blue') +
 
-     labs(y="Enrollment Pattern", x="Mean Annual Incidence Rate", title="Age 30+ Lowest Incidence Rates at Year 2030 (95% CI)") +
+     labs(y="Enrollment Pattern", x="Mean Relative Incidence Rate", title="Lowest Relative Incidence Rates at Year 2030 (95% CI)") +
      theme_minimal() +
-     scale_x_continuous(limits=c(5,10)) + 
+#     scale_x_continuous(limits=c(5,10)) + 
      theme(text = element_text(size=14), legend.position="none", plot.title=element_text(size=12)) 
 ggsave("Final Incidence Rate spread.png", plot=p, width=10, height=8)
   

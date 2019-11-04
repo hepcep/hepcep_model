@@ -23,7 +23,7 @@ enum class EventFuncType{LEAVE_EXPOSED, LEAVE_ACUTE, END_TREATMENT};
 class Event : public repast::Functor {
 
 private:
-    friend void write_event(int idx, boost::shared_ptr<Event>, AttributeWriter&);
+    friend void write_event(int idx, boost::shared_ptr<Event>, std::stringstream&);
     double scheduled_for_;
     EventFuncType ef_type_;
     repast::Functor* func_;
@@ -34,6 +34,7 @@ public:
     virtual ~Event();
 
     void cancel();
+    double scheduled_for() const;
     void operator()();
 };
 

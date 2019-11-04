@@ -45,8 +45,8 @@ using IPPtr = std::shared_ptr<ImmunologyParameters>;
 class Immunology {
 
 private:
-    friend void write_immunology(std::shared_ptr<Immunology>, AttributeWriter&);
-    friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*);
+    friend void write_immunology(std::shared_ptr<Immunology>, AttributeWriter&, double);
+    friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*, double);
 
     IPPtr params_;
 

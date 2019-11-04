@@ -1,5 +1,5 @@
 #
-# Analysis of hepcep model outputs for the JVH 2019 journal article.  This script
+# Analysis of hepcep model outputs for the Wintersim 2019 journal article.  This script
 #  generates the relative incicdence plot figures that show the incidence rates
 #  vs. time for the various enrollment rates.  This script should be run first
 #  on the no-retreatment scenarios (enrollment_sweep_12.zip) and then on the 
@@ -145,7 +145,7 @@ p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=trea
   
 #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
   labs(y="Relative Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY",
-       title="HepCEP Simulation Incidence Rate Profiles for Enrollment Rates") +
+       title="HepCEP Simulation Incidence Profiles for Various Enrollment Rates") +
   theme_minimal() +
   theme(text = element_text(size=14), 
         legend.position = c(.15, .25), 

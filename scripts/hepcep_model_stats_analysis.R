@@ -42,10 +42,14 @@ for (d in dirs){
       props$Value <- propsRead[,3]
       colnames(props)<-c("Name", "Value")
       
+      # Filter out columns to reduce data in memory size
       table <-  fread(path, select=colsToKeep)
+      #table <-  fread(path)
       
       # Optionally store properties in the table for this run
       table$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
+
+      table$treatment_svr <- props[Name=="treatment_svr"]$Value
       
       tableList[[d]]  <- table  
     }, 
@@ -443,17 +447,21 @@ ggsave("Treatment Prevalence Old.png", plot=p, width=10, height=8)
 #!(tick %in% 1:burninDays)
 
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
-#   the dt$incidence_daily by the population count 
-incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY,run)]
+#   the dt$incidence_daily by the population count
+incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY, run)]
+#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily/(population_ALL-infected_ALL))), by=list(Year,treatment_enrollment_per_PY, treatment_svr, run)]
+
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_LEQ_30/(population_agegrp_LEQ_30-infected_agegrp_LEQ_30))), by=list(Year,treatment_enrollment_per_PY,run)]
 #incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(infected_daily_agegrp_OVER_30/(population_agegrp_OVER_30-infected_agegrp_OVER_30))), by=list(Year,treatment_enrollment_per_PY,run)]
 
 # Calculate the mean and std of yearly incidence rate
 incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), std=std(incidence)), by=list(Year,treatment_enrollment_per_PY)]
+#incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), std=std(incidence)), by=list(Year,treatment_enrollment_per_PY, treatment_svr)]
+
 incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
 incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0.025,0.05,0.075, 0.1)]
 
-# The baseline normalization is the no-treatment mean in 2020
+# The baseline normalization is the no-treatment mean in 2019
 baseline <- incidenceSummaryBaseline[Year==2019]$mean
 
 # optionally normalize the means relative to the untreated group
@@ -467,25 +475,31 @@ z <- 1.960
 
 p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(limits = c(2019.9,2030.1), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
-  scale_y_continuous(limits = c(0,1.8)) +
-  
+#  scale_x_continuous(limits = c(2019.9,2030.1), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
+#  scale_y_continuous(limits = c(0,1.8)) +
+ 
+#  facet_wrap(vars(treatment_svr)) +
+   
 #  geom_errorbar(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, color=treatment_enrollment_per_PY),width=.15) +
   
   geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, fill=treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
   
 #  scale_y_continuous(limits=c(0, 0.4), breaks=seq(0,1.0,0.1)) +
   labs(y="Relative Incidence (per 1000 person-years)", x="Year", color="treatment_enrollment_per_PY") + #, title="All Incidence") +
-  theme_minimal() +
-  theme(text = element_text(size=24), 
-        legend.position = c(.15, .25), 
-        legend.text=element_text(size=22),
+  theme_bw() +
+#  theme_minimal() + 
+  theme(text = element_text(size=14), 
+        legend.position = c(.05, .15), 
+        legend.text=element_text(size=14),
         legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
-  theme(axis.text=element_text(size=26),axis.title=element_text(size=26)) +
+  theme(axis.text=element_text(size=14),axis.title=element_text(size=14)) +
   
   guides(color=guide_legend(title="Enrollment"),fill=guide_legend(title="Enrollment"))
-ggsave("Treatment Incidence yes-retreat.png", plot=p, width=10, height=8)
+ggsave("Treatment Incidence yes-retreat.pdf", plot=p, width=10, height=8)
 fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
+
+# Create a new plot with checkpoint data comparing to non-checkpoint data
+q <- p + geom_line(data=incidenceSummarySubset_cp,aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=1, linetype = "dashed")
 
 # Testing Box plots
 ggplot(incidenceYear[treatment_enrollment_per_PY==0.05], aes(x=Year, y=incidence/12, group=Year)) + 

@@ -52,8 +52,8 @@ struct HCPersonData {
 class HCPerson : public AbsPersonT {
 
 private:
-	friend void write_person(HCPerson* person, AttributeWriter& write);
-	friend PersonPtr read_person(NamedListAttribute*, std::map<std::string,ZonePtr>&);
+	friend void write_person(HCPerson* person, AttributeWriter& write, double);
+	friend PersonPtr read_person(NamedListAttribute*, std::map<std::string,ZonePtr>&, double);
 
 protected:
 

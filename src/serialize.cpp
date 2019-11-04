@@ -152,7 +152,7 @@ PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& z
 
     double deactivate_at = node->getAttribute<double>("deactivate_at");
     person->deactivateAt = deactivate_at;
-    if (deactivate_at >= 0) {
+    if (deactivate_at > serialized_at) {
         repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
         runner.scheduleEvent(deactivate_at, repast::Schedule::FunctorPtr(
             new repast::MethodFunctor<HCPerson>(person.get(), &HCPerson::deactivate)));

@@ -21,7 +21,7 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=432
+export PROCS=72
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
@@ -68,6 +68,6 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_retreat_svr.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_retreat.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

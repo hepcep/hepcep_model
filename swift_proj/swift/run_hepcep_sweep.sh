@@ -12,7 +12,7 @@ fi
 
 # uncomment to turn on swift/t logging. Can also set TURBINE_LOG,
 # TURBINE_DEBUG, and ADLB_DEBUG to 0 to turn off logging
-export TURBINE_LOG=1 TURBINE_DEBUG=1 ADLB_DEBUG=1
+export TURBINE_LOG=0 TURBINE_DEBUG=0 ADLB_DEBUG=0
 THIS=$( cd $( dirname $0 ) ; /bin/pwd )
 export EMEWS_PROJECT_ROOT=$( cd $( dirname $0 )/.. ; /bin/pwd )
 # source some utility functions used by EMEWS in this script
@@ -20,10 +20,10 @@ source "${EMEWS_PROJECT_ROOT}/etc/emews_utils.sh"
 
 export EXPID=$1
 export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
-check_directory_exists
+#check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=2
+export PROCS=3
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
@@ -57,6 +57,10 @@ if [ -n "$MACHINE" ]; then
   MACHINE="-m $MACHINE"
 fi
 
+SWIFT_FILE=$EMEWS_PROJECT_ROOT/swift/hepcep_sweep_launch.swift
+
+echo "SWIFT FILE: $SWIFT_FILE"
+
 
 # Add any script variables that you want to log as
 # part of the experiment meta data to the USER_VARS array,
@@ -69,7 +73,7 @@ log_script
 set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
-  $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/test_data.txt" \
+  $SWIFT_FILE \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_small.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

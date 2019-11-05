@@ -46,7 +46,7 @@ string model = "%s/../Release/hepcep_model-0.0" % emews_root;
       cnep_plus_file, cnep_plus_early_file, zones_file, zones_distance_file);
     string line = "\"%s\t%s\"" % (defaults, pl);
     string args[] = ["-props", config_file, "-params", line];
-    string envs[] = ["swift_chdir=%s" % instance_dir];
+    string envs[] = ["swift_chdir=%s" % instance_dir, "swift_launcher=foo"];
     mkdir(instance_dir) =>
     @par=1 launch_envs(model, args, envs) =>
     zs[i] = line;

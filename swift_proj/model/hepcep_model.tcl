@@ -18,8 +18,9 @@ namespace eval hepcep_model {
       set config [ retrieve_string $config ]
       set params [ retrieve_string $params ]
       # Look up MPI information
-      set comm [ turbine::c::task_comm ]
-      set rank [ adlb::rank $comm]
+      set comm_int [ turbine::c::task_comm_int ]
+      set rank [ adlb::rank $comm_int ]
+      set comm [ turbine_get_task_comm ]
 
       #if { $rank == 0 } {
       #  set world_rank [ adlb::rank ]

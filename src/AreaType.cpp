@@ -53,8 +53,9 @@ AreaType AreaType::valueOf(const std::string& string_val) {
     throw std::invalid_argument("Unknown area type: " + string_val);
 }
 
-AreaType AreaType::getAreaType(const std::string& zip_code) {
-    if (zip_code.length() > 3 && zip_code.substr(0, 3) == "606") {
+AreaType AreaType::getAreaType(const unsigned int zip_code) {
+//   if (zip_code.length() > 3 && zip_code.substr(0, 3) == "606") {
+     if (zip_code >= 60600){
         return AreaType::CITY;
     }
     return AreaType::SUBURBAN;

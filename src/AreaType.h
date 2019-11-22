@@ -33,7 +33,7 @@ public:
     static const std::vector<AreaType>& values();
 
     static AreaType valueOf(const std::string& string_val);
-    static AreaType getAreaType(const std::string& zip_code);
+    static AreaType getAreaType(const unsigned int zip_code);
 
 private:
 

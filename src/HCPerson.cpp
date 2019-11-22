@@ -207,12 +207,15 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 
 	for(int trial=0; trial<100; ++trial) {
 		//anticipate lifetime from birth, accounting for burnin period
-		residualLife = residualBurninDays + Distributions::instance()->getLifespanRandom();
-		residualLife -= getAge() * 365.0;
+		
+        residualLife = residualBurninDays + Distributions::instance()->getLifespanRandom();
+		        
+        residualLife -= getAge() * 365.0;
 
 		double roll = repast::Random::instance()->nextDouble();
 		if(roll < probCessation) {
-			timeToCessation = residualBurninDays - elapsedCareerDays + Distributions::instance()->getCessationTimeRandom();;
+			timeToCessation = residualBurninDays - elapsedCareerDays + Distributions::instance()->getCessationTimeRandom();
+
 			residualTimeInApk = min(timeToCessation, residualLife);
 		}
 		else {
@@ -286,7 +289,7 @@ void HCPerson::setZone(ZonePtr zone){
 	myZone = zone;
 }
 
-std::string HCPerson::getZipcode() const {
+unsigned int HCPerson::getZipcode() const {
 	return zipCode;
 }
 

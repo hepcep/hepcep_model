@@ -39,7 +39,7 @@ struct HCPersonData {
 	std::string gender;
 	std::string race;
 	std::string syringeSource;
-	std::string zipCode;
+	unsigned int zipCode;
 	HCVState hcvState = HCVState::UNKNOWN;
 	unsigned int drug_inDegree;
 	unsigned int drug_outDegree;
@@ -53,7 +53,7 @@ class HCPerson : public AbsPersonT {
 
 private:
 	friend void write_person(HCPerson* person, AttributeWriter& write, double);
-	friend PersonPtr read_person(NamedListAttribute*, std::map<std::string,ZonePtr>&, double);
+	friend PersonPtr read_person(NamedListAttribute*, std::map<unsigned int,ZonePtr>&, double);
 
 protected:
 
@@ -64,7 +64,7 @@ protected:
 	Gender gender;
 	Race race;
 	HarmReduction syringeSource;
-	std::string zipCode;
+	unsigned int zipCode;
 //	HCVState hcvState;
 	unsigned int drug_inDegree;
 	unsigned int drug_outDegree;
@@ -112,7 +112,7 @@ public:
 	unsigned int getDrugGivingDegree() const;
 	ZonePtr getZone() const;
 	void setZone(ZonePtr zone);
-	std::string getZipcode() const;
+	unsigned int getZipcode() const;
 	double getAge() const;
 	void setAge(double age);
 	double getAgeStarted() const;

@@ -33,7 +33,7 @@ void write_person(HCPerson* person, AttributeWriter& write, double tick) {
 	write("race", "\"" + person->getRace().stringValue() +"\"");
 	write("gender", "\"" + person->getGender().stringValue() +"\"");
 	write("syringe_source", "\"" + person->getSyringeSource().stringValue() +"\"");
-	write("zipcode", "\"" + person->getZipcode() +"\"");
+	write("zipcode", person->getZipcode());
 
 	write("drug_in_deg", person->getDrugReceptDegree());
 	write("drug_out_deg", person->getDrugGivingDegree());
@@ -122,7 +122,7 @@ void write_event(int idx, boost::shared_ptr<Event> evt, std::stringstream& ss) {
     ss << "]";;
 }
 
-PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap, double serialized_at) {
+PersonPtr read_person(NamedListAttribute* node, std::map<unsigned int,ZonePtr>& zoneMap, double serialized_at) {
     unsigned int id = node->getAttribute<int>("id");
     HCPersonData data;
     data.age = node->getAttribute<double>("age");
@@ -133,7 +133,7 @@ PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& z
     data.injectionIntensity = node->getAttribute<double>("inject_intens");
     data.fractionReceptSharing = node->getAttribute<double>("frac_recept");
     data.syringeSource = node->getAttribute<string>("syringe_source");
-    data.zipCode = node->getAttribute<string>("zipcode");
+    data.zipCode = node->getAttribute<int>("zipcode");
     data.race = node->getAttribute<string>("race");
 
     NamedListAttribute* imm_list = node->getAttribute<NamedListAttribute*>("immunology");

@@ -61,7 +61,7 @@ template<typename VertexType>
 using VertexAttribWriter = void (*)(VertexType*, AttributeWriter& write, double);
 
 template<typename VertexType>
-using VertexReader = std::shared_ptr<VertexType> (*)(NamedListAttribute*, std::map<std::string,ZonePtr>&, double);
+using VertexReader = std::shared_ptr<VertexType> (*)(NamedListAttribute*, std::map<unsigned int,ZonePtr>&, double);
 
 template<typename VertexType>
 using EdgeReader = void (*)(NamedListAttribute*, NetworkPtr<VertexType>& ,
@@ -114,7 +114,7 @@ void write_network(const std::string& fname, NetworkPtr<VertexType> network) {
  */
 template<typename VertexType>
 NetworkPtr<VertexType> read_network(const std::string& fname, VertexReader<VertexType> vertex_reader, 
-    EdgeReader<VertexType> edge_reader, std::map<std::string,ZonePtr>& zone_map, double* serialized_at) 
+    EdgeReader<VertexType> edge_reader, std::map<unsigned int,ZonePtr>& zone_map, double* serialized_at) 
 {
     fs::path p(fname);
     if (fs::exists(p)) {

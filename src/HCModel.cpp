@@ -91,14 +91,24 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					personData(),
 					zoneMap(),
 					zoneDistanceMap(),
-					zonePopulation(),
+//					zonePopulation(),
 					effectiveZonePopulation(),
 					treatmentEnrollmentProb(),
 					treatmentEnrollmentResidual()
 {
 
 	// TODO put all the data init in a separate method
-
+    double seed = chi_sim::Parameters::instance()->getIntParameter("random.seed");
+    double rnum = chi_sim::Parameters::instance()->getIntParameter("run.number");
+    
+    // Sample the Repast random instance lots of times to check for proper seeding.
+    double d = 0;
+    for(int i=0; i<1E5; i++){
+        d = repast::Random::instance()->nextDouble();
+    }
+    
+    std::cout << "HepCEP Model Initialization... Run # " << rnum << ", Random seed: " << seed << ", rand = " << d << std::endl;
+    
 	// Initialize statistical distributions used in the model.
 	double attritionRate = chi_sim::Parameters::instance()->getDoubleParameter(ATTRITION_RATE);
 	double meanEdgeLifetime = chi_sim::Parameters::instance()->getDoubleParameter(MEAN_EDGE_LIFETIME);
@@ -137,8 +147,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	treatmentEnrollmentResidual[EnrollmentMethod::OUTPARTNER] = 0.;
 
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
-
-	std::cout << "HepCEP Model Initialization." << std::endl;
+    
 //	std::cout << "Output dir: " << output_directory << std::endl;
 
 	std::string props_file = chi_sim::unique_file_name(props.getProperty(OUTPUT_DIRECTORY) + "/model.props");
@@ -149,7 +158,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	fo.close();
 
 	init_stats(output_directory, run);
-
 
 	// TODO put all the data loading into a separate method
 
@@ -163,18 +171,18 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	std::cout << "Zones distance file: " << zones_distance_file << std::endl;
 	loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
-		// personData and personCreator are used to create initial persons and arriving new persons
-		// so we need it regardless of how the initial population is 
-		// created.
-		std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
-		std::cout << "CNEP+ file: " << cnep_file << std::endl;
-		loadPersonData(cnep_file, personData);
+	// personData and personCreator are used to create initial persons and arriving new persons
+	// so we need it regardless of how the initial population is 
+	// created.
+	std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
+	std::cout << "CNEP+ file: " << cnep_file << std::endl;
+	loadPersonData(cnep_file, personData);
 
 	// starting tick: tick at which to start scheduled events. If the model 
 	// is resumed from a serialized state then we want to start at the time
 	// it was serialized + 1
 	double start_at = 1;
-
+    
 	bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
 	if (resume) {
         burnInDays = 0;
@@ -210,7 +218,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	}
 
 	std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
-
+    
 	// Schedule model events
 	// Model step
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
@@ -268,6 +276,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
 	// write t0 stats
 	Statistics::instance()->recordStats(0, run, local_persons);
+    
+    // Random stream sanity check
+    d = repast::Random::instance()->nextDouble();
+    std::cout << "HepCEP Model Initialization Complete. Run # " << rnum << ", Random seed: " << seed << ", rand = " << d << std::endl;
 }
 
 HCModel::~HCModel() {}
@@ -385,7 +397,9 @@ void HCModel::performLinking(){
 	//      times.   This might be a preferable approach.
 
 	for (auto entry1 : effectiveZonePopulation){
-		const ZonePtr & zone1 = entry1.first;
+		
+        unsigned int zipcode_1 = entry1.first;
+        const ZonePtr & zone1 = zoneMap[zipcode_1];
 
 		// Skip if zone population is zero
 		if (entry1.second.size() == 0){
@@ -393,7 +407,8 @@ void HCModel::performLinking(){
 		}
 
 		for (auto entry2 : effectiveZonePopulation){
-			const ZonePtr & zone2 = entry2.first;
+            unsigned int zipcode_2 = entry1.first;
+			const ZonePtr & zone2 = zoneMap[zipcode_2];
 
 			// Skip if zone population is zero
 			if (entry2.second.size() == 0){
@@ -411,14 +426,11 @@ void HCModel::performLinking(){
 
 			double t = 0;
 
-			int count = 0;
 			t += generator.next();
+            
 			while (t <= linkingTimeWindow){
-
 				linkZones(zone1, zone2);
-
-				t += generator.next();
-				count += 1;
+				t += generator.next();   
 			}
 		}
 	}
@@ -426,8 +438,8 @@ void HCModel::performLinking(){
 
 void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 
-	int s1 = effectiveZonePopulation[zone1].size();
-	int s2 = effectiveZonePopulation[zone2].size();
+	int s1 = effectiveZonePopulation[zone1->getZipcode()].size();
+	int s2 = effectiveZonePopulation[zone2->getZipcode()].size();
 	if (s1 == 0 || s2 == 0) {
 		return;
 	}
@@ -442,8 +454,8 @@ void HCModel::linkZones(const ZonePtr& zone1, const ZonePtr& zone2){
 		return;
 	}
 
-	PersonPtr & person1 = effectiveZonePopulation[zone1][a1_idx];
-	PersonPtr & person2 = effectiveZonePopulation[zone2][a2_idx];
+	PersonPtr & person1 = effectiveZonePopulation[zone1->getZipcode()][a1_idx];
+	PersonPtr & person2 = effectiveZonePopulation[zone2->getZipcode()][a2_idx];
 
 	tryConnect(person1,person2);
 }
@@ -476,7 +488,8 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
 
 	// Schedule the p1 -> p2 edge removal in the future
 	double edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
-	double endTime = tick + edgeLifespan;
+	    
+    double endTime = tick + edgeLifespan;
 	edge->putAttribute("ends_at", endTime);
 
 	repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
@@ -508,8 +521,8 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
 
 	double distance = zoneDistanceMap[zone1->getZipcode()][zone2->getZipcode()];
 
-	int pop1 = effectiveZonePopulation[zone1].size();
-	int pop2 = effectiveZonePopulation[zone2].size();
+	int pop1 = effectiveZonePopulation[zone1->getZipcode()].size();
+	int pop2 = effectiveZonePopulation[zone2->getZipcode()].size();
 
 	if (distance > interactionHomeCutoff){
 		if (zone1->getDrugMarket() ==  zone2->getDrugMarket()){
@@ -534,7 +547,7 @@ double HCModel::interactionRate(const ZonePtr& zone1, const ZonePtr& zone2){
  */
 void HCModel::zoneCensus(){
 
-	zonePopulation.clear();
+//	zonePopulation.clear();
 	effectiveZonePopulation.clear();
 
 	totalIDUPopulation  = 0;
@@ -543,7 +556,7 @@ void HCModel::zoneCensus(){
 		PersonPtr & person = entry.second;
 		totalIDUPopulation += 1;
 
-		std::string zipcode = person->getZipcode();
+		unsigned int zipcode = person->getZipcode();
 
 		if (zoneMap.find(zipcode) == zoneMap.end()){
 			// TODO handle zone undefined
@@ -551,9 +564,9 @@ void HCModel::zoneCensus(){
 			std::cout << "Error: zone not found: " << zipcode << std::endl;
 		}
 
-		ZonePtr & zone = zoneMap[zipcode];
+//		ZonePtr & zone = zoneMap[zipcode];
 
-		std::vector<PersonPtr> & myEffAgents = effectiveZonePopulation[zone];
+		std::vector<PersonPtr> & myEffAgents = effectiveZonePopulation[zipcode];
 
 		// Effective agents are not incarcerated status and have available in or out
 		// degree connections
@@ -567,9 +580,8 @@ void HCModel::zoneCensus(){
 			myEffAgents.push_back(person);
 		}
 
-		std::vector<PersonPtr> & myAgents = zonePopulation[zone];
-
-		myAgents.push_back(person);
+//		std::vector<PersonPtr> & myAgents = zonePopulation[zipcode];
+//		myAgents.push_back(person);
 	}
 }
 

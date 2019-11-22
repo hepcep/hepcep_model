@@ -33,7 +33,7 @@ public:
 	 * Create Persons from the specified file, placing them in the specified map.
 	 */
 	void create_persons(std::map<unsigned int, PersonPtr>& persons,
-			std::vector<HCPersonData> & personData,  std::map<std::string,ZonePtr>& zoneMap,
+			std::vector<HCPersonData> & personData,  std::map<unsigned int,ZonePtr>& zoneMap,
 			NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly);
 
 	void setBurnInPeriod(bool burnInMode, double burnInPeriod);

@@ -41,10 +41,10 @@ protected:
 	// PersonData vector used for generating new HCPerson instances.
 	std::vector<HCPersonData> personData;
 
-	std::map<std::string,ZonePtr> zoneMap;
-	std::map<std::string, std::map<std::string,double>> zoneDistanceMap;
-	std::map<ZonePtr, std::vector<PersonPtr>> zonePopulation;
-	std::map<ZonePtr, std::vector<PersonPtr>> effectiveZonePopulation;
+	std::map<unsigned int,ZonePtr> zoneMap;
+	std::map<unsigned int, std::map<unsigned int,double>> zoneDistanceMap;
+//	std::map<std::string, std::vector<PersonPtr>> zonePopulation;
+	std::map<unsigned int, std::vector<PersonPtr>> effectiveZonePopulation;
 
 	std::map<EnrollmentMethod, double> treatmentEnrollmentProb;
 	std::map<EnrollmentMethod, double> treatmentEnrollmentResidual;

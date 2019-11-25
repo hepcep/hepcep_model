@@ -56,11 +56,13 @@ void run_model(int rank, repast::Properties& props) {
     // TODO change 0 to appropriate value if persons move between
     // processes
     hepcep::HCModel model(props, 0);
+    
+    double rnum = chi_sim::Parameters::instance()->getIntParameter("run.number");
 
     if (rank == 0) {
         std::string time;
         repast::timestamp(time);
-        std::cout << "Schedule Start Time: " << time << std::endl;
+        std::cout << "Run " << rnum << " Schedule Start Time: " << time << std::endl;
     }
 
 
@@ -71,7 +73,7 @@ void run_model(int rank, repast::Properties& props) {
     if (rank == 0) {
         std::string time;
         repast::timestamp(time);
-        std::cout << "End Time: " << time << std::endl;
+        std::cout << "Run " << rnum << " End Time: " << time << std::endl;
     }
 }
 

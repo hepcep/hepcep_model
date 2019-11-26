@@ -168,6 +168,7 @@ bool Immunology::receiveInfectiousDose(double now) {
     double acute_end_time;
     if (! past_recovered) {
         acute_end_time =  now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
+
                 //time_now + RandomHelper.createExponential(1./mean_days_acute_naive).nextDouble();
     } else {
         acute_end_time =  now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_rechallenged).next();
@@ -319,6 +320,7 @@ void Immunology::setHCVInitState(double now, HCVState state, int logging) {
         case HCVState::Value::infectious_acute:
         {
             double acute_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
+
             repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
             EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
                 new MethodFunctor<Immunology, bool>(this, &Immunology::leaveAcute));
@@ -392,7 +394,7 @@ void Immunology::startTreatment(bool adherent, double now) {
 
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     double treatment_end_time = now + repast::Random::instance()->createNormalGenerator(params_->treatment_duration, 1).next();
-
+    
     bool treatment_succeeds = (repast::Random::instance()->nextDouble() < params_->treatment_svr) && adherent;
     EventPtr treatment_end_evt = boost::make_shared<Event>(treatment_end_time, EventFuncType::END_TREATMENT,
         new EndTreatmentFunctor(treatment_succeeds, this));

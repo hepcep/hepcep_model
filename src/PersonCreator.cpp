@@ -25,15 +25,15 @@ PersonCreator::PersonCreator(unsigned int starting_id) : burnInMode(false), burn
 
 // TODO change to return a vector that we can emplace into a map in HCModel
 void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
-		std::vector<HCPersonData> & personData, std::map<std::string,ZonePtr>& zoneMap,
+		std::vector<HCPersonData> & personData, std::map<unsigned int,ZonePtr>& zoneMap,
 		NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly){
 
 	unsigned int count = 1;
-
+    
 	repast::IntUniformGenerator generator = repast::Random::instance()->createUniIntGenerator (0, personData.size() - 1);
 
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-
+    
 	while (count <= person_count) {
 		// Select a random CNEP+ profile from which to create the Person instance
 
@@ -58,6 +58,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			}
 		}
 
+        // TODO use a vector of zone ids insteaf of zone pointers
 		// If the zone is undefined, skip this person data
 		//   TODO should the data be pruned from the list to avoid repeat checks?
 		if (zoneMap.find(data.zipCode) == zoneMap.end()){
@@ -66,7 +67,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		else {
 			auto person = std::make_shared<HCPerson>(id_counter, data);
 
-			person->setZone(zoneMap[data.zipCode]);
+//			person->setZone(zoneMap[data.zipCode]);
 
 			if (earlyCareerOnly){
 				// Force early career PWIDs to be young.  Subtract some time from the

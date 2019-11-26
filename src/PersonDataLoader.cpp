@@ -48,7 +48,7 @@ void loadPersonData(const string& filename, std::vector<HCPersonData> & personDa
 		data.gender = line[GENDER_IDX];
 		data.race = line[RACE_IDX];
 		data.syringeSource = line[SYRINGE_SOURCE_IDX];
-		data.zipCode = line[ZIP_IDX];
+		data.zipCode = std::stoul(line[ZIP_IDX]);
 		data.hcvState = HCVState::valueOf(line[HCV_STATE_IDX]);
 
 		data.drug_inDegree = std::stoul(line[DRUG_REC_DEG_IDX]);

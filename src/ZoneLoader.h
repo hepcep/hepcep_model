@@ -8,6 +8,7 @@
 #define SRC_ZONELOADER_H_
 
 #include <map>
+#include <unordered_map>
 #include <string>
 #include <iostream>
 
@@ -19,10 +20,10 @@ namespace hepcep {
 /**
  * Load zones data from the specified file
  */
-void loadZones(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap);
+void loadZones(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap);
 
-void loadZonesDistances(const std::string& filename, std::map<std::string, ZonePtr> & zonesMap,
-		std::map<std::string, std::map<std::string,double>> & zoneDistanceMap) ;
+void loadZonesDistances(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap,
+		std::unordered_map<unsigned int, std::unordered_map<unsigned int,double>> & zoneDistanceMap) ;
 
 }
 

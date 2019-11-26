@@ -21,7 +21,7 @@ namespace hepcep {
 
 
 
-PersonPtr read_person(NamedListAttribute* node, std::map<std::string,ZonePtr>& zoneMap, double);
+PersonPtr read_person(NamedListAttribute* node, std::map<unsigned int,ZonePtr>& zoneMap, double);
 
 void read_edge(NamedListAttribute* edge_list, NetworkPtr<HCPerson>& net, 
     std::map<unsigned int, std::shared_ptr<HCPerson>>& vertex_map);

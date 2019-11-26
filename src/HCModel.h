@@ -8,7 +8,7 @@
 #ifndef SRC_HCMODEL_H_
 #define SRC_HCMODEL_H_
 
-#include <unordered_set>
+#include <unordered_map>
 
 #include "chi_sim/AbstractModel.h"
 
@@ -41,10 +41,9 @@ protected:
 	// PersonData vector used for generating new HCPerson instances.
 	std::vector<HCPersonData> personData;
 
-	std::map<std::string,ZonePtr> zoneMap;
-	std::map<std::string, std::map<std::string,double>> zoneDistanceMap;
-	std::map<ZonePtr, std::vector<PersonPtr>> zonePopulation;
-	std::map<ZonePtr, std::vector<PersonPtr>> effectiveZonePopulation;
+	std::map<unsigned int,ZonePtr> zoneMap;
+	std::unordered_map<unsigned int, std::unordered_map<unsigned int,double>> zoneDistanceMap;
+	std::map<unsigned int, std::vector<PersonPtr>> effectiveZonePopulation;
 
 	std::map<EnrollmentMethod, double> treatmentEnrollmentProb;
 	std::map<EnrollmentMethod, double> treatmentEnrollmentResidual;
@@ -94,7 +93,7 @@ protected:
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
 	void treatment();
 	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
-			std::unordered_set<PersonPtr>& enrolled, double enrollmentTarget);
+			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
 
 public:
 	HCModel(repast::Properties& props, unsigned int moved_data_size);

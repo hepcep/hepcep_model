@@ -66,6 +66,7 @@ const std::string TREATMENT_SUSCEPTIBILITY = "treatment_susceptibility";
 const std::string TREATMENT_NONADHERENCE = "treatment_nonadherence";
 const std::string TREATMENT_ENROLLMENT_START_DELAY = "treatment_enrollment_start_delay";
 const std::string TREATMENT_ENROLLMENT_PER_PY = "treatment_enrollment_per_PY";
+const std::string TREATMENT_ENROLLMENT_STOP_AT = "treatment_enrollment_stop_at";
 
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_UNBIASED = "treatment_enrollment_probability_unbiased";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_HRP = "treatment_enrollment_probability_HRP";

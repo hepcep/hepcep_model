@@ -606,6 +606,13 @@ void HCModel::burnInEnd() {
 }
 
 void HCModel::treatment(){
+    double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+    
+    if (tick >= stopTreatmentTime){
+        return;
+    }
+    
 	double treatmentMeanDaily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
 
 	PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(treatmentMeanDaily));

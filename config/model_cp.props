@@ -1,7 +1,7 @@
 # Properties file for checkpointing at simulation end before treatment begins
 #
 
-stop.at = 11315.999 # 7665.999 # 8030 # 4015.999999 
+stop.at = 4015.999999 # 8030 # 13505 # 8030 #4380 # 10yr + 1yr burn ins
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -19,7 +19,7 @@ arriving.persons.output.file = arriving_agents.csv
 
 # 0 for init network, n to log at tick n, and END to log at end
 # comment out for no net logging
-#log.network.at = 0 # END
+log.network.at = END
 
 resume.from.saved.net = false
 #resume.from.saved.net.file = ./data/net.gml
@@ -32,7 +32,6 @@ log.events = NONE
 # Frequently changed parameters
 burn_in_days = 365
 treatment_enrollment_start_delay = 3650
-treatment_enrollment_stop_at = 7666
 initial_pwid_count = 32000
 
 treatment_enrollment_per_PY = 0.05

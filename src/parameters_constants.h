@@ -24,6 +24,7 @@ const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 
 const std::string RESUME_FROM_SAVED = "resume.from.saved.net";
 const std::string RESUME_FROM_SAVED_FILE = "resume.from.saved.net.file";
+const std::string RESUME_FROM_SAVED_RNG_FILE = "resume.from.saved.rng.file";
 
 //const std::string LOG_INITIAL_NETWORK = "log.initial.network";
 const std::string LOG_NETWORK_AT = "log.network.at";

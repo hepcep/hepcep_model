@@ -33,6 +33,26 @@
 
 namespace hepcep {
 
+class WriteRNG : public repast::Functor {
+	private:
+		std::string fname_;
+	
+	public:
+		WriteRNG(const std::string& fname);
+		virtual ~WriteRNG() {}
+		void operator()();
+};
+
+WriteRNG::WriteRNG(const std::string& fname) : fname_(fname) {}
+
+void WriteRNG::operator()() {
+	std::ofstream out;
+	// this will rename to avoid overwrites
+    open_ofstream(fname_, out);
+	out << repast::Random::instance()-> engine();
+	out.close();
+}
+
 class WriteNet : public repast::Functor {
 	private:
 		std::string fname_;
@@ -86,6 +106,13 @@ void init_stats(const std::string& output_directory, int run_number) {
 	Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, filter, run_number);
 }
 
+void reset_rng_from_file(const std::string& fname) {
+	std::ifstream ifs(fname);
+	boost::mt19937 engine;
+	ifs >> engine;
+	repast::Random::initialize(engine);
+}
+
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					AbsModelT(moved_data_size, props),
 					run(std::stoi(props.getProperty(RUN))) ,
@@ -102,12 +129,12 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     double rnum = chi_sim::Parameters::instance()->getIntParameter("run.number");
     
     // Sample the Repast random instance lots of times to check for proper seeding.
-    double d = 0;
-    for(int i=0; i<1E5; i++){
-        d = repast::Random::instance()->nextDouble();
-    }
+    //double d = 0;
+    //for(int i=0; i<1E5; i++){
+    //    d = repast::Random::instance()->nextDouble();
+    //}
     
-    std::cout << "HepCEP Model Initialization... Run # " << rnum << ", Random seed: " << seed << ", rand = " << d << std::endl;
+    std::cout << "HepCEP Model Initialization... Run # " << rnum << ", Random seed: " << seed  << std::endl;
     
 	// Initialize statistical distributions used in the model.
 	double attritionRate = chi_sim::Parameters::instance()->getDoubleParameter(ATTRITION_RATE);
@@ -187,6 +214,10 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	if (resume) {
         burnInDays = 0;
 		std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
+		if ( chi_sim::Parameters::instance()->contains(RESUME_FROM_SAVED_RNG_FILE)) {
+			std::cout << "Initializing repast::Random from " << chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_RNG_FILE) << std::endl;
+			reset_rng_from_file(chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_RNG_FILE));
+		}
 		double serialized_at;
 		network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
 		unsigned int max_id = 0;
@@ -260,14 +291,21 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 				double at =  chi_sim::Parameters::instance()->getDoubleParameter("stop.at");
 				std::string fname(output_directory + "/net_" + item + ".gml");
 				runner.scheduleEndEvent(boost::make_shared<WriteNet>(fname, at, network));
+				std::string rng_fname(output_directory + "/net_rng_" + item + ".sav");
+				runner.scheduleEndEvent(boost::make_shared<WriteRNG>(rng_fname));
 			} else {
 				double at = std::stod(item);
 				if (at == 0) {
 					std::string fname(output_directory + "/net_initial.gml");
 					write_network(fname, 0, network, &write_person, &write_edge);
+					std::string rng_fname(output_directory + "/net_rng_initial.sav");
+					WriteRNG write_rng(rng_fname);
+					write_rng();
 				} else {
 					std::string fname(output_directory + "/net_" + item + ".gml");
 					runner.scheduleEvent(at + .1, boost::make_shared<WriteNet>(fname, at, network));
+					std::string rng_fname(output_directory + "/net_rng_" + item + ".sav");
+					runner.scheduleEvent(at + .1, boost::make_shared<WriteRNG>(rng_fname));
 				}
 			}
 		}
@@ -278,8 +316,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	Statistics::instance()->recordStats(0, run, local_persons);
     
     // Random stream sanity check
-    d = repast::Random::instance()->nextDouble();
-    std::cout << "HepCEP Model Initialization Complete. Run # " << rnum << ", Random seed: " << seed << ", rand = " << d << std::endl;
+    // d = repast::Random::instance()->nextDouble();
+    std::cout << "HepCEP Model Initialization Complete. Run # " << rnum << ", Random seed: " << seed << std::endl;
 }
 
 HCModel::~HCModel() {}
@@ -287,6 +325,7 @@ HCModel::~HCModel() {}
 void HCModel::atEnd() {
     Statistics::instance()->close();
 }
+
 
 void HCModel::step() {
 //    auto t1 = std::chrono::high_resolution_clock::now();

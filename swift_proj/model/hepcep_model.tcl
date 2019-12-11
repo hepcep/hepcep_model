@@ -20,7 +20,7 @@ namespace eval hepcep_model {
       # Look up MPI information
       set comm_int [ turbine::c::task_comm_int ]
       set rank [ adlb::rank $comm_int ]
-      set comm [ turbine_get_task_comm ]
+      # set comm [ turbine_get_task_comm ]
 
       #if { $rank == 0 } {
       #  set world_rank [ adlb::rank ]
@@ -29,7 +29,7 @@ namespace eval hepcep_model {
       #}
 
       # Run the user code
-      set z_value [ hepcep_model_run $comm $config $params ]
+      set z_value [ hepcep_model_run $comm_int $config $params ]
 
       if { $rank == 0 } {
       	store_string $z $z_value

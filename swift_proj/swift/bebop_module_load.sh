@@ -5,4 +5,4 @@ module load anaconda3/5.2.0
 module load ncurses/6.1-gz6u3n5
 module load jdk
 . /lcrc/project/EMEWS/bebop/repos/spack/share/spack/setup-env.sh
-spack load stc
+spack load stc@master

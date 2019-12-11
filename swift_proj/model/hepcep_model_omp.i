@@ -6,10 +6,5 @@
 
 
 %{
-  #include "mpi.h"
   #include "../src/run.h"
-
-  typedef struct ompi_communicator_t* MPI_Comm;
 %}
-
-typedef struct ompi_communicator_t* MPI_Comm;

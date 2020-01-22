@@ -45,7 +45,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
-		deactivateAt(-1.0) {
+		deactivateAt(-1.0), opiod_treatment() {
 
 
 	immunology = std::make_shared<Immunology>(this);

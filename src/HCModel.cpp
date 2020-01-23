@@ -609,7 +609,7 @@ void HCModel::treatment(){
     double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
     
-    if (tick >= stopTreatmentTime){
+    if (stopTreatmentTime !=0 && tick >= stopTreatmentTime){
         return;
     }
     

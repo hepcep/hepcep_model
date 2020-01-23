@@ -78,7 +78,7 @@ burninDays <- 365
 days <- seq((burninDays+365), rows, 365)
 
 startYear <- 2010   # First year of simulation
-endYear <- 2030    
+endYear <- 2060    
 #years <- seq(startYear, (startYear + length(days) - 1))    # list of all sim years in data
 
 # Convert the simulation day tick to the simulated year
@@ -459,7 +459,7 @@ incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence),
 #incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence), std=std(incidence)), by=list(Year,treatment_enrollment_per_PY, treatment_svr)]
 
 incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
-incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0.025,0.05,0.075, 0.1)]
+incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0, 0.025,0.05,0.075, 0.1)]
 
 # The baseline normalization is the no-treatment mean in 2019
 baseline <- incidenceSummaryBaseline[Year==2019]$mean
@@ -475,7 +475,7 @@ z <- 1.960
 
 p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=2) +
-#  scale_x_continuous(limits = c(2019.9,2030.1), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
+  scale_x_continuous(limits = c(2019.9,2060)) + #, breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
 #  scale_y_continuous(limits = c(0,1.8)) +
  
 #  facet_wrap(vars(treatment_svr)) +

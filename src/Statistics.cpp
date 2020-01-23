@@ -23,18 +23,19 @@ const std::string RNA_PREVALENCE = "RNApreval";
 const std::string FRACTION = "fraction";
 
 void EventCounts::reset() {
-	activations_daily = cured_daily = losses_daily = aggregate_posttreat = incidence_daily =
-			treatment_recruited_daily = aggregate_courses = 0;
+	activations_daily = cured_daily = losses_daily = aggregate_posttreat = 
+        incidence_daily = incidence_daily_chronic =	treatment_recruited_daily = 
+        aggregate_courses = 0;
 }
 
 void EventCounts::writeHeader(FileOut& out) {
-	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,treatment_recruited_daily,aggregate_courses";
+	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,incidence_daily_chronic,treatment_recruited_daily,aggregate_courses";
 }
 
 void EventCounts::write(FileOut& out) {
 	out << "," << activations_daily << "," << cured_daily << "," << aggregate_posttreat << "," <<
-			losses_daily << "," << incidence_daily << "," << treatment_recruited_daily <<
-			"," << aggregate_courses;
+			losses_daily << "," << incidence_daily << "," << incidence_daily_chronic << "," << 
+            treatment_recruited_daily << "," << aggregate_courses;
 }
 
 void MeanStats::calcMean() {
@@ -264,6 +265,8 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 		++event_counts.aggregate_posttreat;
 	} else if (logType == LogType::INFECTED) {
 		++event_counts.incidence_daily;
+    } else if (logType == LogType::CHRONIC) {
+		++event_counts.incidence_daily_chronic;
 	} else if (logType == LogType::STARTED_TREATMENT) {
 		++event_counts.treatment_recruited_daily;
 		++event_counts.aggregate_courses;

@@ -47,7 +47,7 @@ void loadZones(const std::string& filename, std::map<unsigned int, ZonePtr> & zo
  * Creates a map of zipcode to zipcode distances from the provided filename.
  */
 void loadZonesDistances(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap,
-		std::map<unsigned int, std::map<unsigned int,double>> & zoneDistanceMap) {
+		std::unordered_map<unsigned int, std::unordered_map<unsigned int,double>> & zoneDistanceMap) {
 
 	SVReader reader(filename, ',');
 	std::vector<std::string> line;
@@ -63,7 +63,7 @@ void loadZonesDistances(const std::string& filename, std::map<unsigned int, Zone
 		unsigned int sourceZip = std::stoul(line[0]);  // First zip is the source zip
 
 		// This map holds the distance to every other zip column.
-		std::map<unsigned int, double> distMap;
+		std::unordered_map<unsigned int, double> distMap;
 
 		int rowlen = line.size();
 		for (int i=1; i<rowlen; i++){            // start i=1

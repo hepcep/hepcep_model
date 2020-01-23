@@ -24,7 +24,7 @@ struct LogEvent {
 struct EventCounts {
 
   unsigned int activations_daily, cured_daily, aggregate_posttreat,
-        losses_daily, incidence_daily, treatment_recruited_daily,
+        losses_daily, incidence_daily, incidence_daily_chronic, treatment_recruited_daily,
          aggregate_courses;
 
   void reset();

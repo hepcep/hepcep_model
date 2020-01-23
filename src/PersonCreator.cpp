@@ -67,7 +67,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 		else {
 			auto person = std::make_shared<HCPerson>(id_counter, data);
 
-//			person->setZone(zoneMap[data.zipCode]);
+			person->setZone(zoneMap[data.zipCode]);
 
 			if (earlyCareerOnly){
 				// Force early career PWIDs to be young.  Subtract some time from the

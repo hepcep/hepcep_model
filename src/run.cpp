@@ -16,7 +16,7 @@ namespace hepcep {
 
 const std::string OUTPUT_DIRECTORY = "output.directory";
 
-void parse_parameters(int rank, repast::Properties& props, const std::string& parameters) {
+void parse_parameters(repast::Properties& props, const std::string& parameters) {
     boost::char_separator<char> tab_sep("\t");
     boost::tokenizer<boost::char_separator<char> > tab_tok(parameters, tab_sep);
 
@@ -56,11 +56,13 @@ void run_model(int rank, repast::Properties& props) {
     // TODO change 0 to appropriate value if persons move between
     // processes
     hepcep::HCModel model(props, 0);
+    
+    double rnum = chi_sim::Parameters::instance()->getIntParameter("run.number");
 
     if (rank == 0) {
         std::string time;
         repast::timestamp(time);
-        std::cout << "Schedule Start Time: " << time << std::endl;
+        std::cout << "Run " << rnum << " Schedule Start Time: " << time << std::endl;
     }
 
 
@@ -71,7 +73,7 @@ void run_model(int rank, repast::Properties& props) {
     if (rank == 0) {
         std::string time;
         repast::timestamp(time);
-        std::cout << "End Time: " << time << std::endl;
+        std::cout << "Run " << rnum << " End Time: " << time << std::endl;
     }
 }
 
@@ -90,7 +92,7 @@ std::string hepcep_model_run(MPI_Comm comm, const std::string& props_file, const
         boost::mpi::communicator boost_comm(comm, boost::mpi::comm_attach);
 
         repast::Properties props(props_file);
-        parse_parameters(boost_comm.rank(), props, parameters);
+        parse_parameters(props, parameters);
 
         //std::cout << rank << ": " << props.getProperty("incubation.duration.max") << std::endl;
         repast::RepastProcess::init("", &boost_comm);

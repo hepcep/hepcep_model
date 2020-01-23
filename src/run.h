@@ -10,11 +10,16 @@
 
 #include <string>
 
+#include "repast_hpc/Properties.h"
+
 #include "mpi.h"
 
 
 
 namespace hepcep {
+
+void parse_parameters(repast::Properties& props, const std::string& parameters);
+
 /**
  * Runs the model using the specified configuration file and parameters.
  *

@@ -74,8 +74,9 @@ protected:
 	double lastExposureDate;
 	double lastInfectionDate;
 	double deactivateAt;
-
-	ZonePtr myZone;
+    double injectionIntensityMultiplier;
+	
+    ZonePtr myZone;
 	OpiodTreatment opiod_treatment;
 
 	std::shared_ptr<Immunology> immunology;

@@ -26,8 +26,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunolo
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
 		deactivateAt(-1.0), 
-        immunology(imm),
-        injectionIntensityMultiplier(1.0)         
+        injectionIntensityMultiplier(1.0),
+        immunology(imm)        
 {
 	age = data.age;
 	ageStarted = data.ageStarted;

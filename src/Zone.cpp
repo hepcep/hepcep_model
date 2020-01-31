@@ -8,11 +8,11 @@
 
 namespace hepcep {
 
-Zone::Zone(unsigned int zipcode) : zipcode_(zipcode), treatment_map() {
+Zone::Zone(unsigned int zipcode) : treatment_map(), zipcode_(zipcode) {
 
 }
 
-Zone::Zone(unsigned int zipcode, double lat, double lon) : zipcode_(zipcode), lat_(lat), lon_(lon), treatment_map() {
+Zone::Zone(unsigned int zipcode, double lat, double lon) : treatment_map(), zipcode_(zipcode), lat_(lat), lon_(lon) {
 
 }
 

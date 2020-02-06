@@ -694,57 +694,70 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
             }
         }
     }
-        
-	/* unsigned int next_candidate_idx = 0;
-	if(enrMethod == EnrollmentMethod::UNBIASED) {
-		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
-			PersonPtr person = candidates[next_candidate_idx];
-			if(person->getTestedHCV()) {
-				enrolled.insert(person);
-			}
-		}
-	} */
-    
-	/* else if(enrMethod == EnrollmentMethod::HRP) {
-		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
-			PersonPtr person = candidates[next_candidate_idx];
-			if(person->getTestedHCV() && person->isInHarmReduction()) {
-				enrolled.insert(person);
-			}
-		}
+	else if(enrMethod == EnrollmentMethod::HRP) {
+        for (iter = candidates.begin(); iter != candidates.end();   ){
+            PersonPtr person = *iter;
+                         
+            // Continue enrolling while enrollment target is not met.
+            if (enrolled.size() < enrollmentTarget){
+                // HCV test returns true if person can be treated now / only enroll HRP
+                if(person->getTestedHCV() && person->isInHarmReduction()) {  
+                    enrolled.push_back(person);       // Enroll person
+                    iter = candidates.erase(iter);    // Remove person from candidates
+                }
+                else {
+                    ++iter;
+                }
+            }
+            // Otherwise the enrollment target is met, so stop enrolling.
+            else{
+                break;
+            }
+        }
 	}
 	else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
-		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
-			PersonPtr person = candidates[next_candidate_idx];
-			if(! person->getTestedHCV()) {
-				continue;
-			}
-			enrolled.insert(person);
-
-			// Try to enroll all connected persons
-
-			std::vector<EdgePtrT<HCPerson>> inEdges;
-			std::vector<EdgePtrT<HCPerson>> outEdges;
-
-			network->inEdges(person,inEdges);
-			network->outEdges(person,outEdges);
-
-			for (EdgePtrT<HCPerson> edge : inEdges){
-				PersonPtr other = edge->v1();   // Other agent is edge v1
-				if (other->getTestedHCV()){
-					enrolled.insert(other);
-				}
-			}
-			for (EdgePtrT<HCPerson> edge : outEdges){
-				PersonPtr other = edge->v2();  // Other agent is edge v2
-				if (other->getTestedHCV()){
-					enrolled.insert(other);
-				}
-			}
-		}
+        for (iter = candidates.begin(); iter != candidates.end();   ){
+            PersonPtr person = *iter;
+                         
+            // Continue enrolling while enrollment target is not met.
+            if (enrolled.size() < enrollmentTarget){
+                // HCV test returns true if person can be treated now
+                if(person->getTestedHCV() && person->isInHarmReduction()) {  
+                    enrolled.push_back(person);       // Enroll person
+                    iter = candidates.erase(iter);    // Remove person from candidates
+                    
+                    // Try to enroll all connected persons
+                    std::vector<EdgePtrT<HCPerson>> inEdges;
+                    std::vector<EdgePtrT<HCPerson>> outEdges;
+                    
+                    network->inEdges(person,inEdges);
+                    network->outEdges(person,outEdges);
+                    
+                    for (EdgePtrT<HCPerson> edge : inEdges){
+                        PersonPtr other = edge->v1();   // Other agent is edge v1
+                        if (other->getTestedHCV()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                    for (EdgePtrT<HCPerson> edge : outEdges){
+                        PersonPtr other = edge->v2();  // Other agent is edge v2
+                        if (other->getTestedHCV()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                }
+                else {
+                    ++iter;
+                }
+            }
+            // Otherwise the enrollment target is met, so stop enrolling.
+            else{
+                break;
+            }
+        }
 	}
 	else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {
-		for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
+		/* for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
 
 			double roll = repast::Random::instance()->nextDouble();
 			int rand_idx = std::round(roll * (candidates.size()-1));
@@ -780,8 +793,54 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
 					}
 				}
 			}
-		}
-	} */
+		} */
+        
+        
+        for (iter = candidates.begin(); iter != candidates.end();   ){
+            PersonPtr person = *iter;
+                         
+            // Continue enrolling while enrollment target is not met.
+            if (enrolled.size() < enrollmentTarget){
+                if(person->getTestedHCV()) {          // HCV test returns true if person can be treated now
+                    enrolled.push_back(person);       // Enroll person
+                    iter = candidates.erase(iter);    // Remove person from candidates
+
+                    // Try to enroll connected persons
+                    if(enrMethod == EnrollmentMethod::INPARTNER) {
+                        std::vector<EdgePtrT<HCPerson>> inEdges;
+                        network->inEdges(person,inEdges);
+
+                        for (EdgePtrT<HCPerson> edge : inEdges){
+                            PersonPtr other = edge->v1();   // Other agent is edge v1
+                            if (other->getTestedHCV()){
+                                enrolled.push_back(other);   // Enroll person
+                                break; //only one in-edge person
+                            }
+                        }
+                    }
+                    else {  // outpartner
+                        std::vector<EdgePtrT<HCPerson>> outEdges;
+                        network->outEdges(person,outEdges);
+
+                        for (EdgePtrT<HCPerson> edge : outEdges){
+                            PersonPtr other = edge->v2();  // Other agent is edge v2
+                            if (other->getTestedHCV()){
+                                enrolled.push_back(other);   // Enroll person
+                                break; //only one out-edge person
+                            }
+                        }
+                    }
+                }
+                else {
+                    ++iter;
+                }
+            }
+            // Otherwise the enrollment target is met, so stop enrolling.
+            else{
+                break;
+            }
+        }
+	}
 }
 
 // random generator function used in std lib functions that need a random generator

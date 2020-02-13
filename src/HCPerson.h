@@ -109,6 +109,7 @@ public:
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
 	void reportStatus();
 	void startTreatment();
+    void startOpioidTreatment();
 	void endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network);
 
 	unsigned int getDrugReceptDegree() const;
@@ -144,6 +145,8 @@ public:
 
 	double getDeactivateAt() const;
 
+    bool isInOpioidTreatment() const;
+    
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 
 };

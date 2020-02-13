@@ -48,6 +48,9 @@ protected:
 	std::map<EnrollmentMethod, double> treatmentEnrollmentProb;
 	std::map<EnrollmentMethod, double> treatmentEnrollmentResidual;
 
+    std::map<DrugName, double> opioidTreatmentEnrollmentProb;
+    std::map<DrugName, double> opioidTreatmentEnrollmentResidual;
+    
 	int totalIDUPopulation = 0;
 
 	double interactionHomeCutoff;
@@ -55,6 +58,7 @@ protected:
 	double interactionRateExzone;
 	double interactionRateConst;
 	double treatmentEnrollPerPY;
+    double opioidTreatmentEnrollPerPY;
 	double linkingTimeWindow;
 	double homophily;
     double burnInDays;
@@ -91,8 +95,12 @@ protected:
 	void zoneCensus();
 	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
-	void treatment();
+	void daa_treatment();
+    void opioid_treatment();
 	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
+			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
+            
+    void opioidTreatmentSelection(DrugName drug, std::vector<PersonPtr>& candidates,
 			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
 
 public:

@@ -74,6 +74,12 @@ const std::string TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK = "treatment_enro
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_INPARTNER = "treatment_enrollment_probability_inpartner";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_OUTPARTNER = "treatment_enrollment_probability_outpartner";
 
+const std::string OPIOID_TREATMENT_ENROLLMENT_START_DELAY = "opioid_treatment_enrollment_start_delay";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PER_PY  = "opioid_treatment_enrollment_per_PY";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_METHADONE = "opioid_treatment_probability_methadone";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_NALTREXONE = "opioid_treatment_probability_naltrexone";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_BUPRENORPHINE = "opioid_treatment_probability_buprenorphine";
+
 }
 
 

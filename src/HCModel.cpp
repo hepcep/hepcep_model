@@ -94,7 +94,9 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 					zoneDistanceMap(),
 					effectiveZonePopulation(),
 					treatmentEnrollmentProb(),
-					treatmentEnrollmentResidual()
+					treatmentEnrollmentResidual(),
+                    opioidTreatmentEnrollmentProb(),
+                    opioidTreatmentEnrollmentResidual()
 {
 
 	// TODO put all the data init in a separate method
@@ -122,7 +124,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
 	interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
 	interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
-	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+//	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
     
@@ -145,6 +147,18 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	treatmentEnrollmentResidual[EnrollmentMethod::FULLNETWORK] = 0.;
 	treatmentEnrollmentResidual[EnrollmentMethod::INPARTNER] = 0.;
 	treatmentEnrollmentResidual[EnrollmentMethod::OUTPARTNER] = 0.;
+    
+    double opioid_treatment_enrollment_probability_methadone = chi_sim::Parameters::instance()->getDoubleParameter(OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_METHADONE);
+	double opioid_treatment_enrollment_probability_naltrexone = chi_sim::Parameters::instance()->getDoubleParameter(OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_NALTREXONE);
+	double opioid_treatment_enrollment_probability_buprenorphine = chi_sim::Parameters::instance()->getDoubleParameter(OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_BUPRENORPHINE);
+    
+    opioidTreatmentEnrollmentProb[DrugName::METHADONE] = opioid_treatment_enrollment_probability_methadone;
+    opioidTreatmentEnrollmentProb[DrugName::NALTREXONE] = opioid_treatment_enrollment_probability_naltrexone;
+    opioidTreatmentEnrollmentProb[DrugName::BUPRENORPHINE] = opioid_treatment_enrollment_probability_buprenorphine;
+    
+    opioidTreatmentEnrollmentResidual[DrugName::METHADONE] = 0.;
+	opioidTreatmentEnrollmentResidual[DrugName::NALTREXONE] = 0.;
+	opioidTreatmentEnrollmentResidual[DrugName::BUPRENORPHINE] = 0.;
 
 	string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
     
@@ -237,14 +251,22 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 	double linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
 	runner.scheduleEvent(start_at + 0.2, linkingTimeWindow, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::performLinking)));
 
-	// Treatment schedule
-	
-	double treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+	// DAA Treatment schedule
+	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
 	double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
 	double enrollmentStart = burnInDays + treatmentStartDelay;
 
 	if (treatmentEnrollPerPY > 0){
-		runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::treatment)));
+		runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::daa_treatment)));
+	}
+    
+    // Opioid Treatment schedule
+	opioidTreatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(OPIOID_TREATMENT_ENROLLMENT_PER_PY);
+	double opioidTreatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(OPIOID_TREATMENT_ENROLLMENT_START_DELAY);
+	double opioidEnrollmentStart = burnInDays + opioidTreatmentStartDelay;
+
+	if (opioidTreatmentEnrollPerPY > 0){
+		runner.scheduleEvent(start_at + opioidEnrollmentStart + 0.4, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::opioid_treatment)));
 	}
 
 	// Log the initial network topology
@@ -604,8 +626,11 @@ void HCModel::burnInEnd() {
 
 	std::cout << "**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
-
-void HCModel::treatment(){
+/*
+ * DAA Treatment Enrollment
+ *
+ */
+void HCModel::daa_treatment(){
     double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
     
@@ -756,46 +781,7 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
             }
         }
 	}
-	else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {
-		/* for(; (enrolled.size() < enrollmentTarget) && (next_candidate_idx < candidates.size()); ++next_candidate_idx) {
-
-			double roll = repast::Random::instance()->nextDouble();
-			int rand_idx = std::round(roll * (candidates.size()-1));
-
-			PersonPtr person = candidates[rand_idx];
-			if(! person->getTestedHCV()) {
-				continue;
-			}
-			enrolled.insert(person);
-
-
-			if(enrMethod == EnrollmentMethod::INPARTNER) {
-				std::vector<EdgePtrT<HCPerson>> inEdges;
-				network->inEdges(person,inEdges);
-
-				for (EdgePtrT<HCPerson> edge : inEdges){
-					PersonPtr other = edge->v1();   // Other agent is edge v1
-					if (other->getTestedHCV()){
-						enrolled.insert(other);
-						break; //only one
-					}
-				}
-			}
-			else {  // outpartner
-				std::vector<EdgePtrT<HCPerson>> outEdges;
-				network->outEdges(person,outEdges);
-
-				for (EdgePtrT<HCPerson> edge : outEdges){
-					PersonPtr other = edge->v2();  // Other agent is edge v2
-					if (other->getTestedHCV()){
-						enrolled.insert(other);
-						break; //only one
-					}
-				}
-			}
-		} */
-        
-        
+	else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {        
         for (iter = candidates.begin(); iter != candidates.end();   ){
             PersonPtr person = *iter;
                          
@@ -841,6 +827,102 @@ void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
             }
         }
 	}
+}
+
+/*
+ * Opioid Treatment Enrollment
+ *
+ */
+void HCModel::opioid_treatment(){
+    
+	double treatmentMeanDaily = totalIDUPopulation * opioidTreatmentEnrollPerPY / 365.0;
+
+	PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(treatmentMeanDaily));
+	repast::DefaultNumberGenerator<PoissonGen> gen(treat_gen);
+
+	double todaysTotalEnrollment = gen.next();
+
+	if (todaysTotalEnrollment <= 0) {
+		return; //do nothing.  occurs when we previously over-enrolled
+	}
+
+	std::vector<PersonPtr> candidates;
+	for (auto entry : local_persons) {
+			PersonPtr & person = entry.second;
+
+			if (person->isTreatable()){
+				candidates.push_back(person);
+			}
+	}
+
+	if (candidates.size() == 0){
+		return;
+	}
+    
+    // Drugs that are available for treatment
+    //   TODO perhaps we can provide these as model inputs 
+    std::vector<DrugName> availableDrugs;
+    availableDrugs.push_back(DrugName::METHADONE);
+    availableDrugs.push_back(DrugName::NALTREXONE);
+    availableDrugs.push_back(DrugName::BUPRENORPHINE);
+
+	for (DrugName drug : availableDrugs){
+		double enrollmentTarget = todaysTotalEnrollment *
+				opioidTreatmentEnrollmentProb[drug] + opioidTreatmentEnrollmentResidual[drug];
+
+		opioidTreatmentEnrollmentResidual[drug] = enrollmentTarget;  //update.  might be fractional increase
+
+		if(enrollmentTarget < 1) {
+			continue;
+		}
+
+		// Use Repast random to ensure repeatability
+//		repast::shuffleList(candidates);
+
+		// TODO maybe figure out how to use random_shuffle with the Repast generator
+
+		std::random_shuffle(candidates.begin(), candidates.end(), myrandom);
+
+        // Person IDs to be enrolled
+		std::vector<PersonPtr> enrolled;
+
+        // TODO simple unbiased
+		opioidTreatmentSelection(drug, candidates, enrolled, enrollmentTarget);
+
+		//carried over from day to the next day.  this can give below 0
+		opioidTreatmentEnrollmentResidual[drug] = (enrollmentTarget - enrolled.size());
+
+		for (PersonPtr person: enrolled){
+			person->startOpioidTreatment();
+		}
+	}
+}
+
+void HCModel::opioidTreatmentSelection(DrugName drug,
+		std::vector<PersonPtr>& candidates, std::vector<PersonPtr>& enrolled,
+		double enrollmentTarget){
+
+    std::vector<PersonPtr>::iterator iter;
+        
+        for (iter = candidates.begin(); iter != candidates.end();   ){
+            PersonPtr person = *iter;
+                         
+            // Continue enrolling while enrollment target is not met.
+            if (enrolled.size() < enrollmentTarget){
+                if(!person->isInOpioidTreatment()) {          
+                    enrolled.push_back(person);       // Enroll person
+                    iter = candidates.erase(iter);    // Remove person from candidates
+                }
+                else {
+                    ++iter;
+                }
+            }
+            // Otherwise the enrollment target is met, so stop enrolling.
+            else{
+                break;
+            }
+        }
+    
 }
 
 // random generator function used in std lib functions that need a random generator

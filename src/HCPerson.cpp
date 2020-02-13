@@ -254,6 +254,11 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 	return true;
 }
 
+void HCPerson::startOpioidTreatment() {
+    
+    // TODO Opioid Treatment
+}
+
 void HCPerson::startTreatment() {
 	double treatmentNonadherence = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_NONADHERENCE);
 	double roll = repast::Random::instance()->nextDouble();
@@ -404,6 +409,11 @@ void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 	immunology->setHCVInitState(tick,hcvState,0);
 }
 
+bool HCPerson::isInOpioidTreatment() const {
+//	return opiod_treatment.inTreatment();
+
+    return false;
+}
 
 
 } /* namespace hepcep */

@@ -23,7 +23,7 @@
 #include "Network.h"
 #include "Race.h"
 #include "Zone.h"
-#include "OpiodTreatment.h"
+#include "OpioidTreatment.h"
 
 namespace hepcep {
 
@@ -77,7 +77,7 @@ protected:
     double injectionIntensityMultiplier;
 	
     ZonePtr myZone;
-	OpiodTreatment opiod_treatment;
+	OpioidTreatment opioid_treatment;
 
 	std::shared_ptr<Immunology> immunology;
 

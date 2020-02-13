@@ -3,16 +3,16 @@
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Schedule.h"
 
-#include "OpiodTreatment.h"
-#include "OpiodTreatmentDrug.h"
+#include "OpioidTreatment.h"
+#include "OpioidTreatmentDrug.h"
 #include "Zone.h"
 
 namespace hepcep {
 
-class NoTreatment : public OpiodTreatmentImpl {
+class NoTreatment : public OpioidTreatmentImpl {
 
 public:
-    NoTreatment() : OpiodTreatmentImpl() {}
+    NoTreatment() : OpioidTreatmentImpl() {}
     virtual ~NoTreatment() {}
 
     bool run() override {
@@ -24,14 +24,14 @@ public:
     }
 };
 
-class DrugTreatment : public OpiodTreatmentImpl {
+class DrugTreatment : public OpioidTreatmentImpl {
 
 private:
-    std::shared_ptr<OpiodTreatmentDrug> drug_;
+    std::shared_ptr<OpioidTreatmentDrug> drug_;
     std::shared_ptr<TreatmentScenario> scenario_;
 
 public:
-    DrugTreatment(std::shared_ptr<OpiodTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario);
+    DrugTreatment(std::shared_ptr<OpioidTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario);
     virtual ~DrugTreatment() {}
 
     bool run() override;
@@ -46,26 +46,26 @@ bool DrugTreatment::run() {
     return false;
 }
 
-DrugTreatment::DrugTreatment(std::shared_ptr<OpiodTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario) : 
+DrugTreatment::DrugTreatment(std::shared_ptr<OpioidTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario) : 
     drug_{drug}, scenario_{scenario} {}
 
 
-OpiodTreatment::OpiodTreatment() : treatment{new NoTreatment()} {}
+OpioidTreatment::OpioidTreatment() : treatment{new NoTreatment()} {}
 
-OpiodTreatment::~OpiodTreatment() {
+OpioidTreatment::~OpioidTreatment() {
     delete treatment;
 }
 
-void OpiodTreatment::reset() {
+void OpioidTreatment::reset() {
     delete treatment;
     treatment = new NoTreatment();
 }
 
-bool OpiodTreatment::inTreatment() {
+bool OpioidTreatment::inTreatment() {
     return treatment->inTreatment();
 }
 
-void OpiodTreatment::reset(std::shared_ptr<OpiodTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario, 
+void OpioidTreatment::reset(std::shared_ptr<OpioidTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario, 
     double duration) {
 
     delete treatment;
@@ -73,7 +73,7 @@ void OpiodTreatment::reset(std::shared_ptr<OpiodTreatmentDrug> drug, std::shared
 
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     double tick = runner.currentTick();
-    runner.scheduleEvent(tick + duration, repast::Schedule::FunctorPtr(new repast::MethodFunctor<OpiodTreatment>(this, &OpiodTreatment::reset)));
+    runner.scheduleEvent(tick + duration, repast::Schedule::FunctorPtr(new repast::MethodFunctor<OpioidTreatment>(this, &OpioidTreatment::reset)));
 
 }
 

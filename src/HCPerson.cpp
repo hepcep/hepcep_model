@@ -49,7 +49,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		lastInfectionDate(-1.0),
 		deactivateAt(-1.0),
         injectionIntensityMultiplier(1.0),         
-        opiod_treatment() {
+        opioid_treatment() {
 
 
 	immunology = std::make_shared<Immunology>(this);
@@ -410,7 +410,7 @@ void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 }
 
 bool HCPerson::isInOpioidTreatment() const {
-//	return opiod_treatment.inTreatment();
+//	return opioid_treatment.inTreatment();
 
     return false;
 }

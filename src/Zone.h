@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "OpiodTreatmentDrug.h"
+#include "OpioidTreatmentDrug.h"
 
 namespace hepcep {
 

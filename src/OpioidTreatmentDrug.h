@@ -1,11 +1,11 @@
-#ifndef SRC_OPIODTREATMENTDRUG_H
-#define SRC_OPIODTREATMENTDRUG_H
+#ifndef SRC_OPIOIDTREATMENTDRUG_H
+#define SRC_OPIOIDTREATMENTDRUG_H
 
 namespace hepcep {
 
 enum class DrugName {METHADONE, NALTREXONE, BUPRENORPHINE};
 
-class OpiodTreatmentDrug {
+class OpioidTreatmentDrug {
 
 private:
     double effectiveness_, ease_of_use_;
@@ -13,8 +13,8 @@ private:
 public:
     // ease_of_use is meant to capture that taking it once a month
     // is easier (and so more effective) that having to take it every day
-    OpiodTreatmentDrug(double effectiveness, double ease_of_use);
-    virtual ~OpiodTreatmentDrug() {}
+    OpioidTreatmentDrug(double effectiveness, double ease_of_use);
+    virtual ~OpioidTreatmentDrug() {}
 
     // TODO: Some combination of effectiveness and easy of use
     // that applies to all drugs, or make virtual if difference is
@@ -23,7 +23,7 @@ public:
     virtual DrugName name() const = 0;
 };
 
-class Methadone : public OpiodTreatmentDrug {
+class Methadone : public OpioidTreatmentDrug {
 
 public:
     
@@ -35,7 +35,7 @@ public:
     }
 };
 
-class Naltrexone : public OpiodTreatmentDrug {
+class Naltrexone : public OpioidTreatmentDrug {
 
 public:
     
@@ -47,7 +47,7 @@ public:
     }
 };
 
-class Buprenorphine : public OpiodTreatmentDrug {
+class Buprenorphine : public OpioidTreatmentDrug {
 
 public:
     

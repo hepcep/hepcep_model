@@ -80,6 +80,16 @@ const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_METHADONE = "opioid_tr
 const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_NALTREXONE = "opioid_treatment_probability_naltrexone";
 const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_BUPRENORPHINE = "opioid_treatment_probability_buprenorphine";
 
+const std::string METHADONE_EFFECTIVENESS = "methadone_effectiveness";
+const std::string METHADONE_DURATION = "methadone_duration";
+const std::string METHADONE_JT_THRESHOLD = "methadone_jt_threshold";
+const std::string NALTREXONE_EFFECTIVENESS = "naltrexone_effectiveness";
+const std::string NALTREXONE_DURATION = "naltrexone_duration";
+const std::string NALTREXONE_JT_THRESHOLD = "naltrexone_jt_threshold";
+const std::string BUPRENORPHINE_EFFECTIVENESS = "buprenorphine_effectiveness";
+const std::string BUPRENORPHINE_DURATION = "buprenorphine_duration";
+const std::string BUPRENORPHINE_JT_THRESHOLD = "buprenorphine_jt_threshold";
+
 }
 
 

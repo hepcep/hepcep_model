@@ -23,7 +23,7 @@
 #include "Network.h"
 #include "Race.h"
 #include "Zone.h"
-#include "OpioidTreatment.h"
+#include "OpioidTreatmentDrug.h"
 
 namespace hepcep {
 
@@ -77,11 +77,11 @@ protected:
     double injectionIntensityMultiplier;
 	
     ZonePtr myZone;
-	OpioidTreatment opioid_treatment;
 
 	std::shared_ptr<Immunology> immunology;
 
 	bool active = false;
+	bool in_opioid_treatment = false;
 
 
 public:
@@ -109,7 +109,6 @@ public:
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
 	void reportStatus();
 	void startTreatment();
-    void startOpioidTreatment();
 	void endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network);
 
 	unsigned int getDrugReceptDegree() const;
@@ -146,6 +145,11 @@ public:
 	double getDeactivateAt() const;
 
     bool isInOpioidTreatment() const;
+	void setInOpioidTreatment(bool val);
+
+	void setInjectionIntensityMultiplier(double val) {
+		injectionIntensityMultiplier = val;
+	}
     
 	friend std::ostream& operator<<(std::ostream& os, const HCPerson& p);
 

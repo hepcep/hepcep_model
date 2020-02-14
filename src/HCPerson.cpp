@@ -7,6 +7,8 @@
 
 #include <math.h>
 
+#include <boost/shared_ptr.hpp>
+
 #include "repast_hpc/Random.h"
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Schedule.h"
@@ -17,6 +19,8 @@
 #include "HCPerson.h"
 #include "Network.h"
 #include "Statistics.h"
+#include "OpioidTreatment.h"
+#include "OpioidContinueTreatmentEvent.h"
 
 namespace hepcep {
 
@@ -48,8 +52,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
 		deactivateAt(-1.0),
-        injectionIntensityMultiplier(1.0),         
-        opioid_treatment() {
+        injectionIntensityMultiplier(1.0) {
 
 
 	immunology = std::make_shared<Immunology>(this);
@@ -254,11 +257,6 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 	return true;
 }
 
-void HCPerson::startOpioidTreatment() {
-    
-    // TODO Opioid Treatment
-}
-
 void HCPerson::startTreatment() {
 	double treatmentNonadherence = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_NONADHERENCE);
 	double roll = repast::Random::instance()->nextDouble();
@@ -409,10 +407,12 @@ void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 	immunology->setHCVInitState(tick,hcvState,0);
 }
 
-bool HCPerson::isInOpioidTreatment() const {
-//	return opioid_treatment.inTreatment();
+void HCPerson::setInOpioidTreatment(bool val) {
+	in_opioid_treatment = val;
+}
 
-    return false;
+bool HCPerson::isInOpioidTreatment() const {
+    return in_opioid_treatment;
 }
 
 

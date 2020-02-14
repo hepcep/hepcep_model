@@ -1,42 +1,31 @@
 #ifndef SRC_OPIOIDTREATMENT_H
 #define SRC_OPIOIDTREATMENT_H
 
+#include <memory>
+
 #include "OpioidTreatmentDrug.h"
 #include "Zone.h"
 
+
 namespace hepcep {
 
-class OpioidTreatmentImpl {
-
-public:
-    OpioidTreatmentImpl() {}
-    virtual ~OpioidTreatmentImpl() {}
-
-    virtual bool run() = 0;
-    virtual bool inTreatment() = 0;
-
-};
+class HCPerson;
 
 class OpioidTreatment {
 
 private:
-    OpioidTreatmentImpl* treatment;
-
+    double treatment_prob;
+    std::shared_ptr<OpioidTreatmentDrug> drug_;
 
 public:
-    OpioidTreatment();
+
+    OpioidTreatment(ZonePtr zone, std::shared_ptr<OpioidTreatmentDrug> drug);
     virtual ~OpioidTreatment();
 
-    /**
-     * Whether or not injects based on treatment.
-     */
-    bool run();
-    bool inTreatment();
-    void reset();
-    void reset(std::shared_ptr<OpioidTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario, 
-        double duration);
-
-
+    bool treat(std::shared_ptr<HCPerson> person);
+    double duration() const {
+        return drug_->duration();
+    }
 };
 
 }

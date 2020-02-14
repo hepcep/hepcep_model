@@ -10,26 +10,18 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "OpioidTreatmentDrug.h"
 
 namespace hepcep {
 
-enum class DistanceMetric {SHORTEST_DISTANCE, ON_FOOT, BY_CAR};
-
-struct TreatmentScenario {
-	// TODO for now just the probability of continued treatment.
-	// If it remains just this double then abandon the struct.
-	double prob_continued_treatment;
-};
-
-// enums are vector indices
-using TreatmentScenarioMap = std::vector<std::vector<std::shared_ptr<TreatmentScenario>>>;
+enum class DistanceMetric {WALKING, DRIVING};
 
 class Zone {
 
 private:
-	TreatmentScenarioMap treatment_map;
+	std::map<DrugName, std::map<DistanceMetric, double>> journey_times;
 
 protected:
 	unsigned int zipcode_;
@@ -46,7 +38,8 @@ public:
 
 	void setDrugMarket(unsigned int drugMarket);
 
-	std::shared_ptr<TreatmentScenario> getTreatmentScenario(DrugName drug_name, DistanceMetric metric);
+	// TODO update with real data
+	double getJourneyTime(DrugName drug_name, DistanceMetric metric);
 
 	unsigned int getDrugMarket() const {
 		return drugMarket_;
@@ -62,6 +55,11 @@ public:
 
 	double getLon() const {
 		return lon_;
+	}
+
+	bool isUrban() const {
+		// TODO update based on zipcode
+		return false;
 	}
 
 };

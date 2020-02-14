@@ -40,5 +40,4 @@ bool OpioidTreatment::treat(std::shared_ptr<HCPerson> person) {
     return false;
 }
 
-
 }

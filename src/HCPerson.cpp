@@ -410,9 +410,7 @@ void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 }
 
 bool HCPerson::isInOpioidTreatment() const {
-//	return opioid_treatment.inTreatment();
-
-    return false;
+	return opioid_treatment.inTreatment();
 }
 
 

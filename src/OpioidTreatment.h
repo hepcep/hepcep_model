@@ -31,7 +31,7 @@ public:
      * Whether or not injects based on treatment.
      */
     bool run();
-    bool inTreatment();
+    bool inTreatment() const;
     void reset();
     void reset(std::shared_ptr<OpioidTreatmentDrug> drug, std::shared_ptr<TreatmentScenario> scenario, 
         double duration);

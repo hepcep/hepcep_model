@@ -61,7 +61,7 @@ void OpioidTreatment::reset() {
     treatment = new NoTreatment();
 }
 
-bool OpioidTreatment::inTreatment() {
+bool OpioidTreatment::inTreatment() const {
     return treatment->inTreatment();
 }
 

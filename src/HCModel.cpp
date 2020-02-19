@@ -91,11 +91,14 @@ void init_stats(const std::string& output_directory, int run_number) {
 void init_opioid_treatment_drugs() {
     chi_sim::Parameters* params = chi_sim::Parameters::instance();
     OpioidTreatmentDrugs::initDrug(DrugName::METHADONE, params->getDoubleParameter(METHADONE_EFFECTIVENESS),
-        params->getDoubleParameter(METHADONE_DURATION), params->getDoubleParameter(METHADONE_JT_THRESHOLD));
+        params->getDoubleParameter(METHADONE_DURATION), params->getDoubleParameter(METHADONE_URBAN_THRESHOLD),
+        params->getDoubleParameter(METHADONE_NON_URBAN_THRESHOLD));
     OpioidTreatmentDrugs::initDrug(DrugName::BUPRENORPHINE, params->getDoubleParameter(BUPRENORPHINE_EFFECTIVENESS),
-        params->getDoubleParameter(BUPRENORPHINE_DURATION), params->getDoubleParameter(BUPRENORPHINE_JT_THRESHOLD));
+        params->getDoubleParameter(BUPRENORPHINE_DURATION), params->getDoubleParameter(BUPRENORPHINE_URBAN_THRESHOLD),
+        params->getDoubleParameter(BUPRENORPHINE_NON_URBAN_THRESHOLD));
     OpioidTreatmentDrugs::initDrug(DrugName::NALTREXONE, params->getDoubleParameter(NALTREXONE_EFFECTIVENESS),
-        params->getDoubleParameter(NALTREXONE_DURATION), params->getDoubleParameter(NALTREXONE_JT_THRESHOLD));
+        params->getDoubleParameter(NALTREXONE_DURATION), params->getDoubleParameter(NALTREXONE_URBAN_THRESHOLD),
+        params->getDoubleParameter(BUPRENORPHINE_NON_URBAN_THRESHOLD));
 }
 
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
@@ -191,8 +194,12 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
     // Load zones
     std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
+    std::string dist_file = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ZONE_DISTANCE_FILE);
+    std::string access_scenario = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ACCESS_SCENARIO);
     std::cout << "Zones file: " << zones_file << std::endl;
-    loadZones(zones_file, zoneMap);
+    std::cout << "Zones Distance From Treatment File: " << dist_file << std::endl;
+    std::cout << "Zones Treatment Access Scenario: " << access_scenario << std::endl;
+    loadZones(zones_file, dist_file, access_scenario, zoneMap);
     std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
 
     std::string zones_distance_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);

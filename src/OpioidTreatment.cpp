@@ -11,15 +11,11 @@ namespace hepcep {
 OpioidTreatment::OpioidTreatment(ZonePtr zone, std::shared_ptr<OpioidTreatmentDrug> drug) : 
     treatment_prob(0), drug_(drug)
 {
-  
-    DistanceMetric metric = zone->isUrban() ? DistanceMetric::WALKING : DistanceMetric::DRIVING;
-    // TODO given that zone determines urban or not, update journey time not to take DistanceMetric
-    double journey_time = zone->getJourneyTime(drug_->name(), metric);
-
-    // TODO need real thresholds and probabilities
-    if (journey_time > drug_->journeyTimeThreshold()) {
+    double distance = zone->getDistanceToTreatment(drug_->name());
+    // TODO probabilities
+    if (distance > drug_->getTreatmentThreshold(AreaType::getAreaType(zone->getZipcode()))) {
         treatment_prob = 0.3;
-    } else{
+    } else {
         treatment_prob = 0.7;
     }
 }

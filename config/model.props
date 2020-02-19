@@ -90,13 +90,20 @@ treatment_susceptibility = 1
 
 methadone_effectiveness = 0.25
 methadone_duration = 7
-methadone_jt_threshold = 20
+methadone_urban_threshold = 2
+methadone_non_urban_threshold = 10
 
 buprenorphine_effectiveness = 1.1
 buprenorphine_duration = 7
-buprenorphine_jt_threshold = 20
+buprenorphine_urban_threshold = 5
+buprenorphine_non_urban_threshold = 20
 
 naltrexone_effectiveness = 0.25
 naltrexone_duration = 30
-naltrexone_jt_threshold = 20
+naltrexone_urban_threshold = 5
+naltrexone_non_urban_threshold = 20
+
+# one of REAL, SCENARIO_1, or SCENARIO_2
+opioid_treatment_access_scenario = REAL
+opioid_treatment_zone_distance_file = ./data/min_dist_real_reshuffled.csv
 

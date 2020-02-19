@@ -20,7 +20,8 @@ namespace hepcep {
 /**
  * Load zones data from the specified file
  */
-void loadZones(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap);
+void loadZones(const std::string& filename, const std::string& treatment_dist_file, 
+	const std::string& opioid_treatment_access_scenario, std::map<unsigned int, ZonePtr> & zonesMap);
 
 void loadZonesDistances(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap,
 		std::unordered_map<unsigned int, std::unordered_map<unsigned int,double>> & zoneDistanceMap) ;

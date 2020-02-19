@@ -16,12 +16,10 @@
 
 namespace hepcep {
 
-enum class DistanceMetric {WALKING, DRIVING};
-
 class Zone {
 
 private:
-	std::map<DrugName, std::map<DistanceMetric, double>> journey_times;
+	std::map<DrugName, double> distance_to_treatment;
 
 protected:
 	unsigned int zipcode_;
@@ -31,15 +29,14 @@ protected:
 
 public:
 	// TODO -- load the treatment scenarios for this zone as well
-	Zone(unsigned int zipcode);
-	Zone(unsigned int zipcode, double lat, double lon);
+	//Zone(unsigned int zipcode);
+	Zone(unsigned int zipcode, double lat, double lon, std::map<DrugName, double>& dist_map);
 
 	virtual ~Zone();
 
 	void setDrugMarket(unsigned int drugMarket);
 
-	// TODO update with real data
-	double getJourneyTime(DrugName drug_name, DistanceMetric metric);
+	double getDistanceToTreatment(DrugName drug_name);
 
 	unsigned int getDrugMarket() const {
 		return drugMarket_;
@@ -56,12 +53,6 @@ public:
 	double getLon() const {
 		return lon_;
 	}
-
-	bool isUrban() const {
-		// TODO update based on zipcode
-		return false;
-	}
-
 };
 
 using ZonePtr = std::shared_ptr<Zone>;

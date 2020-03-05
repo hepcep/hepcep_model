@@ -25,7 +25,7 @@ OpioidTreatment::~OpioidTreatment() {}
 bool OpioidTreatment::treat(std::shared_ptr<HCPerson> person) {
     if (repast::Random::instance()->nextDouble() <= treatment_prob) {
         repast::DoubleUniformGenerator gen = 
-            repast::Random::instance()->createUniDoubleGenerator(0, drug_->effectiveness());
+            repast::Random::instance()->createUniDoubleGenerator(0, drug_->maxInjectionIntensity());
         person->setInjectionIntensityMultiplier(gen.next());
         person->setInOpioidTreatment(true);
         return true;

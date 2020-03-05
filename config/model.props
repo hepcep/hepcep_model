@@ -88,17 +88,17 @@ treatment_nonadherence = 0.1
 treatment_svr = 0.9
 treatment_susceptibility = 1
 
-methadone_effectiveness = 0.25
+methadone_max_injection_intensity = 0.25
 methadone_duration = 7
 methadone_urban_threshold = 2
 methadone_non_urban_threshold = 10
 
-buprenorphine_effectiveness = 1.1
+buprenorphine_max_injection_intensity = 1.1
 buprenorphine_duration = 7
 buprenorphine_urban_threshold = 5
 buprenorphine_non_urban_threshold = 20
 
-naltrexone_effectiveness = 0.25
+naltrexone_max_injection_intensity = 0.25
 naltrexone_duration = 30
 naltrexone_urban_threshold = 5
 naltrexone_non_urban_threshold = 20

@@ -73,13 +73,13 @@ void MeanStats::writeHeader(FileOut& out) {
 Statistics* Statistics::instance_ = nullptr;
 
 void Statistics::init(const std::string& fname, const std::string& events_fname,
-		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter,
+		 const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter,
 		 int run_number) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter, run_number);
+	instance_ = new Statistics(fname, events_fname, personsFilename, filter, run_number);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -114,9 +114,9 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname,
-		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
+		const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
         		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
-						events_out(events_fname), arrivingPersonsOut(arrivingPersonsFilename),
+						events_out(events_fname), personsOut(personsFilename),
 						burninMode(false), filter_(filter), run_number_(run_number) {
 
 	init_metrics(metrics);
@@ -145,7 +145,7 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 
 	events_out << "run,tick,event_type,person_id,other\n";
 
-	arrivingPersonsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
+	personsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
 }
 
 void Statistics::close() {
@@ -153,8 +153,8 @@ void Statistics::close() {
 	out.close();
 	events_out.flush();
 	events_out.close();
-	arrivingPersonsOut.flush();
-	arrivingPersonsOut.close();
+	personsOut.flush();
+	personsOut.close();
 }
 
 Statistics::~Statistics() {
@@ -270,15 +270,15 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 	}
 }
 
-void Statistics::logPersonArrival(PersonPtr person){
+void Statistics::logPerson(PersonPtr person){
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	arrivingPersonsOut << tick << "," << person->id() << "," << person->getAge() <<
+	personsOut << tick << "," << person->id() << "," << person->getAge() <<
 			"," << person->getGender() << "," << person->getRace() << "," <<
 			person->getZipcode() << "," << person->getHCVState() << "," <<
 			person->getDrugReceptDegree() << "," << person->getDrugGivingDegree();
 
-	arrivingPersonsOut << "\n";
+	personsOut << "\n";
 }
 
 void Statistics::setBurninMode(bool mode){

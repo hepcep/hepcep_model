@@ -15,7 +15,7 @@ random.seed = 42
 output.directory = ./output
 stats.output.file = stats.csv
 events.output.file = events.csv
-arriving.persons.output.file = arriving_agents.csv
+persons.output.file = agents.csv
 
 # 0 for init network, n to log at tick n, and END to log at end
 # comment out for no net logging

@@ -6,4 +6,4 @@
 #export LD_LIBRARY_PATH=/mnt/e/repast_hpc-2.2.0/ext/lib:/mnt/e/ANL/Projects/HepCEP/chiSIM-0.2/lib
 #mpirun -n 1 
 #valgrind --tool=callgrind 
-./Release/hepcep_model-0.0 ./config/model.props ./config/config.props
+./Release/hepcep_model-0.0 -props ./config/model.props -config ./config/config.props

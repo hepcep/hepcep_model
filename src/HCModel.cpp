@@ -58,7 +58,7 @@ void init_stats(const std::string& output_directory, int run_number) {
     // Initialize statistics collection
     string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
     string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
-    string arrivingPersonsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(ARRIVING_PERSONS_OUTPUT_FILE);
+    string personsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(PERSONS_OUTPUT_FILE);
 
     string filter_string = chi_sim::Parameters::instance()->getStringParameter(EVENT_FILTERS);
     boost::trim(filter_string);
@@ -85,7 +85,7 @@ void init_stats(const std::string& output_directory, int run_number) {
     }
     
 
-    Statistics::init(stats_fname, events_fname, arrivingPersonsFilename, filter, run_number);
+    Statistics::init(stats_fname, events_fname, personsFilename, filter, run_number);
 }
 
 void init_opioid_treatment_drugs() {
@@ -859,7 +859,11 @@ void start_opioid_treatment(PersonPtr person, DrugName drug_name) {
 		// -0.0001 so goes on / off before regularly scheduled actions
 		double at = runner.currentTick() + drug->duration() - 0.0001;
     	runner.scheduleEvent(at, boost::make_shared<OpioidContinueTreatmentEvent>(person, treatment));
+        
+        Statistics::instance()->logStatusChange(LogType::STARTED_OPIOID_TREATMENT, person, "");
 	}
+    else{
+    }
 }
 
 /*

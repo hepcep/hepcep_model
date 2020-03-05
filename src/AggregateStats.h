@@ -43,6 +43,12 @@ bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person);
 bool filter_cured(double tick, std::shared_ptr<HCPerson> person);
 bool filter_infected_today(double tick, std::shared_ptr<HCPerson> person);
 
+bool filter_in_opioid_treatment(double tick, std::shared_ptr<HCPerson> person);
+
+bool filter_in_opioid_treatment_M(double tick, std::shared_ptr<HCPerson> person);
+bool filter_in_opioid_treatment_B(double tick, std::shared_ptr<HCPerson> person);
+bool filter_in_opioid_treatment_N(double tick, std::shared_ptr<HCPerson> person);
+
 class AggregateStats {
     
 private:

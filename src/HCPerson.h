@@ -82,6 +82,8 @@ protected:
 
 	bool active = false;
 	bool in_opioid_treatment = false;
+    
+    DrugName currentOpioidTreatmentDrug;
 
 
 public:
@@ -146,6 +148,9 @@ public:
 
     bool isInOpioidTreatment() const;
 	void setInOpioidTreatment(bool val);
+    
+    DrugName getCurrentOpioidTreatmentDrug() const;
+    void setCurrentOpioidTreatmentDrug(DrugName drug);
 
 	void setInjectionIntensityMultiplier(double val) {
 		injectionIntensityMultiplier = val;

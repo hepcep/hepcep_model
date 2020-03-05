@@ -415,5 +415,13 @@ bool HCPerson::isInOpioidTreatment() const {
     return in_opioid_treatment;
 }
 
+DrugName HCPerson::getCurrentOpioidTreatmentDrug() const{
+    return currentOpioidTreatmentDrug;
+}
+    
+void HCPerson::setCurrentOpioidTreatmentDrug(DrugName drug){
+    currentOpioidTreatmentDrug = drug;
+}
+
 
 } /* namespace hepcep */

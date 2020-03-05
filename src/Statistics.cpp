@@ -17,6 +17,11 @@ const std::string HCV_ABPOS = "hcvabpos";
 const std::string IN_TREATMENT = "intreatment";
 const std::string CURED = "cured";
 const std::string INFECTED_TODAY = "infected_daily";
+const std::string IN_OPIOID_TREATMENT = "inopioidtreatment";
+
+const std::string IN_OPIOID_TREATMENT_M = "inopioidtreatment_m";
+const std::string IN_OPIOID_TREATMENT_B = "inopioidtreatment_b";
+const std::string IN_OPIOID_TREATMENT_N = "inopioidtreatment_n";
 
 const std::string PREVALENCE = "prevalence";
 const std::string RNA_PREVALENCE = "RNApreval";
@@ -127,6 +132,12 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	stats.emplace(IN_TREATMENT, AggregateStats(IN_TREATMENT, metrics, &filter_in_treatment));
 	stats.emplace(CURED, AggregateStats(CURED, metrics, &filter_cured));
 	stats.emplace(INFECTED_TODAY, AggregateStats(INFECTED_TODAY, metrics, &filter_infected_today));
+    
+    stats.emplace(IN_OPIOID_TREATMENT, AggregateStats(IN_OPIOID_TREATMENT, metrics, &filter_in_opioid_treatment));
+    stats.emplace(IN_OPIOID_TREATMENT_M, AggregateStats(IN_OPIOID_TREATMENT_M, metrics, &filter_in_opioid_treatment_M));
+    stats.emplace(IN_OPIOID_TREATMENT_B, AggregateStats(IN_OPIOID_TREATMENT_B, metrics, &filter_in_opioid_treatment_B));
+    stats.emplace(IN_OPIOID_TREATMENT_N, AggregateStats(IN_OPIOID_TREATMENT_N, metrics, &filter_in_opioid_treatment_N));
+    
 	means.reset();
 	event_counts.reset();
 

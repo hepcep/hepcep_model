@@ -33,6 +33,22 @@ bool filter_infected_today(double tick, std::shared_ptr<HCPerson> person) {
     return person->isInfectedToday();
 }
 
+bool filter_in_opioid_treatment(double tick, std::shared_ptr<HCPerson> person) {
+    return person->isInOpioidTreatment();
+}
+
+bool filter_in_opioid_treatment_M(double tick, std::shared_ptr<HCPerson> person) {
+    return (person->isInOpioidTreatment() && person->getCurrentOpioidTreatmentDrug() == DrugName::METHADONE);
+}
+
+bool filter_in_opioid_treatment_B(double tick, std::shared_ptr<HCPerson> person) {
+    return (person->isInOpioidTreatment() && person->getCurrentOpioidTreatmentDrug() == DrugName::BUPRENORPHINE);
+}
+
+bool filter_in_opioid_treatment_N(double tick, std::shared_ptr<HCPerson> person) {
+     return (person->isInOpioidTreatment() && person->getCurrentOpioidTreatmentDrug() == DrugName::NALTREXONE);
+}
+
 void StatKeySuffix::set(std::shared_ptr<HCPerson> person) {
     gender = GENDER_INFIX + person->getGender().stringValue();
     hcv_state = HCV_INFIX + person->getHCVState().stringValue();

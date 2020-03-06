@@ -11,17 +11,25 @@ namespace hepcep {
 
 enum class DrugName {METHADONE, NALTREXONE, BUPRENORPHINE};
 
+struct DrugParams {
+    DrugName name;
+    double max_injection_intensity, duration;
+    double urban_threshold, non_urban_threshold;
+    double p_close, p_far;
+};
+
 class OpioidTreatmentDrug {
 
 private:
     double max_injection_intensity_;
     double duration_;
     double thresholds[2];
+    double p_close_, p_far_;
 
 public:
     // ease_of_use is meant to capture that taking it once a month
     // is easier (and so more effective) that having to take it every day
-    OpioidTreatmentDrug(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold);
+    OpioidTreatmentDrug(const DrugParams& params);
     virtual ~OpioidTreatmentDrug() {}
 
     // This value becomes the injection intensity of the treated
@@ -29,6 +37,8 @@ public:
     double maxInjectionIntensity() const;
     double duration() const;
     double getTreatmentThreshold(AreaType area_type) const;
+    double getPClose() const;
+    double getPFar() const;
     virtual DrugName name() const = 0;
 };
 
@@ -36,7 +46,7 @@ class Methadone : public OpioidTreatmentDrug {
 
 public:
     
-    Methadone(double max_injection_intensity, double ease_of_use, double urban_threshold, double non_urban_threshold);
+    Methadone(const DrugParams& params);
     virtual ~Methadone() {}
 
     DrugName name() const override {
@@ -48,7 +58,7 @@ class Naltrexone : public OpioidTreatmentDrug {
 
 public:
     
-    Naltrexone(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold);
+    Naltrexone(const DrugParams& params);
     virtual ~Naltrexone() {}
 
     DrugName name() const override {
@@ -60,14 +70,13 @@ class Buprenorphine : public OpioidTreatmentDrug {
 
 public:
     
-    Buprenorphine(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold);
+    Buprenorphine(const DrugParams& params);
     virtual ~Buprenorphine() {}
 
     DrugName name() const override {
         return DrugName::BUPRENORPHINE;
     }
 };
-
 
 class OpioidTreatmentDrugs {
 
@@ -77,10 +86,9 @@ private:
     ~OpioidTreatmentDrugs();
     std::map<DrugName, std::shared_ptr<OpioidTreatmentDrug>> drugs;
     
-
 public:
     static OpioidTreatmentDrugs* instance();
-    static void initDrug(DrugName name, double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold);
+    static void initDrug(const DrugParams& params);
 
     std::shared_ptr<OpioidTreatmentDrug> getDrug(DrugName name);
 };

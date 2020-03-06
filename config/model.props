@@ -92,16 +92,22 @@ methadone_max_injection_intensity = 0.25
 methadone_duration = 7
 methadone_urban_threshold = 2
 methadone_non_urban_threshold = 10
+methadone_p_close = 0.8166436
+methadone_p_far = 0.5416611
 
 buprenorphine_max_injection_intensity = 1.1
 buprenorphine_duration = 7
 buprenorphine_urban_threshold = 5
 buprenorphine_non_urban_threshold = 20
+buprenorphine_p_close = 0.8058792
+buprenorphine_p_far = 0.5065017
 
 naltrexone_max_injection_intensity = 0.25
 naltrexone_duration = 30
 naltrexone_urban_threshold = 5
 naltrexone_non_urban_threshold = 20
+naltrexone_p_close = 0.5354732
+naltrexone_p_far = 0.4831575
 
 # one of REAL, SCENARIO_1, or SCENARIO_2
 opioid_treatment_access_scenario = REAL

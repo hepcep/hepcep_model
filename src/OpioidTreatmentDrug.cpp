@@ -4,10 +4,11 @@ namespace hepcep {
 
 std::vector<DrugName> DRUG_NAMES{DrugName::METHADONE, DrugName::NALTREXONE, DrugName::BUPRENORPHINE};
 
-OpioidTreatmentDrug::OpioidTreatmentDrug(double max_injection_intensity, double duration, 
-    double urban_threshold, double non_urban_threshold) : max_injection_intensity_{max_injection_intensity}, duration_{duration}, thresholds{0, 0} {
-        thresholds[AreaType::Value::City] = urban_threshold;
-        thresholds[AreaType::Value::Suburban] = non_urban_threshold;
+OpioidTreatmentDrug::OpioidTreatmentDrug(const DrugParams& params) : max_injection_intensity_{params.max_injection_intensity}, duration_{params.duration}, 
+    thresholds{0, 0}, p_close_{params.p_close}, p_far_{params.p_far} 
+{
+        thresholds[AreaType::Value::City] = params.urban_threshold;
+        thresholds[AreaType::Value::Suburban] = params.non_urban_threshold;
 }
 
 double OpioidTreatmentDrug::maxInjectionIntensity() const {
@@ -22,14 +23,22 @@ double OpioidTreatmentDrug::getTreatmentThreshold(AreaType area_type) const {
     return thresholds[area_type.value()];
 }
 
-Methadone::Methadone(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold) : 
-    OpioidTreatmentDrug(max_injection_intensity, duration, urban_threshold, non_urban_threshold) {}
+double OpioidTreatmentDrug::getPClose() const {
+    return p_close_;
+}
 
-Naltrexone::Naltrexone(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold) : 
-    OpioidTreatmentDrug(max_injection_intensity, duration, urban_threshold, non_urban_threshold) {}
+double OpioidTreatmentDrug::getPFar() const {
+    return p_far_;
+}
 
-Buprenorphine::Buprenorphine(double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold) : 
-    OpioidTreatmentDrug(max_injection_intensity, duration, urban_threshold, non_urban_threshold) {}
+Methadone::Methadone(const DrugParams& params) : 
+    OpioidTreatmentDrug(params) {}
+
+Naltrexone::Naltrexone(const DrugParams& params) : 
+    OpioidTreatmentDrug(params) {}
+
+Buprenorphine::Buprenorphine(const DrugParams& params) : 
+    OpioidTreatmentDrug(params) {}
 
 OpioidTreatmentDrugs* OpioidTreatmentDrugs::instance_ = nullptr;
 
@@ -47,17 +56,17 @@ OpioidTreatmentDrugs* OpioidTreatmentDrugs::instance() {
     return instance_;
 }
 
-void OpioidTreatmentDrugs::initDrug(DrugName name, double max_injection_intensity, double duration, double urban_threshold, double non_urban_threshold) {
+void OpioidTreatmentDrugs::initDrug(const DrugParams& params) {
     if (!instance_) {
         instance_ = new OpioidTreatmentDrugs();
     }
 
-    if (name == DrugName::BUPRENORPHINE) {
-        instance_->drugs[name] = std::make_shared<Buprenorphine>(max_injection_intensity, duration, urban_threshold, non_urban_threshold);
-    } else if (name == DrugName::METHADONE) {
-        instance_->drugs[name] = std::make_shared<Methadone>(max_injection_intensity, duration, urban_threshold, non_urban_threshold);
-    } else if (name == DrugName::NALTREXONE) {
-        instance_->drugs[name] = std::make_shared<Naltrexone>(max_injection_intensity, duration, urban_threshold, non_urban_threshold);
+    if (params.name == DrugName::BUPRENORPHINE) {
+        instance_->drugs[params.name] = std::make_shared<Buprenorphine>(params);
+    } else if (params.name == DrugName::METHADONE) {
+        instance_->drugs[params.name] = std::make_shared<Methadone>(params);
+    } else if (params.name == DrugName::NALTREXONE) {
+        instance_->drugs[params.name] = std::make_shared<Naltrexone>(params);
     }
 }
 

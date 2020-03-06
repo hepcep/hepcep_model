@@ -12,11 +12,10 @@ OpioidTreatment::OpioidTreatment(ZonePtr zone, std::shared_ptr<OpioidTreatmentDr
     treatment_prob(0), drug_(drug)
 {
     double distance = zone->getDistanceToTreatment(drug_->name());
-    // TODO probabilities
     if (distance > drug_->getTreatmentThreshold(AreaType::getAreaType(zone->getZipcode()))) {
-        treatment_prob = 0.3;
+        treatment_prob = drug_->getPFar();
     } else {
-        treatment_prob = 0.7;
+        treatment_prob = drug->getPClose();
     }
 }
 

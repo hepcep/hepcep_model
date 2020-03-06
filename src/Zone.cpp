@@ -11,7 +11,7 @@ namespace hepcep {
 //Zone::Zone(unsigned int zipcode) : zipcode_(zipcode) {}
 
 Zone::Zone(unsigned int zipcode, double lat, double lon, std::map<DrugName, double>& dist_map) : 
-	zipcode_(zipcode), lat_(lat), lon_(lon), distance_to_treatment(dist_map)
+	distance_to_treatment(dist_map), zipcode_(zipcode), lat_(lat), lon_(lon)
 {
 
 }

@@ -26,6 +26,10 @@ public:
     double duration() const {
         return drug_->duration();
     }
+    
+    std::string drugLabel() const {
+        return drug_->label();
+    }
 };
 
 }

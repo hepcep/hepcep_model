@@ -863,9 +863,10 @@ void start_opioid_treatment(PersonPtr person, DrugName drug_name) {
 		double at = runner.currentTick() + drug->duration() - 0.0001;
     	runner.scheduleEvent(at, boost::make_shared<OpioidContinueTreatmentEvent>(person, treatment));
         
-        Statistics::instance()->logStatusChange(LogType::STARTED_OPIOID_TREATMENT, person, "");
+        Statistics::instance()->logStatusChange(LogType::STARTED_OPIOID_TREATMENT, person, drug->label());
 	}
     else{
+        // TODO log treatment failure info?
     }
 }
 

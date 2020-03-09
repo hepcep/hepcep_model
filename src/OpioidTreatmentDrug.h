@@ -40,6 +40,7 @@ public:
     double getPClose() const;
     double getPFar() const;
     virtual DrugName name() const = 0;
+    virtual std::string label() const = 0;
 };
 
 class Methadone : public OpioidTreatmentDrug {
@@ -51,6 +52,10 @@ public:
 
     DrugName name() const override {
         return DrugName::METHADONE;
+    }
+    
+    std::string label() const override {
+        return "methadone";
     }
 };
 
@@ -64,6 +69,10 @@ public:
     DrugName name() const override {
         return DrugName::NALTREXONE;
     }
+    
+    std::string label() const override {
+        return "naltrexone";
+    }
 };
 
 class Buprenorphine : public OpioidTreatmentDrug {
@@ -75,6 +84,10 @@ public:
 
     DrugName name() const override {
         return DrugName::BUPRENORPHINE;
+    }
+    
+    std::string label() const override {
+        return "buprenorphine";
     }
 };
 

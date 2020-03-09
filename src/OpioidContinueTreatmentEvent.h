@@ -5,6 +5,7 @@
 
 #include "HCPerson.h"
 #include "OpioidTreatment.h"
+#include "Statistics.h"
 
 namespace hepcep {
 

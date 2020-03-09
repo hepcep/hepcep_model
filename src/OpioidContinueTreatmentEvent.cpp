@@ -17,6 +17,11 @@ void OpioidContinueTreatmentEvent::operator()() {
             // -0.0001 so goes on / off before regularly scheduled actions
             double at = runner.currentTick() + treatment_->duration() - 0.0001;
             runner.scheduleEvent(at, boost::make_shared<OpioidContinueTreatmentEvent>(person_, treatment_));
+            
+            // TODO log continue treatment info?
+        }
+        else {
+            Statistics::instance()->logStatusChange(LogType::STOPPED_OPIOID_TREATMENT, person_, treatment_->drugLabel());
         }
     }
 }

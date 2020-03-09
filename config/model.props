@@ -1,7 +1,7 @@
 # Properties file for general runs
 #
 
-stop.at = 4016 #8030 #18665 #11315.999 # 7665.999 # 8030 # 4015.999999 
+stop.at = 11316 # 7665.999 # 8030 # 4015.999999 
 
 # relative to where the hepcep-model executable is run
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
@@ -45,8 +45,8 @@ treatment_enrollment_probability_fullnetwork = 0.0
 treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
 
-opioid_treatment_enrollment_start_delay = 0
-opioid_treatment_enrollment_per_PY = 0.1
+opioid_treatment_enrollment_start_delay = 3650
+opioid_treatment_enrollment_per_PY = 0.05
 opioid_treatment_probability_methadone = 0.33
 opioid_treatment_probability_naltrexone = 0.33
 opioid_treatment_probability_buprenorphine = 0.33
@@ -93,22 +93,22 @@ methadone_max_injection_intensity = 0.25
 methadone_duration = 7
 methadone_urban_threshold = 2
 methadone_non_urban_threshold = 10
-methadone_p_close = 0.9608002
-methadone_p_far = 0.5919936
+methadone_p_close = 0.9588847
+methadone_p_far = 0.6226920
 
-buprenorphine_max_injection_intensity = 1.1
+buprenorphine_max_injection_intensity = 0.25
 buprenorphine_duration = 7
 buprenorphine_urban_threshold = 5
 buprenorphine_non_urban_threshold = 20
-buprenorphine_p_close = 0.9553340
-buprenorphine_p_far = 0.6290442
+buprenorphine_p_close = 0.9532447
+buprenorphine_p_far = 0.6169818
 
 naltrexone_max_injection_intensity = 0.25
 naltrexone_duration = 30
 naltrexone_urban_threshold = 5
 naltrexone_non_urban_threshold = 20
-naltrexone_p_close = 0.7128411
-naltrexone_p_far = 0.5435195
+naltrexone_p_close = 0.5969540
+naltrexone_p_far = 0.5096354
 
 # one of REAL, SCENARIO_1, or SCENARIO_2
 opioid_treatment_access_scenario = REAL

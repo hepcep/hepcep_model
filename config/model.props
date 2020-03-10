@@ -4,10 +4,13 @@
 stop.at = 11316 # 7665.999 # 8030 # 4015.999999 
 
 # relative to where the hepcep-model executable is run
+# NOTE !!!!!!!  for emewes runs, files are defined in hepcep_sweep.swift !!!!!!
 cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
 cnep_plus_early.file = ./data/cnep_plus_early_2018.02.13.csv
 zones.file = ./data/zones.csv
 zones.distance.file = ./data/zones_distance.csv
+
+opioid_treatment_zone_distance_file = ./data/min_dist_real_reshuffled.csv
 
 run.number = 1
 random.seed = 42
@@ -112,5 +115,5 @@ naltrexone_p_far = 0.5096354
 
 # one of REAL, SCENARIO_1, or SCENARIO_2
 opioid_treatment_access_scenario = REAL
-opioid_treatment_zone_distance_file = ./data/min_dist_real_reshuffled.csv
+
 

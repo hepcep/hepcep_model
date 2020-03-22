@@ -82,6 +82,7 @@ protected:
 
 	bool active = false;
 	bool in_opioid_treatment = false;
+    double last_opioid_treatment_start_time = 0;
     
     DrugName currentOpioidTreatmentDrug;
 
@@ -148,6 +149,15 @@ public:
 
     bool isInOpioidTreatment() const;
 	void setInOpioidTreatment(bool val);
+      
+    double getLastOpioidTreatmentStartTime() const {
+        return last_opioid_treatment_start_time;
+    }
+
+    void setLastOpioidTreatmentStartTime(double t){
+        last_opioid_treatment_start_time = t;
+    }
+    
     
     DrugName getCurrentOpioidTreatmentDrug() const;
     void setCurrentOpioidTreatmentDrug(DrugName drug);

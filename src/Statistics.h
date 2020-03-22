@@ -25,7 +25,7 @@ struct EventCounts {
 
   unsigned int activations_daily, cured_daily, aggregate_posttreat,
         losses_daily, incidence_daily, treatment_recruited_daily,
-         aggregate_courses;
+         aggregate_courses, opioid_treatment_recruited_daily;
 
   void reset();
   void writeHeader(FileOut& out);

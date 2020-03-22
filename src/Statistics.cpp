@@ -29,17 +29,17 @@ const std::string FRACTION = "fraction";
 
 void EventCounts::reset() {
 	activations_daily = cured_daily = losses_daily = aggregate_posttreat = incidence_daily =
-			treatment_recruited_daily = aggregate_courses = 0;
+			treatment_recruited_daily = aggregate_courses = opioid_treatment_recruited_daily = 0;
 }
 
 void EventCounts::writeHeader(FileOut& out) {
-	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,treatment_recruited_daily,aggregate_courses";
+	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,treatment_recruited_daily,aggregate_courses,opioid_treatment_recruited_daily";
 }
 
 void EventCounts::write(FileOut& out) {
 	out << "," << activations_daily << "," << cured_daily << "," << aggregate_posttreat << "," <<
 			losses_daily << "," << incidence_daily << "," << treatment_recruited_daily <<
-			"," << aggregate_courses;
+			"," << aggregate_courses << "," << opioid_treatment_recruited_daily;
 }
 
 void MeanStats::calcMean() {
@@ -278,6 +278,8 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 	} else if (logType == LogType::STARTED_TREATMENT) {
 		++event_counts.treatment_recruited_daily;
 		++event_counts.aggregate_courses;
+	} else if (logType == LogType::STARTED_OPIOID_TREATMENT) {
+		++event_counts.opioid_treatment_recruited_daily;
 	}
 }
 

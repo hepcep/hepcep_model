@@ -20,7 +20,9 @@ void OpioidContinueTreatmentEvent::operator()() {
             // TODO log continue treatment info?
         }
         else {
-            Statistics::instance()->logStatusChange(LogType::STOPPED_OPIOID_TREATMENT, person_, treatment_->drugLabel());
+            std::string msg = treatment_->drugLabel() + ":" + std::to_string(person_->getLastOpioidTreatmentStartTime());
+            
+            Statistics::instance()->logStatusChange(LogType::STOPPED_OPIOID_TREATMENT, person_, msg);
         }
     }
 }

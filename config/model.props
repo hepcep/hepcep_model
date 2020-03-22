@@ -1,21 +1,21 @@
 # Properties file for general runs
 #
 
-stop.at = 11316 # 7665.999 # 8030 # 4015.999999 
+stop.at = 8030
 
 # relative to where the hepcep-model executable is run
 # NOTE !!!!!!!  for emewes runs, files are defined in hepcep_sweep.swift !!!!!!
-cnep_plus.file = ./data/cnep_plus_all_2018.02.13.csv
-cnep_plus_early.file = ./data/cnep_plus_early_2018.02.13.csv
-zones.file = ./data/zones.csv
-zones.distance.file = ./data/zones_distance.csv
+cnep_plus.file = data/cnep_plus_all_2018.02.13.csv
+#cnep_plus_early.file = data/cnep_plus_early_2018.02.13.csv
+zones.file = data/zones.csv
+zones.distance.file = data/zones_distance.csv
 
-opioid_treatment_zone_distance_file = ./data/min_dist_real_reshuffled.csv
+opioid_treatment_zone_distance_file = data/min_dist_real_reshuffled.csv
 
 run.number = 1
 random.seed = 42
 
-output.directory = ./output
+output.directory = output
 stats.output.file = stats.csv
 events.output.file = events.csv
 persons.output.file = agents.csv
@@ -25,13 +25,13 @@ persons.output.file = agents.csv
 #log.network.at = 0 # END
 
 resume.from.saved.net = false
-#resume.from.saved.net.file = ./data/net.gml
+#resume.from.saved.net.file = data/net.gml
 
 # NONE or ALL or comma separated list from
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT, HCVRNA_TEST,
 # STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT
-log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT
+log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
 
 # Frequently changed parameters
 burn_in_days = 365

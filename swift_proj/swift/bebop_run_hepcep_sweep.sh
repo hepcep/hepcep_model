@@ -21,13 +21,15 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=72
+export PROCS=324
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
-export QUEUE=bdwall
-export WALLTIME=02:30:00
+#export QUEUE=bdwall
+export PROJECT=condo
+export QUEUE=dis
+export WALLTIME=3:00:00
 export PPN=36
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -46,6 +48,29 @@ CMD_LINE_ARGS="$*"
 
 CONFIG_FILE=$EMEWS_PROJECT_ROOT/../config/$2
 MODEL_DIR=$EMEWS_PROJECT_ROOT/model
+
+# TODO Testing model.props file path updating
+# Collect all of the model.props lines into a key,val dict, ignoring comment lines
+#declare -A model_props
+#while IFS='=' read -r key value; do
+# case $key in
+#       ''|\#*) continue ;;         # skip blank lines and lines starting with #
+##  [[ "$key" =~ ^[[:space:]]*# || "$key" == :blank: ]] && continue
+##  moddel_props[$key] = "$value"
+#  esac
+#  echo "k: $key, v: $value"
+#  model_props['$key']='$value'
+#
+#done < $CONFIG_FILE
+#
+#echo "${model_props['random.seed']}"
+
+# Define the data input files with emews root here and pass into swift via argv/s
+CNEP_PLUS_FILE=$EMEWS_PROJECT_ROOT/..
+CNEP_PLUS_EARLY_FILE=$EMEWS_PROJECT_ROOT/..
+ZONES_FILE=$EMEWS_PROJECT_ROOT/..
+ZONES_DISTANCE_FILE=$EMEWS_PROJECT_ROOT/.. 
+
 
 # set machine to your schedule type (e.g. pbs, slurm, cobalt etc.),
 # or empty for an immediate non-queued unscheduled run
@@ -68,6 +93,6 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_retreat.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_moud_1.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

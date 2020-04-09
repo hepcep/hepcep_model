@@ -5,8 +5,8 @@ stop.at = 8030
 
 # relative to where the hepcep-model executable is run
 # NOTE !!!!!!!  for emewes runs, files are defined in hepcep_sweep.swift !!!!!!
-cnep_plus.file = data/cnep_plus_all_2018.02.13.csv
-#cnep_plus_early.file = data/cnep_plus_early_2018.02.13.csv
+cnep_plus.file = data/100k_CNEP+_pwid_catalog_2018-11-23.csv
+
 zones.file = data/zones.csv
 zones.distance.file = data/zones_distance.csv
 

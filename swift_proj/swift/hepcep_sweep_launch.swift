@@ -14,8 +14,7 @@ string turbine_output = getenv("TURBINE_OUTPUT");
 
 string config_file = argv("config_file");
 
-string cnep_plus_file = "cnep_plus.file = %s/../data/cnep_plus_all_2018.02.13.csv" % emews_root;
-string cnep_plus_early_file = "cnep_plus_early.file = %s/../data/cnep_plus_early_2018.02.13.csv" % emews_root;
+string cnep_plus_file = "cnep_plus.file = %s/../data/100k_CNEP+_pwid_catalog_2018-11-23.csv" % emews_root;
 string zones_file = "zones.file = %s/../data/zones.csv" % emews_root;
 string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.csv" % emews_root;
 

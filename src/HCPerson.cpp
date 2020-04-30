@@ -7,6 +7,8 @@
 
 #include <math.h>
 
+#include <boost/shared_ptr.hpp>
+
 #include "repast_hpc/Random.h"
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/Schedule.h"
@@ -17,6 +19,8 @@
 #include "HCPerson.h"
 #include "Network.h"
 #include "Statistics.h"
+#include "OpioidTreatment.h"
+#include "OpioidContinueTreatmentEvent.h"
 
 namespace hepcep {
 
@@ -25,7 +29,9 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunolo
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
-		deactivateAt(-1.0) , immunology(imm) 
+		deactivateAt(-1.0), 
+        injectionIntensityMultiplier(1.0),
+        immunology(imm)        
 {
 	age = data.age;
 	ageStarted = data.ageStarted;
@@ -45,7 +51,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
-		deactivateAt(-1.0) {
+		deactivateAt(-1.0),
+        injectionIntensityMultiplier(1.0) {
 
 
 	immunology = std::make_shared<Immunology>(this);
@@ -97,7 +104,7 @@ void HCPerson::step(NetworkPtr<HCPerson> network) {
 //    std::cout << id_ << ": step " << std::endl;
 
 	double n = repast::Random::instance()->nextDouble();
-	double num_sharing_episodes = round(n	* injectionIntensity *
+	double num_sharing_episodes = round(n	* injectionIntensity * injectionIntensityMultiplier *
 			fractionReceptSharing);
 
 	for (int episode=0; episode<num_sharing_episodes; ++episode) {
@@ -182,8 +189,14 @@ void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 		PersonPtr donor = edge->v1();
 
 		if (donor != NULL) {
-			double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-			donor->immunology->exposePartner(this->immunology, tick);
+			// TODO Decide if donor is actually injecting per MOUD and then decide
+			
+			// if next double <  injection intensity multiplier then expose partner...
+			roll = repast::Random::instance()->nextDouble();
+			if (roll <= donor->injectionIntensityMultiplier){ 			
+				double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+				donor->immunology->exposePartner(this->immunology, tick);
+			}
 		}
 	}
 }
@@ -394,6 +407,21 @@ void HCPerson::setHcvInitialState(HCVState hcvState, double tick){
 	immunology->setHCVInitState(tick,hcvState,0);
 }
 
+void HCPerson::setInOpioidTreatment(bool val) {
+	in_opioid_treatment = val;
+}
+
+bool HCPerson::isInOpioidTreatment() const {
+    return in_opioid_treatment;
+}
+
+DrugName HCPerson::getCurrentOpioidTreatmentDrug() const{
+    return currentOpioidTreatmentDrug;
+}
+    
+void HCPerson::setCurrentOpioidTreatmentDrug(DrugName drug){
+    currentOpioidTreatmentDrug = drug;
+}
 
 
 } /* namespace hepcep */

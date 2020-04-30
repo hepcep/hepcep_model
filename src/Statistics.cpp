@@ -17,6 +17,11 @@ const std::string HCV_ABPOS = "hcvabpos";
 const std::string IN_TREATMENT = "intreatment";
 const std::string CURED = "cured";
 const std::string INFECTED_TODAY = "infected_daily";
+const std::string IN_OPIOID_TREATMENT = "inopioidtreatment";
+
+const std::string IN_OPIOID_TREATMENT_M = "inopioidtreatment_m";
+const std::string IN_OPIOID_TREATMENT_B = "inopioidtreatment_b";
+const std::string IN_OPIOID_TREATMENT_N = "inopioidtreatment_n";
 
 const std::string PREVALENCE = "prevalence";
 const std::string RNA_PREVALENCE = "RNApreval";
@@ -25,17 +30,17 @@ const std::string FRACTION = "fraction";
 void EventCounts::reset() {
 	activations_daily = cured_daily = losses_daily = aggregate_posttreat = 
         incidence_daily = incidence_daily_chronic =	treatment_recruited_daily = 
-        aggregate_courses = 0;
+        aggregate_courses = opioid_treatment_recruited_daily = 0;
 }
 
 void EventCounts::writeHeader(FileOut& out) {
-	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,incidence_daily_chronic,treatment_recruited_daily,aggregate_courses";
+	out << "," << "activations_daily,cured_daily,aggregate_posttreat,losses_daily,incidence_daily,incidence_daily_chronic,treatment_recruited_daily,aggregate_courses,opioid_treatment_recruited_daily";	
 }
 
 void EventCounts::write(FileOut& out) {
 	out << "," << activations_daily << "," << cured_daily << "," << aggregate_posttreat << "," <<
-			losses_daily << "," << incidence_daily << "," << incidence_daily_chronic << "," << 
-            treatment_recruited_daily << "," << aggregate_courses;
+            losses_daily << "," << incidence_daily << "," << incidence_daily_chronic << "," << 
+            treatment_recruited_daily << "," << aggregate_courses << "," << opioid_treatment_recruited_daily;
 }
 
 void MeanStats::calcMean() {
@@ -74,13 +79,13 @@ void MeanStats::writeHeader(FileOut& out) {
 Statistics* Statistics::instance_ = nullptr;
 
 void Statistics::init(const std::string& fname, const std::string& events_fname,
-		 const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter,
+		 const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter,
 		 int run_number) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, arrivingPersonsFilename, filter, run_number);
+	instance_ = new Statistics(fname, events_fname, personsFilename, filter, run_number);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -115,9 +120,9 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname,
-		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
+		const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
         		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
-						events_out(events_fname), arrivingPersonsOut(arrivingPersonsFilename),
+						events_out(events_fname), personsOut(personsFilename),
 						burninMode(false), filter_(filter), run_number_(run_number) {
 
 	init_metrics(metrics);
@@ -128,6 +133,12 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	stats.emplace(IN_TREATMENT, AggregateStats(IN_TREATMENT, metrics, &filter_in_treatment));
 	stats.emplace(CURED, AggregateStats(CURED, metrics, &filter_cured));
 	stats.emplace(INFECTED_TODAY, AggregateStats(INFECTED_TODAY, metrics, &filter_infected_today));
+    
+    stats.emplace(IN_OPIOID_TREATMENT, AggregateStats(IN_OPIOID_TREATMENT, metrics, &filter_in_opioid_treatment));
+    stats.emplace(IN_OPIOID_TREATMENT_M, AggregateStats(IN_OPIOID_TREATMENT_M, metrics, &filter_in_opioid_treatment_M));
+    stats.emplace(IN_OPIOID_TREATMENT_B, AggregateStats(IN_OPIOID_TREATMENT_B, metrics, &filter_in_opioid_treatment_B));
+    stats.emplace(IN_OPIOID_TREATMENT_N, AggregateStats(IN_OPIOID_TREATMENT_N, metrics, &filter_in_opioid_treatment_N));
+    
 	means.reset();
 	event_counts.reset();
 
@@ -146,7 +157,7 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 
 	events_out << "run,tick,event_type,person_id,other\n";
 
-	arrivingPersonsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
+	personsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
 }
 
 void Statistics::close() {
@@ -154,8 +165,8 @@ void Statistics::close() {
 	out.close();
 	events_out.flush();
 	events_out.close();
-	arrivingPersonsOut.flush();
-	arrivingPersonsOut.close();
+	personsOut.flush();
+	personsOut.close();
 }
 
 Statistics::~Statistics() {
@@ -270,18 +281,20 @@ void Statistics::logStatusChange(LogType logType, HCPerson* person, const std::s
 	} else if (logType == LogType::STARTED_TREATMENT) {
 		++event_counts.treatment_recruited_daily;
 		++event_counts.aggregate_courses;
+	} else if (logType == LogType::STARTED_OPIOID_TREATMENT) {
+		++event_counts.opioid_treatment_recruited_daily;
 	}
 }
 
-void Statistics::logPersonArrival(PersonPtr person){
+void Statistics::logPerson(PersonPtr person){
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-	arrivingPersonsOut << tick << "," << person->id() << "," << person->getAge() <<
+	personsOut << tick << "," << person->id() << "," << person->getAge() <<
 			"," << person->getGender() << "," << person->getRace() << "," <<
 			person->getZipcode() << "," << person->getHCVState() << "," <<
 			person->getDrugReceptDegree() << "," << person->getDrugGivingDegree();
 
-	arrivingPersonsOut << "\n";
+	personsOut << "\n";
 }
 
 void Statistics::setBurninMode(bool mode){

@@ -28,6 +28,8 @@ public:
         info,
         status,
         started_treatment,
+        started_opioid_treatment,
+        stopped_opioid_treatment,
         cured,
         regular_status,
         failed_treatment,
@@ -44,6 +46,8 @@ public:
     static const LogType INFO;
     static const LogType STATUS;
     static const LogType STARTED_TREATMENT;
+    static const LogType STARTED_OPIOID_TREATMENT;
+    static const LogType STOPPED_OPIOID_TREATMENT;
     static const LogType CURED;
     static const LogType REGULAR_STATUS;
     static const LogType FAILED_TREATMENT;

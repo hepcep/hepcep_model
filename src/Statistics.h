@@ -25,7 +25,7 @@ struct EventCounts {
 
   unsigned int activations_daily, cured_daily, aggregate_posttreat,
         losses_daily, incidence_daily, incidence_daily_chronic, treatment_recruited_daily,
-         aggregate_courses;
+        aggregate_courses, opioid_treatment_recruited_daily;
 
   void reset();
   void writeHeader(FileOut& out);
@@ -57,13 +57,13 @@ private:
     std::vector<LogEvent> log_events;
     MeanStats means;
     EventCounts event_counts;
-    FileOut out, events_out, arrivingPersonsOut;
+    FileOut out, events_out, personsOut;
     bool burninMode;
     std::shared_ptr<Filter<LogType>> filter_;
     int run_number_;
 
     Statistics(const std::string& fname, const std::string& events_fname,
-    		const std::string& arrivingPersonsFilename, std::shared_ptr<Filter<LogType>>& filter,
+    		const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter,
             int run_number);
 
     void calculatePrevalence(std::map<std::string, double>& prevalences);
@@ -84,7 +84,7 @@ public:
 
     int getDailyLosses();
 
-    void logPersonArrival(PersonPtr person);
+    void logPerson(PersonPtr person);
 
 };
 

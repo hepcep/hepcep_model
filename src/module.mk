@@ -27,6 +27,9 @@ SRC = HCPlace.cpp \
 	EnrollmentMethod.cpp \
 	gml.cpp \
 	serialize.cpp \
-	run.cpp
+	run.cpp \
+	OpioidTreatment.cpp \
+	OpioidTreatmentDrug.cpp \
+	OpioidContinueTreatmentEvent.cpp
 	
 model_src += $(SRC)

@@ -18,6 +18,8 @@ class AreaType {
 
 public:
     enum Value {
+        // If these change, then OpiodTreatmentDrug thresholds needs to 
+        // change to reflect that
         City, Suburban
     };
 

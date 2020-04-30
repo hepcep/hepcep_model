@@ -120,10 +120,10 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 			++count;
 			++id_counter;  // increment id count
 
-			// Log arriving agent properties
-			if (earlyCareerOnly){
-				Statistics::instance()->logPersonArrival(person);
-			}
+			// Log agent properties on creation
+			//if (earlyCareerOnly){
+				Statistics::instance()->logPerson(person);
+			//}
 		}
 	}
 }

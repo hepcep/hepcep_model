@@ -4,6 +4,7 @@
  *
  * @author Eric Tatara
  */
+#include <exception>
 
 #include "ZoneLoader.h"
 #include "SVReader.h"
@@ -15,11 +16,68 @@ const int DRUG_MARKET_IDX = 1;		// Drug market ID (int)
 const int LAT_INDEX = 2;				// Latitude
 const int LON_INDEX = 3;				// Longitude
 
+const int REAL_BUP_IDX = 1;
+const int REAL_METH_IDX = 2;
+const int REAL_NAL_IDX = 3;
+const int S1_BUP_IDX = 4;
+const int S1_METH_IDX = 5;
+const int S1_NAL_IDX = 6;
+const int S2_BUP_IDX = 7;
+const int S2_METH_IDX = 8;
+const int S2_NAL_IDX = 9;
+
+
+struct MinDistance {
+	double meth, bup, nal;
+};
+
+
+void loadOpioidTreatmentDistances(const std::string& treatment_dist_file, 
+	const std::string& opioid_treatment_access_scenario, std::map<unsigned int, MinDistance>& map) 
+{
+	SVReader reader(treatment_dist_file, ',');
+	std::vector<std::string> line;
+	
+	size_t idxs[] = {0, 0, 0};
+	if (opioid_treatment_access_scenario == "REAL") {
+		idxs[0] = REAL_METH_IDX;
+		idxs[1] = REAL_BUP_IDX;
+		idxs[2] = REAL_NAL_IDX;
+	} else if (opioid_treatment_access_scenario == "SCENARIO_1") {
+		idxs[0] = S1_METH_IDX;
+		idxs[1] = S1_BUP_IDX;
+		idxs[2] = S1_NAL_IDX;
+	} else if (opioid_treatment_access_scenario == "SCENARIO_2") {
+		idxs[0] = S2_METH_IDX;
+		idxs[1] = S2_BUP_IDX;
+		idxs[2] = S2_NAL_IDX;
+	} else {
+		throw std::invalid_argument("Invalid opioid_treatment_access_scenario: " + opioid_treatment_access_scenario);
+	}
+	
+	
+	// skip header
+	reader.next(line);
+	while (reader.next(line)) {
+		unsigned int zip = std::stol(line[ZIPCODE_IDX]);
+		MinDistance md;
+		md.meth = std::stod(line[idxs[0]]);
+		md.bup = std::stod(line[idxs[1]]);
+		md.nal = std::stod(line[idxs[2]]);
+		map.emplace(zip, md);
+	}
+}
+
 /**
  * Creates a set of Zone instances and maps them to their zip code strings.
  */
-void loadZones(const std::string& filename, std::map<unsigned int, ZonePtr> & zonesMap) {
-	SVReader reader(filename, ',');
+void loadZones(const std::string& zones_file, const std::string& treatment_dist_file, 
+	const std::string& opioid_treatment_access_scenario, std::map<unsigned int, ZonePtr> & zonesMap) {
+	
+	std::map<unsigned int, MinDistance> dist_map;
+	loadOpioidTreatmentDistances(treatment_dist_file, opioid_treatment_access_scenario, dist_map);
+
+	SVReader reader(zones_file, ',');
 	std::vector<std::string> line;
 
 	// Header
@@ -35,7 +93,14 @@ void loadZones(const std::string& filename, std::map<unsigned int, ZonePtr> & zo
 		double lat = std::stod(line[LAT_INDEX]);
 		double lon = std::stod(line[LON_INDEX]);
 
-		auto zone = std::make_shared<Zone>(zip,lat,lon);
+		auto md = dist_map.at(zip);
+		std::map<DrugName, double> zone_dist_map {
+			{DrugName::METHADONE, md.meth},
+			{DrugName::BUPRENORPHINE, md.bup},
+			{DrugName::NALTREXONE, md.nal}
+		};
+
+		auto zone = std::make_shared<Zone>(zip,lat,lon, zone_dist_map);
 
 		zone->setDrugMarket(drugMarket);
 

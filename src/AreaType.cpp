@@ -55,7 +55,8 @@ AreaType AreaType::valueOf(const std::string& string_val) {
 
 AreaType AreaType::getAreaType(const unsigned int zip_code) {
 //   if (zip_code.length() > 3 && zip_code.substr(0, 3) == "606") {
-     if (zip_code >= 60600){
+    // CITY enum is just for CHicago proper zip codes.
+     if (zip_code >= 60600 && zip_code < 60700){
         return AreaType::CITY;
     }
     return AreaType::SUBURBAN;

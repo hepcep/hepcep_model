@@ -22,6 +22,8 @@ const LogType LogType::DEACTIVATED(LogType::deactivated, "DEACTIVATED");
 const LogType LogType::INFO(LogType::info, "INFO");
 const LogType LogType::STATUS(LogType::status, "STATUS");
 const LogType LogType::STARTED_TREATMENT(LogType::started_treatment, "STARTED_TREATMENT");
+const LogType LogType::STARTED_OPIOID_TREATMENT(LogType::started_opioid_treatment, "STARTED_OPIOID_TREATMENT");
+const LogType LogType::STOPPED_OPIOID_TREATMENT(LogType::stopped_opioid_treatment, "STOPPED_OPIOID_TREATMENT");
 const LogType LogType::CURED(LogType::cured, "CURED");
 const LogType LogType::REGULAR_STATUS(LogType::regular_status, "REGULAR_STATUS");
 const LogType LogType::FAILED_TREATMENT(LogType::failed_treatment, "FAILED_TREATMENT");
@@ -37,6 +39,8 @@ const std::vector<LogType> LogType::values_({LogType::ACTIVATED,
     LogType::INFO,
     LogType::STATUS,
     LogType::STARTED_TREATMENT,
+    LogType::STARTED_OPIOID_TREATMENT,
+    LogType::STOPPED_OPIOID_TREATMENT,
     LogType::CURED,
     LogType::REGULAR_STATUS,
     LogType::FAILED_TREATMENT,

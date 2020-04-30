@@ -15,7 +15,7 @@ const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";
 const std::string EVENTS_OUTPUT_FILE = "events.output.file";
-const std::string ARRIVING_PERSONS_OUTPUT_FILE = "arriving.persons.output.file";
+const std::string PERSONS_OUTPUT_FILE = "persons.output.file";
 const std::string EVENT_FILTERS = "log.events";
 
 //const std::string NETWORK_FILE = "network.file";
@@ -73,6 +73,37 @@ const std::string TREATMENT_ENROLLMENT_PROBABILITY_HRP = "treatment_enrollment_p
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK = "treatment_enrollment_probability_fullnetwork";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_INPARTNER = "treatment_enrollment_probability_inpartner";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_OUTPARTNER = "treatment_enrollment_probability_outpartner";
+
+const std::string OPIOID_TREATMENT_ENROLLMENT_START_DELAY = "opioid_treatment_enrollment_start_delay";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PER_PY  = "opioid_treatment_enrollment_per_PY";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_METHADONE = "opioid_treatment_probability_methadone";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_NALTREXONE = "opioid_treatment_probability_naltrexone";
+const std::string OPIOID_TREATMENT_ENROLLMENT_PROBABILITY_BUPRENORPHINE = "opioid_treatment_probability_buprenorphine";
+
+const std::string METHADONE_MAX_INJECTION_INTENSITY = "methadone_max_injection_intensity";
+const std::string METHADONE_DURATION = "methadone_duration";
+const std::string METHADONE_URBAN_THRESHOLD = "methadone_urban_threshold";
+const std::string METHADONE_NON_URBAN_THRESHOLD = "methadone_non_urban_threshold";
+const std::string METHADONE_P_CLOSE = "methadone_p_close";
+const std::string METHADONE_P_FAR = "methadone_p_far";
+
+const std::string NALTREXONE_MAX_INJECTION_INTENSITY = "naltrexone_max_injection_intensity";
+const std::string NALTREXONE_DURATION = "naltrexone_duration";
+const std::string NALTREXONE_URBAN_THRESHOLD = "naltrexone_urban_threshold";
+const std::string NALTREXONE_NON_URBAN_THRESHOLD = "naltrexone_non_urban_threshold";
+const std::string NALTREXONE_P_CLOSE = "naltrexone_p_close";
+const std::string NALTREXONE_P_FAR = "naltrexone_p_far";
+
+const std::string BUPRENORPHINE_MAX_INJECTION_INTENSITY = "buprenorphine_max_injection_intensity";
+const std::string BUPRENORPHINE_DURATION = "buprenorphine_duration";
+const std::string BUPRENORPHINE_URBAN_THRESHOLD = "buprenorphine_urban_threshold";
+const std::string BUPRENORPHINE_NON_URBAN_THRESHOLD = "buprenorphine_non_urban_threshold";
+const std::string BUPRENORPHINE_P_CLOSE = "buprenorphine_p_close";
+const std::string BUPRENORPHINE_P_FAR = "buprenorphine_p_far";
+
+const std::string OPIOID_TREATMENT_ACCESS_SCENARIO = "opioid_treatment_access_scenario";
+const std::string OPIOID_TREATMENT_ZONE_DISTANCE_FILE = "opioid_treatment_zone_distance_file";
+
 
 }
 

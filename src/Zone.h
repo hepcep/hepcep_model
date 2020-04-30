@@ -9,10 +9,17 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <map>
+
+#include "OpioidTreatmentDrug.h"
 
 namespace hepcep {
 
 class Zone {
+
+private:
+	std::map<DrugName, double> distance_to_treatment;
 
 protected:
 	unsigned int zipcode_;
@@ -21,12 +28,15 @@ protected:
 	double lon_;
 
 public:
-	Zone(unsigned int zipcode);
-	Zone(unsigned int zipcode, double lat, double lon);
+	// TODO -- load the treatment scenarios for this zone as well
+	//Zone(unsigned int zipcode);
+	Zone(unsigned int zipcode, double lat, double lon, std::map<DrugName, double>& dist_map);
 
 	virtual ~Zone();
 
 	void setDrugMarket(unsigned int drugMarket);
+
+	double getDistanceToTreatment(DrugName drug_name);
 
 	unsigned int getDrugMarket() const {
 		return drugMarket_;
@@ -43,7 +53,6 @@ public:
 	double getLon() const {
 		return lon_;
 	}
-
 };
 
 using ZonePtr = std::shared_ptr<Zone>;

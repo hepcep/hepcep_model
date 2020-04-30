@@ -12,8 +12,7 @@ string turbine_output = getenv("TURBINE_OUTPUT");
 
 string config_file = argv("config_file");
 
-string cnep_plus_file = "cnep_plus.file = %s/../data/cnep_plus_all_2018.02.13.csv" % emews_root;
-string cnep_plus_early_file = "cnep_plus_early.file = %s/../data/cnep_plus_early_2018.02.13.csv" % emews_root;
+string cnep_plus_file = "cnep_plus.file = %s/../data/100k_CNEP+_pwid_catalog_2018-11-23.csv" % emews_root;
 string zones_file = "zones.file = %s/../data/zones.csv" % emews_root;
 string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.csv" % emews_root;
 
@@ -39,8 +38,8 @@ string opioid_treatment_zone_distance_file = "opioid_treatment_zone_distance_fil
     string output = "output.directory = %s/run_%d" % (turbine_output, i);
     string run_number = get_run_number(pl, i);
 
-    string defaults = "%s%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (run_number, stats_output, events_output, output,
-      cnep_plus_file, cnep_plus_early_file, zones_file, zones_distance_file, opioid_treatment_zone_distance_file);
+    string defaults = "%s%s\t%s\t%s\t%s\t%s\t%s\t%s" % (run_number, stats_output, events_output, output,
+      cnep_plus_file, zones_file, zones_distance_file, opioid_treatment_zone_distance_file);
     string line = "%s\t%s" % (defaults, pl);
 		printf(line);
 		zs[i] = @par=1 hepcep_model_run(config_file, line);

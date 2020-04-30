@@ -31,7 +31,8 @@ resume.from.saved.net = false
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT, HCVRNA_TEST,
 # STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT
-log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
+#log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
+log.events = NONE
 
 # Frequently changed parameters
 burn_in_days = 365
@@ -49,10 +50,13 @@ treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
 
 opioid_treatment_enrollment_start_delay = 3650
-opioid_treatment_enrollment_per_PY = 0.05
+opioid_treatment_enrollment_per_PY = 0
 opioid_treatment_probability_methadone = 0.33
 opioid_treatment_probability_naltrexone = 0.33
 opioid_treatment_probability_buprenorphine = 0.33
+
+# one of REAL, SCENARIO_1, or SCENARIO_2
+opioid_treatment_access_scenario = REAL
 
 # Infrequently changed parameters
 ab_prob_acute = 0.02
@@ -112,8 +116,3 @@ naltrexone_urban_threshold = 5
 naltrexone_non_urban_threshold = 20
 naltrexone_p_close = 0.5969540
 naltrexone_p_far = 0.5096354
-
-# one of REAL, SCENARIO_1, or SCENARIO_2
-opioid_treatment_access_scenario = REAL
-
-

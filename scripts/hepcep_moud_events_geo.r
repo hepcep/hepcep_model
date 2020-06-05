@@ -165,20 +165,24 @@ case_REAL_population$Duration_mean <- NULL
 case_REAL_population$Duration_sd <- NULL
 
 # Normalize the case by the REAL population mean and sd
-case_REAL <- case_REAL_population[case_REAL, on=c("Drug")]
+case_REAL <- case_REAL[case_REAL_population, on=c("Drug")]
 case_REAL[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
 
 # Normalize the case by the REAL population mean and sd
 case_S1 <- year_result[opioid_scenario=='SCENARIO_1' 
                          & opioid_treatment_enrollment_per_PY==0.075]
-case_S1 <- case_REAL_population[case_S1, on=c("Drug")]
+case_S1 <- case_S1[case_REAL_population, on=c("Drug")]
 case_S1[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
 
 # Normalize the case by the REAL population mean and sd
 case_S2 <- year_result[opioid_scenario=='SCENARIO_2' 
                        & opioid_treatment_enrollment_per_PY==0.075]
-case_S2 <- case_REAL_population[case_S2, on=c("Drug")]
+case_S2 <- case_S2[case_REAL_population, on=c("Drug")]
 case_S2[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+
+fwrite(case_REAL, file="hepcep_moud_real_duration.csv")
+fwrite(case_S1, file="hepcep_moud_s1_duration.csv")
+fwrite(case_S2, file="hepcep_moud_s2_duration.csv")
 
 # Use the real case, or...
 case <- case_S2
@@ -297,17 +301,21 @@ new_chronic_case_REAL$new_chronic_sd <- NULL
 # Normalize the case by the REAL population mean and sd
 new_chronic_case_S1 <- new_chronic_year_result[opioid_scenario=='SCENARIO_1' 
                        & opioid_treatment_enrollment_per_PY==0.075]
-new_chronic_case_S1 <- new_chronic_case_REAL[new_chronic_case_S1, on=c("zipcode")]
-new_chronic_case_S1[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd]
+new_chronic_case_S1 <- new_chronic_case_S1[new_chronic_case_REAL, on=c("zipcode")]
+new_chronic_case_S1[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd_REAL]
 new_chronic_case_S1[is.na(score) | is.nan(score) | is.infinite(score)]$score <- 0
 
 
 # Normalize the case by the REAL population mean and sd
 new_chronic_case_S2 <- new_chronic_year_result[opioid_scenario=='SCENARIO_2' 
                        & opioid_treatment_enrollment_per_PY==0.075]
-new_chronic_case_S2 <- new_chronic_case_REAL[new_chronic_case_S2, on=c("zipcode")]
-new_chronic_case_S2[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd]
+new_chronic_case_S2 <- new_chronic_case_S2[new_chronic_case_REAL, on=c("zipcode")]
+new_chronic_case_S2[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd_REAL]
 new_chronic_case_S2[is.na(score) | is.nan(score) | is.infinite(score)]$score <- 0
+
+fwrite(new_chronic_case_REAL, file="hepcep_moud_real_newchronic.csv")
+fwrite(new_chronic_case_S1, file="hepcep_moud_s1_newchronic.csv")
+fwrite(new_chronic_case_S2, file="hepcep_moud_s2_newchronic.csv")
 
 # Use the real case, or...
 case <- new_chronic_case_S2

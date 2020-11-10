@@ -124,8 +124,36 @@ stop_treat_events[, c("Duration") := tick - as.numeric(start_tick)]
 # Join the events and agents table by (Id, run), and use the Year and tick from the event  
 setkey(stop_treat_events, Id, run)
 
-# Copy agents and remove Tick,Year since we want the event times, not when agents are created
-sm_agents <- dt_agents
+# Save initial & final agent population for a *****single run*****
+# *** Tick 365 *** is the first tick due to burn-in
+single_run_agents <- dt_agents[run == 1]
+initial_agents <- single_run_agents[Tick == 0]
+
+# Subtracting all agents with a deactivated event from the entire agent event list
+#   for a single run will provide the remaining agents at final time
+
+activated_events <- dt_events[.('ACTIVATED')]
+# *** Tick 365 *** is the first tick due to burn-in
+activated_events <- activated_events[run == 1 & tick > 0]   #*****single run*****
+deactivated_events <- dt_events[.('DEACTIVATED')]
+deactivated_events <- deactivated_events[run == 1]   #*****single run*****
+
+# Sanity check - there should be about 32,000 agents active at a time
+num_agents <- nrow(activated_events) - nrow(deactivated_events)
+
+if (num_agents < 31900 || num_agents > 32100){
+  warning("The number of agents should be approximately 32,000 but is ", num_agents)
+}
+
+deactivated_agent_ids <- deactivated_events$person_id
+final_agents <- single_run_agents[!(Id %in% deactivated_agent_ids)]
+
+fwrite(initial_agents, "initial_agents.csv")
+fwrite(final_agents, "final_agents.csv")
+
+# Copy (using data.table so it's not a simple object reference) agents and remove 
+#  Tick,Year since we want the event times, not when agents are created
+sm_agents <- data.table(dt_agents)
 sm_agents[,Tick:=NULL]
 sm_agents[,Year:=NULL]
 
@@ -159,30 +187,49 @@ case_REAL <- year_result[opioid_scenario=='REAL'
 # Gather population level statistics to be used for normalization
 case_REAL_population <- year_result_population[opioid_scenario=='REAL' 
                                     & opioid_treatment_enrollment_per_PY==0.075]
+
 case_REAL_population$Duration_mean_population <- case_REAL_population$Duration_mean
 case_REAL_population$Duration_sd_population <- case_REAL_population$Duration_sd
 case_REAL_population$Duration_mean <- NULL
 case_REAL_population$Duration_sd <- NULL
 
+# Calculate scores.  Score method 1 is relative to the population mean/sd, while
+#  score method 2 is relative to the zip mean/sd
+
+# The REAL case treatment duration mean and sd by zip code
+case_REAL_zip_means <- case_REAL[, c("Drug", "zipcode", "Duration_mean", "Duration_sd")]
+names(case_REAL_zip_means) <- c("Drug", "zipcode", "Duration_mean_real", "Duration_sd_real")
+
 # Normalize the case by the REAL population mean and sd
 case_REAL <- case_REAL[case_REAL_population, on=c("Drug")]
-case_REAL[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_REAL[, "score 1" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
 
 # Normalize the case by the REAL population mean and sd
-case_S1 <- year_result[opioid_scenario=='SCENARIO_1' 
-                         & opioid_treatment_enrollment_per_PY==0.075]
+case_S1 <- year_result[opioid_scenario=='SCENARIO_1' & opioid_treatment_enrollment_per_PY==0.075]
 case_S1 <- case_S1[case_REAL_population, on=c("Drug")]
-case_S1[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_S1 <- case_S1[case_REAL_zip_means, on=c("Drug","zipcode")]
+case_S1[, "score 1" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_S1[, "score 2" := (Duration_mean - Duration_mean_real) / Duration_sd_real]
 
 # Normalize the case by the REAL population mean and sd
-case_S2 <- year_result[opioid_scenario=='SCENARIO_2' 
-                       & opioid_treatment_enrollment_per_PY==0.075]
+case_S2 <- year_result[opioid_scenario=='SCENARIO_2' & opioid_treatment_enrollment_per_PY==0.075]
 case_S2 <- case_S2[case_REAL_population, on=c("Drug")]
-case_S2[, "score" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_S2 <- case_S2[case_REAL_zip_means, on=c("Drug","zipcode")]
+case_S2[, "score 1" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_S2[, "score 2" := (Duration_mean - Duration_mean_real) / Duration_sd_real]
 
-fwrite(case_REAL, file="hepcep_moud_real_duration.csv")
-fwrite(case_S1, file="hepcep_moud_s1_duration.csv")
-fwrite(case_S2, file="hepcep_moud_s2_duration.csv")
+# Normalize the case by the REAL population mean and sd
+case_S3 <- year_result[opioid_scenario=='SCENARIO_3' & opioid_treatment_enrollment_per_PY==0.075]
+case_S3 <- case_S3[case_REAL_population, on=c("Drug")]
+case_S3 <- case_S3[case_REAL_zip_means, on=c("Drug","zipcode")]
+case_S3[, "score 1" := (Duration_mean - Duration_mean_population) / Duration_sd_population]
+case_S3[, "score 2" := (Duration_mean - Duration_mean_real) / Duration_sd_real]
+
+fwrite(case_REAL, file="hepcep_moud_real_duration_new.csv")
+fwrite(case_S1, file="hepcep_moud_s1_duration_new.csv")
+fwrite(case_S2, file="hepcep_moud_s2_duration_new.csv")
+fwrite(case_S3, file="hepcep_moud_s3_duration_new.csv")
+
 
 # Use the real case, or...
 case <- case_S2
@@ -261,7 +308,7 @@ new_chronic_events[, c("Id") := person_id]
 setkey(new_chronic_events, Id, run)
 
 # Copy agents and remove Tick,Year since we want the event times, not when agents are created
-sm_agents <- dt_agents
+sm_agents <- data.table(dt_agents)
 sm_agents[,Tick:=NULL]
 sm_agents[,Year:=NULL]
 
@@ -305,7 +352,6 @@ new_chronic_case_S1 <- new_chronic_case_S1[new_chronic_case_REAL, on=c("zipcode"
 new_chronic_case_S1[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd_REAL]
 new_chronic_case_S1[is.na(score) | is.nan(score) | is.infinite(score)]$score <- 0
 
-
 # Normalize the case by the REAL population mean and sd
 new_chronic_case_S2 <- new_chronic_year_result[opioid_scenario=='SCENARIO_2' 
                        & opioid_treatment_enrollment_per_PY==0.075]
@@ -313,9 +359,17 @@ new_chronic_case_S2 <- new_chronic_case_S2[new_chronic_case_REAL, on=c("zipcode"
 new_chronic_case_S2[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd_REAL]
 new_chronic_case_S2[is.na(score) | is.nan(score) | is.infinite(score)]$score <- 0
 
+# Normalize the case by the REAL population mean and sd
+new_chronic_case_S3 <- new_chronic_year_result[opioid_scenario=='SCENARIO_3' 
+                                               & opioid_treatment_enrollment_per_PY==0.075]
+new_chronic_case_S3 <- new_chronic_case_S3[new_chronic_case_REAL, on=c("zipcode")]
+new_chronic_case_S3[, "score" := (new_chronic_mean - new_chronic_mean_REAL) / new_chronic_sd_REAL]
+new_chronic_case_S3[is.na(score) | is.nan(score) | is.infinite(score)]$score <- 0
+
 fwrite(new_chronic_case_REAL, file="hepcep_moud_real_newchronic.csv")
 fwrite(new_chronic_case_S1, file="hepcep_moud_s1_newchronic.csv")
 fwrite(new_chronic_case_S2, file="hepcep_moud_s2_newchronic.csv")
+fwrite(new_chronic_case_S3, file="hepcep_moud_s3_newchronic.csv")
 
 # Use the real case, or...
 case <- new_chronic_case_S2

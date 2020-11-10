@@ -25,7 +25,9 @@ const int S1_NAL_IDX = 6;
 const int S2_BUP_IDX = 7;
 const int S2_METH_IDX = 8;
 const int S2_NAL_IDX = 9;
-
+const int S3_BUP_IDX = 10;
+const int S3_METH_IDX = 11;
+const int S3_NAL_IDX = 12;
 
 struct MinDistance {
 	double meth, bup, nal;
@@ -51,6 +53,10 @@ void loadOpioidTreatmentDistances(const std::string& treatment_dist_file,
 		idxs[0] = S2_METH_IDX;
 		idxs[1] = S2_BUP_IDX;
 		idxs[2] = S2_NAL_IDX;
+    } else if (opioid_treatment_access_scenario == "SCENARIO_3") {
+		idxs[0] = S3_METH_IDX;
+		idxs[1] = S3_BUP_IDX;
+		idxs[2] = S3_NAL_IDX;
 	} else {
 		throw std::invalid_argument("Invalid opioid_treatment_access_scenario: " + opioid_treatment_access_scenario);
 	}

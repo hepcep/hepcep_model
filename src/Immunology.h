@@ -25,18 +25,21 @@ struct ImmunologyParameters {
 
      double mean_days_acute_naive,
 		 mean_days_acute_rechallenged,
-     mean_days_naive_to_infectious,
+         mean_days_naive_to_infectious,
 		 mean_days_residual_hcv_infectivity,
-     prob_self_limiting_female,
+         prob_self_limiting_female,
 		 prob_self_limiting_male,
-     prob_clearing,
+         prob_clearing,
 		 transmissibility,
-     treatment_duration,
+         treatment_duration,
 		 treatment_svr,
-     treatment_susceptibility;
+         treatment_susceptibility;
 
      bool treatment_repeatable;
 
+     // Max number of times that can be re-enrolled in DAA treatment 
+     unsigned int max_num_daa_treatments;  
+     
      ImmunologyParameters();
 };
 
@@ -60,6 +63,8 @@ private:
     double treatment_start_date;
     bool treatment_failed;  // indicates a prior treatment attempt has failed
 
+    unsigned int num_daa_treatments = 0;   // Number of times person has enrolled in DAA treatment
+    
     bool isInTreatmentViralSuppression(double tick);
 
     /**

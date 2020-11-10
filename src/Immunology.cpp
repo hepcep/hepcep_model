@@ -45,7 +45,8 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_duration { std::numeric_limits<double>::signaling_NaN() },
 				treatment_svr { std::numeric_limits<double>::signaling_NaN() },
 				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() },
-				treatment_repeatable(false)
+				treatment_repeatable(false),
+                max_num_daa_treatments { std::numeric_limits<unsigned int>::signaling_NaN()}
 {}
 
 Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIBLE),  scheduled_actions(), past_cured(false),
@@ -66,6 +67,7 @@ Immunology::Immunology(HCPerson* idu) : idu_(idu), hcv_state(HCVState::SUSCEPTIB
 	params_->treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
 	params_->treatment_svr = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SVR);
 	params_->treatment_susceptibility = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SUSCEPTIBILITY);
+    params_->max_num_daa_treatments =  chi_sim::Parameters::instance()->getDoubleParameter(MAX_NUM_DAA_TREATMENTS);
 
 }
 
@@ -252,14 +254,20 @@ bool Immunology::isTreatable(double now) {
 	if (in_treatment){
 		return false;      // if not currently being treated
 	}
+    
+    // TODO - We don't need the treatment_repeatable boolean since we can just set 
+    //        max_num_daa_treatments to a large number, or = 1 for no re-treatments
+    if (num_daa_treatments >= params_->max_num_daa_treatments){
+        return false;      // Don't treat if re-treatment max has been exceeded
+    }
 
 	if (!(params_->treatment_repeatable)){          // if not repeatable then check conditions.
-  	if (isPostTreatment() || treatment_failed){   // Has already been in one treatment)
+        if (isPostTreatment() || treatment_failed){   // Has already been in one treatment)
 		                                              // or Treatment failure (not re-infect))
   			return false;
-	  }
+        }
 	}
-  return isHcvRNA(now);    // if currently infected
+    return isHcvRNA(now);    // if currently infected
 }
 
 // Similar to isTreatable() check, but logs an HCV test event which is typically
@@ -400,6 +408,8 @@ void Immunology::startTreatment(bool adherent, double now) {
         new EndTreatmentFunctor(treatment_succeeds, this));
     scheduled_actions.push_back(treatment_end_evt);
     runner.scheduleEvent(treatment_end_time, treatment_end_evt);
+    
+    num_daa_treatments++;
 }
 
 

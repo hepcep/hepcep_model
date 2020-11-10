@@ -117,7 +117,7 @@ incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(2.
                                              
                                              # Manually update the DAA treatment max
                                              
-                                             max_num_daa_treatments %in% c(4)]
+                                             max_num_daa_treatments %in% c(NA)]
 
 # Relative incidence via the baseline normalization of the no-treatment mean in 2019
 baseline <- incidenceSummaryBaseline[Year==2019]$mean
@@ -153,7 +153,7 @@ p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=trea
   
   guides(color=guide_legend(title="Enrollment %"),fill=guide_legend(title="Enrollment %"))
 
-ggsave("Treatment Incidence num DAA treat 4.png", plot=p, width=10, height=8)
+ggsave("Treatment Incidence num DAA treat no limit.png", plot=p, width=10, height=8)
 fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
 
 # Manually compare the incidence of chronic vs all infections.  Need to run above incidence

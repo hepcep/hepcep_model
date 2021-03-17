@@ -21,8 +21,12 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
+<<<<<<< HEAD
 # 288
 export PROCS=72
+=======
+export PROCS=252
+>>>>>>> 1bb875278b1a01b9c4be7d0a5ad51f8c41ed7e1f
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will

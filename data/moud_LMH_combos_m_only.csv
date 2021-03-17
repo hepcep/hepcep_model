@@ -1,0 +1,4 @@
+Experiment,methadone_urban_threshold,methadone_non_urban_threshold,methadone_p_close,methadone_p_far
+1,1,5,0.973042538,0.729781904
+2,2,10,0.95889184,0.71916888
+3,5,20,0.953748359,0.715311269

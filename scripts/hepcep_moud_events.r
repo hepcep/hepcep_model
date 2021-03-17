@@ -1,6 +1,5 @@
 library(data.table)
-library(ggplot2)
-library(scales)
+
 
 # Load all of the stats files that exist in an experiments dir
 eventsfileName <- "/events_16.csv"

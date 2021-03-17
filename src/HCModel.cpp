@@ -892,7 +892,8 @@ void HCModel::opioid_treatment(){
     for (auto entry : local_persons) {
             PersonPtr & person = entry.second;
 
-            if (person->isTreatable()){
+//          if (person->isTreatable()){
+            if(!person->isInOpioidTreatment()) {
                 candidates.push_back(person);
             }
     }
@@ -946,13 +947,13 @@ void HCModel::opioidTreatmentSelection(DrugName drug,
                         
         // Continue enrolling while enrollment target is not met.
         if (enrolled.size() < enrollmentTarget){
-            if(!person->isInOpioidTreatment()) {          
+//            if(!person->isInOpioidTreatment()) {          
                 enrolled.push_back(person);       // Enroll person
                 iter = candidates.erase(iter);    // Remove person from candidates
-            }
-            else {
-                ++iter;
-            }
+//            }
+//            else {
+//                ++iter;
+//            }
         }
         // Otherwise the enrollment target is met, so stop enrolling.
         else{

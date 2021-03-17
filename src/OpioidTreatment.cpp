@@ -12,10 +12,16 @@ OpioidTreatment::OpioidTreatment(ZonePtr zone, std::shared_ptr<OpioidTreatmentDr
     treatment_prob(0), drug_(drug)
 {
     double distance = zone->getDistanceToTreatment(drug_->name());
-    if (distance > drug_->getTreatmentThreshold(AreaType::getAreaType(zone->getZipcode()))) {
-        treatment_prob = drug_->getPFar();
+    AreaType area_type = AreaType::getAreaType(zone->getZipcode());
+    double max_threshold = drug_->getMaxTreatmentThreshold(area_type);
+    if (max_threshold > 0 && distance > max_threshold) {
+        treatment_prob = 0.0;
     } else {
-        treatment_prob = drug->getPClose();
+        if (distance > drug_->getTreatmentThreshold(area_type)) {
+            treatment_prob = drug_->getPFar();
+        } else {
+            treatment_prob = drug->getPClose();
+        }
     }
 }
 

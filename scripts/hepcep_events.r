@@ -7,21 +7,19 @@
 library(data.table)
 library(ggplot2)
 library(scales)
-
-# Std Err
-std <- function(x) sd(x)/sqrt(length(x))
+library(Publish)
 
 dt <- NULL
+dt_infections <- NULL
 
 # Load all of the stats files that exist in an experiments dir
 eventsfileName <- "/events.csv"
 statsfilename <- "/stats.csv"
 dirs <- list.dirs (path=".", recursive=FALSE)
 
-# TODO put the run number in the event log
-run <- 1
-
 tableList <- list()
+infection_tableList <- list()
+
 for (d in dirs){
   path <- paste0(d,eventsfileName)
   statsPath <- paste0(d,statsfilename)
@@ -46,10 +44,9 @@ for (d in dirs){
       evTable <-  fread(path)
       statsTable <- fread(statsPath)
       
-      # Get only start treatment events
       setkey(evTable, event_type) 
       start_treat_events <- evTable[.('STARTED_TREATMENT')]
-      
+    
       # Process events 
       if (nrow(start_treat_events) == 0){
         print(paste0("No start treatment event in log for: ", path))
@@ -72,9 +69,33 @@ for (d in dirs){
       resultsTable$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
       resultsTable$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
       
-      resultsTable$run <- run
+      resultsTable$run <- props[Name=="run.number"]$Value
       
-      tableList[[d]]  <- resultsTable  
+      tableList[[d]]  <- resultsTable
+      
+      # Get the number of new chronic infections during the DAA treatment period
+      new_chronic_events <- evTable[.('CHRONIC')]
+      
+      new_chronic_events <- new_chronic_events[tick > 4016]  # Hack for start treat year events
+      
+      # total infection count
+      total_new_chronic <- nrow(new_chronic_events)
+      
+      # total number of re-infections (not counting original infection)
+      re_infect_freq <- as.data.table(table(new_chronic_events$person_id))
+      re_infect_freq[, reinfection := N - 1]
+      total_reinfections <- sum(re_infect_freq$reinfection)
+      
+      infection_table <- data.table(total_infections = total_new_chronic,
+                                    total_reinfections = total_reinfections)
+      
+      infection_table$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
+      infection_table$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
+      infection_table$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
+      infection_table$run <- props[Name=="run.number"]$Value
+      
+      infection_tableList[[d]]  <- infection_table
+      
     }, 
     warning = function(w) {
       print(paste0("Error loading file: ", path, " ", w))
@@ -87,17 +108,73 @@ for (d in dirs){
     )
     
   }
-  
-  run <- run + 1
 }
 
 dt <- rbindlist(tableList, fill=TRUE)  # Stack the list of tables into a single DT
 tableList <- NULL           # clear mem
 
+dt_infections <- rbindlist(infection_tableList, fill=TRUE)  # Stack the list of tables into a single DT
+infection_tableList <- NULL           # clear mem
 
-treatmentSummary <- dt[, list(mean=mean(Freq), std=std(Freq), sd=sd(Freq)), 
+DAA_cost <- 25 # treatment cost in $1,000
+dt$Count <- as.numeric(dt$Count)
+dt[, cost := DAA_cost * Count * Freq]
+
+# Calculate the mean and SD number of treatements per max_num_daa_treatments, 
+#  enrollment rate, and non-adherence  
+treatmentSummary <- dt[, ci.mean(Freq), 
                                   by=list(Count, treatment_enrollment_per_PY,
                                           treatment_nonadherence, max_num_daa_treatments)]
+
+# DAA treatment costs mean & SE by number of retreatments
+treatmentSummary_costs <- dt[, ci.mean(cost), 
+                       by=list(Count, treatment_enrollment_per_PY,
+                               treatment_nonadherence, max_num_daa_treatments)]
+
+fwrite(treatmentSummary, file="treatment_counts_2.csv")
+fwrite(treatmentSummary_costs, file="treatment_counts_costs_2.csv")
+
+
+# Calculate the mean (95% CI) number of treatements per enrollment rate, and non-adherence
+# First sum by run to get the total for each run
+treatment_sums <- dt[, list(num_pwid=sum(Freq)), 
+                           by=list(treatment_enrollment_per_PY,
+                                   treatment_nonadherence, max_num_daa_treatments, run)]
+
+treatment_sums_summary <- treatment_sums[, ci.mean(num_pwid), 
+                       by=list(treatment_enrollment_per_PY,
+                               treatment_nonadherence, max_num_daa_treatments)]
+
+fwrite(treatment_sums_summary, file="treatment_sums_2.csv")
+
+# Do similar for total cost per run for DAA treatment and then get the mean and CI
+treatment_costs_total <- dt[, list(total_cost=sum(cost)), 
+                          by=list(treatment_enrollment_per_PY,
+                             treatment_nonadherence, max_num_daa_treatments, run)]
+
+treatment_costs_summary <- treatment_costs_total[, ci.mean(total_cost), 
+                                         by=list(treatment_enrollment_per_PY,
+                                                 treatment_nonadherence, max_num_daa_treatments)]
+
+fwrite(treatment_costs_summary, file="treatment_costs_sums_2.csv")
+
+
+# Calculate the mean (95% CI) number of infections and re-infections per enrollment rate, and non-adherence
+infections_summary <- dt_infections[, ci.mean(total_infections), 
+                                                 by=list(treatment_enrollment_per_PY,
+                                                         treatment_nonadherence, max_num_daa_treatments)]
+
+fwrite(infections_summary, file="infections_summary_2.csv")
+
+reinfections_summary <- dt_infections[, ci.mean(total_reinfections), 
+                                    by=list(treatment_enrollment_per_PY,
+                                            treatment_nonadherence, max_num_daa_treatments)]
+
+fwrite(reinfections_summary, file="reinfections_summary_2.csv")
+
+
+
+# OLD STUFF BELOW ##########################
 
 #treatmentSummary <- treatmentSummary[Count %in% c(1,2,3,4,5,6,7)]
 
@@ -162,10 +239,8 @@ treatmentSummary <- dt[, list(mean=mean(Freq), std=std(Freq), sd=sd(Freq)),
 # show(p)
 # ggsave("Treatment Counts Pie chart.png", plot=p, width=10, height=8)
 
-fwrite(treatmentSummary, file="treatment_counts.csv")
-
 # Treatment count table
-DAA_cost <- 25 # treatment cost in $1,000
+
 
 tableData <- treatmentSummary[treatment_enrollment_per_PY == 0.075]
 

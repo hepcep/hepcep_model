@@ -97,6 +97,10 @@ treatment_nonadherence = 0.1
 treatment_svr = 0.9
 treatment_susceptibility = 1
 
+
+opioid_treatment_urban_max_threshold = 0
+opioid_treatment_non_urban_max_threshold = 0
+
 methadone_max_injection_intensity = 0.25
 methadone_duration = 7
 methadone_urban_threshold = 2

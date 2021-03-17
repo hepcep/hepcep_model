@@ -90,18 +90,21 @@ void init_stats(const std::string& output_directory, int run_number) {
 
 void init_opioid_treatment_drugs() {
     chi_sim::Parameters* params = chi_sim::Parameters::instance();
-    OpioidTreatmentDrugs::initDrug({DrugName::METHADONE, params->getDoubleParameter(METHADONE_MAX_INJECTION_INTENSITY),
-        params->getDoubleParameter(METHADONE_DURATION), params->getDoubleParameter(METHADONE_URBAN_THRESHOLD),
-        params->getDoubleParameter(METHADONE_NON_URBAN_THRESHOLD), params->getDoubleParameter(METHADONE_P_CLOSE),
-        params->getDoubleParameter(METHADONE_P_FAR)});
-    OpioidTreatmentDrugs::initDrug({DrugName::BUPRENORPHINE, params->getDoubleParameter(BUPRENORPHINE_MAX_INJECTION_INTENSITY),
-        params->getDoubleParameter(BUPRENORPHINE_DURATION), params->getDoubleParameter(BUPRENORPHINE_URBAN_THRESHOLD),
-        params->getDoubleParameter(BUPRENORPHINE_NON_URBAN_THRESHOLD), params->getDoubleParameter(BUPRENORPHINE_P_CLOSE),
-        params->getDoubleParameter(BUPRENORPHINE_P_FAR)});
-    OpioidTreatmentDrugs::initDrug({DrugName::NALTREXONE, params->getDoubleParameter(NALTREXONE_MAX_INJECTION_INTENSITY),
-        params->getDoubleParameter(NALTREXONE_DURATION), params->getDoubleParameter(NALTREXONE_URBAN_THRESHOLD),
-        params->getDoubleParameter(NALTREXONE_NON_URBAN_THRESHOLD), params->getDoubleParameter(NALTREXONE_P_CLOSE),
-        params->getDoubleParameter(NALTREXONE_P_FAR)});
+    OpioidTreatmentDrugs::initDrug({DrugName::METHADONE, 
+        params->getDoubleParameter(METHADONE_MAX_INJECTION_INTENSITY),params->getDoubleParameter(METHADONE_DURATION), 
+        params->getDoubleParameter(METHADONE_URBAN_THRESHOLD), params->getDoubleParameter(METHADONE_NON_URBAN_THRESHOLD), 
+        params->getDoubleParameter(OT_URBAN_MAX_THRESHOLD), params->getDoubleParameter(OT_NON_URBAN_MAX_THRESHOLD),
+        params->getDoubleParameter(METHADONE_P_CLOSE), params->getDoubleParameter(METHADONE_P_FAR)});
+    OpioidTreatmentDrugs::initDrug({DrugName::BUPRENORPHINE, 
+        params->getDoubleParameter(BUPRENORPHINE_MAX_INJECTION_INTENSITY), params->getDoubleParameter(BUPRENORPHINE_DURATION), 
+        params->getDoubleParameter(BUPRENORPHINE_URBAN_THRESHOLD),params->getDoubleParameter(BUPRENORPHINE_NON_URBAN_THRESHOLD), 
+        params->getDoubleParameter(OT_URBAN_MAX_THRESHOLD), params->getDoubleParameter(OT_NON_URBAN_MAX_THRESHOLD),
+        params->getDoubleParameter(BUPRENORPHINE_P_CLOSE),params->getDoubleParameter(BUPRENORPHINE_P_FAR)});
+    OpioidTreatmentDrugs::initDrug({DrugName::NALTREXONE, 
+        params->getDoubleParameter(NALTREXONE_MAX_INJECTION_INTENSITY),params->getDoubleParameter(NALTREXONE_DURATION),
+        params->getDoubleParameter(NALTREXONE_URBAN_THRESHOLD), params->getDoubleParameter(NALTREXONE_NON_URBAN_THRESHOLD),
+        params->getDoubleParameter(OT_URBAN_MAX_THRESHOLD), params->getDoubleParameter(OT_NON_URBAN_MAX_THRESHOLD),
+        params->getDoubleParameter(NALTREXONE_P_CLOSE), params->getDoubleParameter(NALTREXONE_P_FAR)});
 }
 
 HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :

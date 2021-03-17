@@ -1,5 +1,5 @@
 library(data.table)
-a0 <- fread("../../experiments/moud_3/run_0/agents.csv")
+a0 <- fread("../../experiments/moud_6/run_0/agents.csv")
 
 zip_N_a0 <- a0[Tick == 0, .N, by="Zip Code"]
 table(zip_N_a0[,N])

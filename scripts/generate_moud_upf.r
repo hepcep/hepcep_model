@@ -9,7 +9,7 @@
 library(data.table)
 
 # Read in a list of experiments which is a CSV table of parameter values
-experiments <- fread("moud_LMH_combos_b7.csv")
+experiments <- fread("moud_LMH_combos_m_only.csv")
 
 # Insert the column name in each value cell with a '=' separator 
 experiments[] <- Map(paste, names(experiments), experiments, sep = "=")
@@ -30,32 +30,10 @@ range <- seq(enrollmentRateStart,enrollmentRateEnd, by=enrollmentRateStep)
 
 scenarios <- c("REAL","SCENARIO_1","SCENARIO_2","SCENARIO_3")
 
-# This is the prior way to generate UPF lines that use ranges
-# for (rate in range){     # Loop over each entrollment 
-#   
-#   print(rate)  # show progress
-#   
-#   for (s in scenarios){  # Loop over each scenario
-#     seed <- 0   # Reset the seed counter so that each replicate uses the same set of seeds
-#     for (rep in 1:replicates){
-#       i = i + 1
-#       seed = seed + 1
-#       
-#       x <- paste0(x,"run.number=",i,"\t")
-#       x <- paste0(x,"random.seed=",seed,"\t")
-#       
-#       x <- paste0(x,"opioid_treatment_enrollment_per_PY=",rate,"\t")
-#       
-#       x <- paste0(x,"opioid_treatment_access_scenario=",  s)
-#       x <- paste0(x,"\n")
-#     }
-#   }
-# }
-
 rate <- enrollmentRateStart
-s <- scenarios[1]
 
-  print(rate)  # show progress
+for (s in scenarios){
+  print(s)  # show progress
 
   for (ex in exp_str_array){  # Loop over each experimant
     seed <- 0   # Reset the seed counter so that each replicate uses the same set of seeds
@@ -75,11 +53,7 @@ s <- scenarios[1]
       x <- paste0(x,"\n")
     }
   }
+}
 
 
-
-write(x, file="upf_moud_b7_REAL.txt")
-
-
-
-
+write(x, file="upf_moud_m_only.txt")

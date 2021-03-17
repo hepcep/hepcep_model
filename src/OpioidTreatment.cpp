@@ -12,6 +12,13 @@ OpioidTreatment::OpioidTreatment(ZonePtr zone, std::shared_ptr<OpioidTreatmentDr
     treatment_prob(0), drug_(drug)
 {
     double distance = zone->getDistanceToTreatment(drug_->name());
+    
+    // TODO If distance is > super far threshold for the AreaType, then
+    //   set treatment_prop = 0.
+    // Only apply if super far threshold > 0 (to enable behavior)
+
+    // super far threshold  stored in model.props as two new params
+
     if (distance > drug_->getTreatmentThreshold(AreaType::getAreaType(zone->getZipcode()))) {
         treatment_prob = drug_->getPFar();
     } else {

@@ -21,15 +21,17 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=324
+# 288
+export PROCS=252
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 #export QUEUE=bdwall
+#export PROJECT=emews
 export PROJECT=condo
 export QUEUE=dis
-export WALLTIME=3:00:00
+export WALLTIME=2:00:00
 export PPN=36
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -93,6 +95,6 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_moud_1.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_moud_m_only.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

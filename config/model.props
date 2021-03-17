@@ -31,8 +31,8 @@ resume.from.saved.net = false
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT, HCVRNA_TEST,
 # STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT
-#log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
-log.events = NONE
+log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
+#log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEACTIVATED
 
 # Frequently changed parameters
 burn_in_days = 365
@@ -40,8 +40,9 @@ treatment_enrollment_start_delay = 3650
 treatment_enrollment_stop_at = 999999999
 initial_pwid_count = 32000
 
-treatment_enrollment_per_PY = 0
+treatment_enrollment_per_PY = 0.0
 treatment_repeatable = true
+max_num_daa_treatments = 999
 
 treatment_enrollment_probability_unbiased = 1.0
 treatment_enrollment_probability_HRP = 0.0
@@ -51,9 +52,9 @@ treatment_enrollment_probability_outpartner = 0.0
 
 opioid_treatment_enrollment_start_delay = 3650
 opioid_treatment_enrollment_per_PY = 0
-opioid_treatment_probability_methadone = 0.33
-opioid_treatment_probability_naltrexone = 0.33
-opioid_treatment_probability_buprenorphine = 0.33
+opioid_treatment_probability_methadone = 1.0
+opioid_treatment_probability_naltrexone = 0.0
+opioid_treatment_probability_buprenorphine = 0.0
 
 # one of REAL, SCENARIO_1, or SCENARIO_2
 opioid_treatment_access_scenario = REAL

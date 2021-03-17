@@ -21,7 +21,7 @@ export TURBINE_OUTPUT=$EMEWS_PROJECT_ROOT/experiments/$EXPID
 check_directory_exists
 
 # TODO edit the number of processes as required.
-export PROCS=324
+export PROCS=72
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
@@ -71,6 +71,7 @@ CNEP_PLUS_EARLY_FILE=$EMEWS_PROJECT_ROOT/..
 ZONES_FILE=$EMEWS_PROJECT_ROOT/..
 ZONES_DISTANCE_FILE=$EMEWS_PROJECT_ROOT/.. 
 
+export TURBINE_LAUNCHER=srun
 
 # set machine to your schedule type (e.g. pbs, slurm, cobalt etc.),
 # or empty for an immediate non-queued unscheduled run
@@ -93,6 +94,6 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_moud_1.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_retreat_lim_adherence.txt" \
   -config_file=$CONFIG_FILE \
   $CMD_LINE_ARGS

@@ -15,6 +15,7 @@ struct DrugParams {
     DrugName name;
     double max_injection_intensity, duration;
     double urban_threshold, non_urban_threshold;
+    double urban_max_threshold, non_urban_max_threshold;
     double p_close, p_far;
 };
 
@@ -24,6 +25,7 @@ private:
     double max_injection_intensity_;
     double duration_;
     double thresholds[2];
+    double max_thresholds[2];
     double p_close_, p_far_;
 
 public:
@@ -37,6 +39,7 @@ public:
     double maxInjectionIntensity() const;
     double duration() const;
     double getTreatmentThreshold(AreaType area_type) const;
+    double getMaxTreatmentThreshold(AreaType area_type) const;
     double getPClose() const;
     double getPFar() const;
     virtual DrugName name() const = 0;

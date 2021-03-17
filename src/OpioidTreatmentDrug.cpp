@@ -9,6 +9,8 @@ OpioidTreatmentDrug::OpioidTreatmentDrug(const DrugParams& params) : max_injecti
 {
         thresholds[AreaType::Value::City] = params.urban_threshold;
         thresholds[AreaType::Value::Suburban] = params.non_urban_threshold;
+        max_thresholds[AreaType::Value::City] = params.urban_max_threshold;
+        max_thresholds[AreaType::Value::Suburban] = params.non_urban_max_threshold;
 }
 
 double OpioidTreatmentDrug::maxInjectionIntensity() const {
@@ -21,6 +23,10 @@ double OpioidTreatmentDrug::duration() const {
 
 double OpioidTreatmentDrug::getTreatmentThreshold(AreaType area_type) const {
     return thresholds[area_type.value()];
+}
+
+double OpioidTreatmentDrug::getMaxTreatmentThreshold(AreaType area_type) const {
+    return max_thresholds[area_type.value()];
 }
 
 double OpioidTreatmentDrug::getPClose() const {

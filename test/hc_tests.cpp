@@ -68,12 +68,10 @@ AgeDecade getExpectedDecage(double age) {
 }
 
 TEST(HCTest, testEnums) {
-    AreaType type = AreaType::getAreaType("60615");
+    AreaType type = AreaType::getAreaType(60615);
     ASSERT_EQ(AreaType::CITY, type);
 
-    type = AreaType::getAreaType("02492");
-    ASSERT_EQ(AreaType::SUBURBAN, type);
-    AreaType::getAreaType("");
+    type = AreaType::getAreaType(12492);
     ASSERT_EQ(AreaType::SUBURBAN, type);
 
     for (int i = 10; i < 70; ++i) {

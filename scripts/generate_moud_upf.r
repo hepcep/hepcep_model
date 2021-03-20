@@ -9,7 +9,7 @@
 library(data.table)
 
 # Read in a list of experiments which is a CSV table of parameter values
-experiments <- fread("moud_LMH_combos_m_only.csv")
+experiments <- fread("moud_LMH_combos_m_only_penalty.csv")
 
 # Insert the column name in each value cell with a '=' separator 
 experiments[] <- Map(paste, names(experiments), experiments, sep = "=")
@@ -45,15 +45,13 @@ for (s in scenarios){
       x <- paste0(x,"random.seed=",seed,"\t")
 
       x <- paste0(x,"opioid_treatment_enrollment_per_PY=",rate,"\t")
-
       x <- paste0(x,"opioid_treatment_access_scenario=",s,"\t")
       
       x <- paste0(x, ex)  # Paste the experiment parameters
-      
       x <- paste0(x,"\n")
     }
   }
 }
 
 
-write(x, file="upf_moud_m_only.txt")
+write(x, file="upf_moud_m_only_penalty.txt")

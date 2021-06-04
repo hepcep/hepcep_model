@@ -195,7 +195,21 @@ void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 			roll = repast::Random::instance()->nextDouble();
 			if (roll <= donor->injectionIntensityMultiplier){ 			
 				double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-				donor->immunology->exposePartner(this->immunology, tick);
+				
+                // TODO Log needle sharing episode event
+				//      maybe only log starting in year 2020+
+				//      maybe tally the episodes per tick and log above once per tick
+
+				//  DO logging for both the receipient and the donor (if in different zip codes)
+                
+                // Log this person as sharing a needle
+                Statistics::instance()->recordNeedleSharing(this->getZipcode());
+                
+                // Log the needle donor as sharing a needle
+                Statistics::instance()->recordNeedleSharing(donor->getZipcode());
+                
+                // Expose the donor to this person
+                donor->immunology->exposePartner(this->immunology, tick);
 			}
 		}
 	}

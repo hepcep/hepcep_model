@@ -54,11 +54,13 @@ void WriteNet::operator()() {
     write_network(fname_, at_, network_, &write_person, &write_edge);
 }
 
-void init_stats(const std::string& output_directory, int run_number) {
+void init_stats(const std::string& output_directory, int run_number, std::map<unsigned int,ZonePtr> zone_map) {
     // Initialize statistics collection
     string stats_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(STATS_OUTPUT_FILE);
     string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
     string personsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(PERSONS_OUTPUT_FILE);
+    string needle_sharing_filename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(NEEDLESHARING_OUTPUT_FILE);
+
 
     string filter_string = chi_sim::Parameters::instance()->getStringParameter(EVENT_FILTERS);
     boost::trim(filter_string);
@@ -85,7 +87,8 @@ void init_stats(const std::string& output_directory, int run_number) {
     }
     
 
-    Statistics::init(stats_fname, events_fname, personsFilename, filter, run_number);
+    Statistics::init(stats_fname, events_fname, personsFilename, needle_sharing_filename, 
+        zone_map, filter, run_number);
 }
 
 void init_opioid_treatment_drugs() {
@@ -194,8 +197,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     }
     fo.close();
 
-    init_stats(output_directory, run);
-
     // TODO put all the data loading into a separate method
 
     // Load zones
@@ -218,6 +219,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
     std::cout << "CNEP+ file: " << cnep_file << std::endl;
     loadPersonData(cnep_file, personData);
+
+    init_stats(output_directory, run, zoneMap);
 
     // starting tick: tick at which to start scheduled events. If the model 
     // is resumed from a serialized state then we want to start at the time

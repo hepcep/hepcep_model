@@ -79,13 +79,15 @@ void MeanStats::writeHeader(FileOut& out) {
 Statistics* Statistics::instance_ = nullptr;
 
 void Statistics::init(const std::string& fname, const std::string& events_fname,
-		 const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter,
+		 const std::string& personsFilename, const std::string& needle_sharing_filename, 
+         std::map<unsigned int,ZonePtr> zoneMap, std::shared_ptr<Filter<LogType>>& filter,
 		 int run_number) {
 	if (Statistics::instance_ != nullptr) {
 		delete Statistics::instance_;
 	}
 
-	instance_ = new Statistics(fname, events_fname, personsFilename, filter, run_number);
+	instance_ = new Statistics(fname, events_fname, personsFilename, needle_sharing_filename, 
+        zoneMap, filter, run_number);
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
@@ -120,10 +122,14 @@ void init_metrics(std::vector<std::string>& metrics) {
 }
 
 Statistics::Statistics(const std::string& fname, const std::string& events_fname,
-		const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter, int run_number) :
-        		stats(), metrics(), log_events(), means(), event_counts(), out(fname),
-						events_out(events_fname), personsOut(personsFilename),
-						burninMode(false), filter_(filter), run_number_(run_number) {
+		const std::string& personsFilename, const std::string& needle_sharing_filename, 
+        std::map<unsigned int,ZonePtr> zoneMap, std::shared_ptr<Filter<LogType>>& filter, 
+        int run_number) :
+        		stats(), metrics(), log_events(), means(), event_counts(),
+                out(fname), events_out(events_fname), personsOut(personsFilename), 
+                        needle_sharing_out(needle_sharing_filename),
+						burninMode(false), filter_(filter), run_number_(run_number), 
+                        needle_sharing_map() {
 
 	init_metrics(metrics);
 
@@ -156,8 +162,16 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	out << "\n";
 
 	events_out << "run,tick,event_type,person_id,other\n";
-
 	personsOut << "Tick,Id,Age,Gender,Race,Zip Code,HCV State,Network In Degree,Network Out Degree\n";
+    needle_sharing_out << "Tick, Run";
+    
+    // Initialize the needle sharing map for all zip codes
+    for (auto& entry : zoneMap){
+        needle_sharing_map[entry.first] = 0;
+        needle_sharing_out << "," << entry.first;
+    }
+    needle_sharing_out << "\n";    
+    
 }
 
 void Statistics::close() {
@@ -167,6 +181,8 @@ void Statistics::close() {
 	events_out.close();
 	personsOut.flush();
 	personsOut.close();
+    needle_sharing_out.flush();
+	needle_sharing_out.close();
 }
 
 Statistics::~Statistics() {
@@ -251,6 +267,21 @@ void Statistics::recordStats(double tick, int run,
 	}
 	means.reset();
 	event_counts.reset();
+    
+    // Set all the needle sharing zip counts to zero
+    needle_sharing_out << tick << "," << run;
+    for (auto& entry : needle_sharing_map){ 
+        needle_sharing_out << "," << entry.second;
+        entry.second = 0;
+    }
+    needle_sharing_out << "\n";
+    //needle_sharing_map.clear();
+}
+
+void Statistics::recordNeedleSharing(unsigned int zipCode){
+    
+    // Increment the number of needle sharing episodes in this zipcode
+    needle_sharing_map[zipCode]++;
 }
 
 void Statistics::logStatusChange(LogType logType, PersonPtr person, const std::string& msg){

@@ -57,13 +57,16 @@ private:
     std::vector<LogEvent> log_events;
     MeanStats means;
     EventCounts event_counts;
-    FileOut out, events_out, personsOut;
+    FileOut out, events_out, personsOut, needle_sharing_out;
     bool burninMode;
     std::shared_ptr<Filter<LogType>> filter_;
     int run_number_;
+    
+    std::map<unsigned int, unsigned int> needle_sharing_map; // map of needle sharing episodes by zip code
 
     Statistics(const std::string& fname, const std::string& events_fname,
-    		const std::string& personsFilename, std::shared_ptr<Filter<LogType>>& filter,
+    		const std::string& personsFilename, const std::string& needle_sharing_filename, 
+            std::map<unsigned int,ZonePtr> zoneMap, std::shared_ptr<Filter<LogType>>& filter,
             int run_number);
 
     void calculatePrevalence(std::map<std::string, double>& prevalences);
@@ -72,7 +75,9 @@ private:
 public:
     static Statistics* instance();
     static void init(const std::string& fname, const std::string& events_fname,
-    		const std::string&, std::shared_ptr<Filter<LogType>>& filter, int run_number);
+    		const std::string& personsFilename, const std::string& needle_sharing_filename, 
+            std::map<unsigned int,ZonePtr> zoneMap,
+            std::shared_ptr<Filter<LogType>>& filter, int run_number);
     virtual ~Statistics();
 
     void logStatusChange(LogType logType, PersonPtr person, const std::string& msg);
@@ -81,6 +86,8 @@ public:
     void recordStats(double tick, int run, std::map<unsigned int, std::shared_ptr<HCPerson>>& persons);
     void close();
     void setBurninMode(bool mode);
+    
+    void recordNeedleSharing(unsigned int zipCode);
 
     int getDailyLosses();
 

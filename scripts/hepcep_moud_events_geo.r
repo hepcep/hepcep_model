@@ -177,10 +177,26 @@ setkey(dt_agents, Id, run)
 stop_treat_events <- dt_agents[stop_treat_events, on=c("Id","run")]
 stop_treat_events[, c("zipcode") := `Zip Code`]
 
+
+# Number of PWID treated in each run, experiment, year...
+num_pwid_treated <- stop_treat_events[, .(num_treated = .N), 
+                        by=.(Year, opioid_treatment_enrollment_per_PY, 
+                             opioid_scenario, Drug, zipcode, experiment, run)]
+
+# Mean number of PWID treated, averaged across runs
+mean_num_pwid_treated <- num_pwid_treated[, .(mean_num_treated = mean(num_treated)), 
+                         by=.(Year, opioid_treatment_enrollment_per_PY, 
+                                 opioid_scenario, Drug, zipcode, experiment)]
+
+
 # Summary of treatment durations, averaged by run, for each zipcode and scenario
-treatmentSummary <- stop_treat_events[, list(Duration_mean=mean(Duration), Duration_sd=sd(Duration)), 
-                                      by=list(Year, opioid_treatment_enrollment_per_PY, 
+treatmentSummary <- stop_treat_events[, .(Duration_mean=mean(Duration), Duration_sd=sd(Duration)), 
+                                      by=.(Year, opioid_treatment_enrollment_per_PY, 
                                               opioid_scenario, Drug, zipcode, experiment)]
+
+treatmentSummary <- treatmentSummary[mean_num_pwid_treated, 
+                                     on = c("Year", "opioid_scenario", "Drug", 
+                                            "zipcode", "experiment", "opioid_treatment_enrollment_per_PY")]
 
 # Same as above, but also averaged over all zipcodes, so its a population mean
 treatmentSummary_population <- stop_treat_events[, list(Duration_mean=mean(Duration), Duration_sd=sd(Duration)), 

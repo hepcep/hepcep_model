@@ -1,16 +1,18 @@
 # Properties file for general runs
 #
 
-stop.at = 8030
+stop.at = 400
 
 # relative to where the hepcep-model executable is run
 # NOTE !!!!!!!  for emewes runs, files are defined in hepcep_sweep.swift !!!!!!
-cnep_plus.file = data/100k_CNEP+_pwid_catalog_2018-11-23.csv
+cnep_plus.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv
 
-zones.file = data/zones.csv
-zones.distance.file = data/zones_distance.csv
+zones.file = zones.csv
+zones.distance.file = zones_distance.csv
+opioid_treatment_zone_distance_file = min_dist_real_reshuffled.csv
 
-opioid_treatment_zone_distance_file = data/min_dist_real_reshuffled.csv
+viral.kinetics.transmit.prob.file = vk.transmission_probability.csv
+
 
 run.number = 1
 random.seed = 42
@@ -19,13 +21,14 @@ output.directory = output
 stats.output.file = stats.csv
 events.output.file = events.csv
 persons.output.file = agents.csv
+needle_sharing.output.file = needle_sharing.csv
 
 # 0 for init network, n to log at tick n, and END to log at end
 # comment out for no net logging
-#log.network.at = 0 # END
+#log.network.at = 366
 
 resume.from.saved.net = false
-#resume.from.saved.net.file = data/net.gml
+#resume.from.saved.net.file = net.gml
 
 # NONE or ALL or comma separated list from
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,

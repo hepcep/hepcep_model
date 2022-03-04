@@ -32,6 +32,7 @@
 #include "serialize.h"
 #include "OpioidTreatment.h"
 #include "OpioidContinueTreatmentEvent.h"
+#include "ViralKineticsLoader.h"
 
 namespace hepcep {
 
@@ -60,7 +61,6 @@ void init_stats(const std::string& output_directory, int run_number, std::map<un
     string events_fname = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(EVENTS_OUTPUT_FILE);
     string personsFilename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(PERSONS_OUTPUT_FILE);
     string needle_sharing_filename = output_directory + "/" + chi_sim::Parameters::instance()->getStringParameter(NEEDLESHARING_OUTPUT_FILE);
-
 
     string filter_string = chi_sim::Parameters::instance()->getStringParameter(EVENT_FILTERS);
     boost::trim(filter_string);
@@ -120,7 +120,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
                     treatmentEnrollmentProb(),
                     treatmentEnrollmentResidual(),
                     opioidTreatmentEnrollmentProb(),
-                    opioidTreatmentEnrollmentResidual()
+                    opioidTreatmentEnrollmentResidual(),
+                    transmit_prob_map()
 {
 
     init_opioid_treatment_drugs();
@@ -186,10 +187,15 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     opioidTreatmentEnrollmentResidual[DrugName::NALTREXONE] = 0.;
     opioidTreatmentEnrollmentResidual[DrugName::BUPRENORPHINE] = 0.;
 
+    // Output directory in the instance for writing output files
     string output_directory = chi_sim::Parameters::instance()->getStringParameter(OUTPUT_DIRECTORY);
     
+    // Root data directory for input files in the emews project
+    string data_dir = chi_sim::Parameters::instance()->getStringParameter(DATA_DIR);
+
 //	std::cout << "Output dir: " << output_directory << std::endl;
 
+    // Write all updated props, including any on the UPF line, to an instance file
     std::string props_file = chi_sim::unique_file_name(props.getProperty(OUTPUT_DIRECTORY) + "/model.props");
     FileOut fo(props_file);
     for (auto iter = props.keys_begin(); iter != props.keys_end(); ++iter) {
@@ -200,8 +206,8 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     // TODO put all the data loading into a separate method
 
     // Load zones
-    std::string zones_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
-    std::string dist_file = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ZONE_DISTANCE_FILE);
+    std::string zones_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
+    std::string dist_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ZONE_DISTANCE_FILE);
     std::string access_scenario = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ACCESS_SCENARIO);
     std::cout << "Zones file: " << zones_file << std::endl;
     std::cout << "Zones Distance From Treatment File: " << dist_file << std::endl;
@@ -209,18 +215,23 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     loadZones(zones_file, dist_file, access_scenario, zoneMap);
     std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
 
-    std::string zones_distance_file = chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
+    std::string zones_distance_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
     std::cout << "Zones distance file: " << zones_distance_file << std::endl;
     loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
     // personData and personCreator are used to create initial persons and arriving new persons
     // so we need it regardless of how the initial population is 
     // created.
-    std::string cnep_file = chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
+    std::string cnep_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
     std::cout << "CNEP+ file: " << cnep_file << std::endl;
     loadPersonData(cnep_file, personData);
 
     init_stats(output_directory, run, zoneMap);
+
+    // Load viral kinetics data
+    std::string transmit_prob_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(VK_TRANSMIT_PROB_FILE);
+    std::cout << "VK file: " << transmit_prob_file << std::endl;
+    loadTransmissionProbabilities(transmit_prob_file, transmit_prob_map);
 
     // starting tick: tick at which to start scheduled events. If the model 
     // is resumed from a serialized state then we want to start at the time

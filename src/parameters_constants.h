@@ -9,6 +9,7 @@
 
 namespace hepcep {
 
+const std::string DATA_DIR = "data.dir";
 const std::string CNEP_PLUS_FILE = "cnep_plus.file";
 const std::string CNEP_PLUS__EARLY_FILE = "cnep_plus_early.file";
 const std::string RUN = "run.number";
@@ -22,6 +23,8 @@ const std::string EVENT_FILTERS = "log.events";
 //const std::string NETWORK_FILE = "network.file";
 const std::string ZONES_FILE = "zones.file";
 const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
+
+const std::string VK_TRANSMIT_PROB_FILE = "viral.kinetics.transmit.prob.file";
 
 const std::string RESUME_FROM_SAVED = "resume.from.saved.net";
 const std::string RESUME_FROM_SAVED_FILE = "resume.from.saved.net.file";

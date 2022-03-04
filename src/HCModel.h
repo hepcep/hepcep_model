@@ -51,6 +51,8 @@ protected:
     std::map<DrugName, double> opioidTreatmentEnrollmentProb;
     std::map<DrugName, double> opioidTreatmentEnrollmentResidual;
     
+	std::map<double, double> transmit_prob_map;
+
 	int totalIDUPopulation = 0;
 
 	double interactionHomeCutoff;

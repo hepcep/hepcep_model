@@ -7,8 +7,6 @@ if [ "$#" -ne 2 ]; then
   exit 1
 fi
 
-#PATH=/lcrc/project/MRSA/bebop/sfw/swift-t-38569e3/stc/bin:$PATH
-
 # uncomment to turn on swift/t logging. Can also set TURBINE_LOG,
 # TURBINE_DEBUG, and ADLB_DEBUG to 0 to turn off logging
 # export TURBINE_LOG=1 TURBINE_DEBUG=1 ADLB_DEBUG=1
@@ -22,25 +20,19 @@ check_directory_exists
 
 # TODO edit the number of processes as required.
 # 288
-export PROCS=72
+export PROCS=18
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 #export QUEUE=bdwall
-#export PROJECT=emews
+#export PROJECT=naerm
 export PROJECT=condo
 export QUEUE=dis
-export WALLTIME=2:00:00
-export PPN=36
+export WALLTIME=01:00:00
+export PPN=18
 export TURBINE_JOBNAME="${EXPID}_job"
 
-# if R cannot be found, then these will need to be
-# uncommented and set correctly.
-# export R_HOME=/path/to/R
-# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$R_HOME/lib
-# if python packages can't be found, then uncommited and set this
-# export PYTHONPATH=/path/to/python/packages
 export PYTHONPATH=$EMEWS_PROJECT_ROOT/python:$EMEWS_PROJECT_ROOT/ext/EQ-Py
 
 # TODO edit command line arguments as appropriate
@@ -51,27 +43,8 @@ CMD_LINE_ARGS="$*"
 CONFIG_FILE=$EMEWS_PROJECT_ROOT/../config/$2
 MODEL_DIR=$EMEWS_PROJECT_ROOT/model
 
-# TODO Testing model.props file path updating
-# Collect all of the model.props lines into a key,val dict, ignoring comment lines
-#declare -A model_props
-#while IFS='=' read -r key value; do
-# case $key in
-#       ''|\#*) continue ;;         # skip blank lines and lines starting with #
-##  [[ "$key" =~ ^[[:space:]]*# || "$key" == :blank: ]] && continue
-##  moddel_props[$key] = "$value"
-#  esac
-#  echo "k: $key, v: $value"
-#  model_props['$key']='$value'
-#
-#done < $CONFIG_FILE
-#
-#echo "${model_props['random.seed']}"
-
-# Define the data input files with emews root here and pass into swift via argv/s
-CNEP_PLUS_FILE=$EMEWS_PROJECT_ROOT/..
-CNEP_PLUS_EARLY_FILE=$EMEWS_PROJECT_ROOT/..
-ZONES_FILE=$EMEWS_PROJECT_ROOT/..
-ZONES_DISTANCE_FILE=$EMEWS_PROJECT_ROOT/.. 
+# Root folder for all input files. e.g. population CSVs
+DATA_DIR=$EMEWS_PROJECT_ROOT/../data
 
 export TURBINE_LAUNCHER=srun
 
@@ -82,7 +55,6 @@ MACHINE="slurm"
 if [ -n "$MACHINE" ]; then
   MACHINE="-m $MACHINE"
 fi
-
 
 # Add any script variables that you want to log as
 # part of the experiment meta data to the USER_VARS array,
@@ -96,6 +68,7 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_m_only_small.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_test_small.txt" \
   -config_file=$CONFIG_FILE \
+  -data_dir=$DATA_DIR \
   $CMD_LINE_ARGS

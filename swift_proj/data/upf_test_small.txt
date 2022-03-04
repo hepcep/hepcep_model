@@ -1,0 +1,16 @@
+run.number=21	random.seed=1	treatment_enrollment_per_PY=0.025	treatment_repeatable=true	treatment_nonadherence=0.1
+run.number=41	random.seed=1	treatment_enrollment_per_PY=0.05	treatment_repeatable=true	treatment_nonadherence=0.1
+run.number=61	random.seed=1	treatment_enrollment_per_PY=0.075	treatment_repeatable=true	treatment_nonadherence=0.1
+run.number=81	random.seed=1	treatment_enrollment_per_PY=0.1	treatment_repeatable=true	treatment_nonadherence=0.1
+run.number=121	random.seed=1	treatment_enrollment_per_PY=0.025	treatment_repeatable=true	treatment_nonadherence=0.2
+run.number=141	random.seed=1	treatment_enrollment_per_PY=0.05	treatment_repeatable=true	treatment_nonadherence=0.2
+run.number=161	random.seed=1	treatment_enrollment_per_PY=0.075	treatment_repeatable=true	treatment_nonadherence=0.2
+run.number=181	random.seed=1	treatment_enrollment_per_PY=0.1	treatment_repeatable=true	treatment_nonadherence=0.2
+run.number=221	random.seed=1	treatment_enrollment_per_PY=0.025	treatment_repeatable=true	treatment_nonadherence=0.3
+run.number=241	random.seed=1	treatment_enrollment_per_PY=0.05	treatment_repeatable=true	treatment_nonadherence=0.3
+run.number=261	random.seed=1	treatment_enrollment_per_PY=0.075	treatment_repeatable=true	treatment_nonadherence=0.3
+run.number=281	random.seed=1	treatment_enrollment_per_PY=0.1	treatment_repeatable=true	treatment_nonadherence=0.3
+run.number=321	random.seed=1	treatment_enrollment_per_PY=0.025	treatment_repeatable=true	treatment_nonadherence=0.4
+run.number=341	random.seed=1	treatment_enrollment_per_PY=0.05	treatment_repeatable=true	treatment_nonadherence=0.4
+run.number=361	random.seed=1	treatment_enrollment_per_PY=0.075	treatment_repeatable=true	treatment_nonadherence=0.4
+run.number=381	random.seed=1	treatment_enrollment_per_PY=0.1	treatment_repeatable=true	treatment_nonadherence=0.4

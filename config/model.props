@@ -11,8 +11,15 @@ zones.file = zones.csv
 zones.distance.file = zones_distance.csv
 opioid_treatment_zone_distance_file = min_dist_real_reshuffled.csv
 
-viral.kinetics.transmit.prob.file = vk.transmission_probability.csv
+viral.kinetics.transmit.prob.file = viral_kinetics/transmission_probability.csv
 
+viral.kinetics.acute.infection.clearance.file = viral_kinetics/acute-infection-clearance.csv
+viral.kinetics.acute.infection.incomplete.file = viral_kinetics/acute-infection-incomplete.csv
+viral.kinetics.acute.infection.persistence.file = viral_kinetics/acute-infection-persistence.csv
+viral.kinetics.reinfection.chronic.file = viral_kinetics/reinfection-chronic.csv
+viral.kinetics.reinfection.high.titer.clearance.file = viral_kinetics/reinfection-high-titer-clearance.csv
+viral.kinetics.reinfection.low.titer.clearance.file = viral_kinetics/reinfection-low-titer-clearance.csv
+viral.kinetics.treatment.file = viral_kinetics/treatment.csv
 
 run.number = 1
 random.seed = 42

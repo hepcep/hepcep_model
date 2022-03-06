@@ -25,6 +25,14 @@ const std::string ZONES_FILE = "zones.file";
 const std::string ZONES_DISTANCE_FILE = "zones.distance.file";
 
 const std::string VK_TRANSMIT_PROB_FILE = "viral.kinetics.transmit.prob.file";
+const std::string VK_ACUTE_INFECT_CLEAR_FILE = "viral.kinetics.acute.infection.clearance.file";
+const std::string VK_ACUTE_INFECT_INCOMP_FILE = "viral.kinetics.acute.infection.incomplete.file";
+const std::string VK_ACUTE_INFECT_PERSIST_FILE = "viral.kinetics.acute.infection.persistence.file";
+const std::string VK_REINFECT_CHRONIC_FILE = "viral.kinetics.reinfection.chronic.file";
+const std::string VK_REINFECT_HIT_CLEAR_FILE = "viral.kinetics.reinfection.high.titer.clearance.file";
+const std::string VK_REINFECT_LOWT_CLEAR_FILE = "viral.kinetics.reinfection.low.titer.clearance.file";
+const std::string VK_TREATMENT_FILE = "viral.kinetics.treatment.file";
+
 
 const std::string RESUME_FROM_SAVED = "resume.from.saved.net";
 const std::string RESUME_FROM_SAVED_FILE = "resume.from.saved.net.file";

@@ -31,6 +31,6 @@ SRC = HCPlace.cpp \
 	OpioidTreatment.cpp \
 	OpioidTreatmentDrug.cpp \
 	OpioidContinueTreatmentEvent.cpp \
-	ViralKineticsLoader.cpp
+	ViralKinetics.cpp
 	
 model_src += $(SRC)

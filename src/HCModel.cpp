@@ -32,7 +32,7 @@
 #include "serialize.h"
 #include "OpioidTreatment.h"
 #include "OpioidContinueTreatmentEvent.h"
-#include "ViralKineticsLoader.h"
+#include "ViralKinetics.h"
 
 namespace hepcep {
 
@@ -120,8 +120,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
                     treatmentEnrollmentProb(),
                     treatmentEnrollmentResidual(),
                     opioidTreatmentEnrollmentProb(),
-                    opioidTreatmentEnrollmentResidual(),
-                    transmit_prob_map()
+                    opioidTreatmentEnrollmentResidual()
 {
 
     init_opioid_treatment_drugs();
@@ -209,30 +208,28 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     std::string zones_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
     std::string dist_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ZONE_DISTANCE_FILE);
     std::string access_scenario = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ACCESS_SCENARIO);
-    std::cout << "Zones file: " << zones_file << std::endl;
-    std::cout << "Zones Distance From Treatment File: " << dist_file << std::endl;
-    std::cout << "Zones Treatment Access Scenario: " << access_scenario << std::endl;
+    // std::cout << "Zones file: " << zones_file << std::endl;
+    // std::cout << "Zones Distance From Treatment File: " << dist_file << std::endl;
+    // std::cout << "Zones Treatment Access Scenario: " << access_scenario << std::endl;
     loadZones(zones_file, dist_file, access_scenario, zoneMap);
-    std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
+    // std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
 
     std::string zones_distance_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
-    std::cout << "Zones distance file: " << zones_distance_file << std::endl;
+    // std::cout << "Zones distance file: " << zones_distance_file << std::endl;
     loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
     // personData and personCreator are used to create initial persons and arriving new persons
     // so we need it regardless of how the initial population is 
     // created.
     std::string cnep_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
-    std::cout << "CNEP+ file: " << cnep_file << std::endl;
+    // std::cout << "CNEP+ file: " << cnep_file << std::endl;
     loadPersonData(cnep_file, personData);
 
     init_stats(output_directory, run, zoneMap);
 
     // Load viral kinetics data
-    std::string transmit_prob_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(VK_TRANSMIT_PROB_FILE);
-    std::cout << "VK file: " << transmit_prob_file << std::endl;
-    loadTransmissionProbabilities(transmit_prob_file, transmit_prob_map);
-
+    ViralKinetics::init(data_dir);
+   
     // starting tick: tick at which to start scheduled events. If the model 
     // is resumed from a serialized state then we want to start at the time
     // it was serialized + 1
@@ -272,7 +269,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
         performInitialLinking();
     }
 
-    std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
+    // std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
     
     // Schedule model events
     // Model step

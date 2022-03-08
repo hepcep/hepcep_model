@@ -54,8 +54,11 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		deactivateAt(-1.0),
         injectionIntensityMultiplier(1.0) {
 
+	// TODO initialize immunology using input switch
 
-	immunology = std::make_shared<Immunology>(this);
+	auto my_imm = std::make_shared<APK_Immunology>(this);
+
+	immunology = std::static_pointer_cast<Immunology>(my_imm);
 
 	age = data.age;
 	ageStarted = data.ageStarted;

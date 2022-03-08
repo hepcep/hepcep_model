@@ -1,12 +1,5 @@
-/*
- * Immunology.h
- *
- *  Created on: Mar 1, 2018
- *      Author: nick
- */
-
-#ifndef SRC_IMMUNOLOGY_H_
-#define SRC_IMMUNOLOGY_H_
+#ifndef SRC_IMMUNOLOGY_INTERFACE_H
+#define SRC_IMMUNOLOGY_INTERFACE_H
 
 #include <memory>
 #include <vector>
@@ -21,51 +14,65 @@ namespace hepcep {
 class HCPerson;
 class AttributeWriter;
 
-struct ImmunologyParameters {
-
-     double mean_days_acute_naive,
-		 mean_days_acute_rechallenged,
-         mean_days_naive_to_infectious,
-		 mean_days_residual_hcv_infectivity,
-         prob_self_limiting_female,
-		 prob_self_limiting_male,
-         prob_clearing,
-		 transmissibility,
-         treatment_duration,
-		 treatment_svr,
-         treatment_susceptibility;
-
-     bool treatment_repeatable;
-
-     // Max number of times that can be re-enrolled in DAA treatment 
-     unsigned int max_num_daa_treatments;  
-     
-     ImmunologyParameters();
-};
-
-using IPPtr = std::shared_ptr<ImmunologyParameters>;
-
 class Immunology {
-
-private:
-    friend void write_immunology(std::shared_ptr<Immunology>, AttributeWriter&, double);
-    friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*, double);
-
-    IPPtr params_;
-
-    // this is a pointer and not a shared_ptr because
-    // HCPerson needs to pass itself.
-    HCPerson* idu_;
-    HCVState hcv_state;
-    std::vector<boost::shared_ptr<Event>> scheduled_actions;
-
-    bool past_cured, past_recovered, in_treatment;
-    double treatment_start_date;
-    bool treatment_failed;  // indicates a prior treatment attempt has failed
-
-    unsigned int num_daa_treatments = 0;   // Number of times person has enrolled in DAA treatment
     
-    bool isInTreatmentViralSuppression(double tick);
+
+public:
+
+    Immunology(HCPerson* idu);
+    virtual ~Immunology(){}
+
+    // TODO the following were included in the private members of the original
+    //      Immunology, however casting shared pointers between the new subclasses
+    //      doesn't work with accessing private fields directly, so these are now
+    //      public, but we could update the accesss in other parts of the model
+    //      and make these private again.
+    
+    // this is a pointer and not a shared_ptr because HCPerson needs to pass itself.
+    HCPerson* idu_;
+    
+    // HCVState hcv_state;
+
+    /**
+     * Exposes a partner, perhaps leading to infected.
+     *
+     * @return true if a new infection was established in partner, otherwise false.
+     * 
+     * "give_exposure" in APK Immunology.java
+     */
+    virtual bool exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) = 0;
+
+    virtual void deactivate() = 0;
+
+    virtual void leaveExposed() = 0;
+
+    virtual bool leaveAcute() = 0;
+
+    virtual bool isAcute() = 0;
+    virtual bool isChronic() = 0;
+    virtual bool isCured() = 0;
+    virtual bool isExposed() = 0;
+    virtual bool isHcvABpos() = 0;
+    virtual bool isHcvRNA(double now) = 0;
+    virtual bool isInfectious(double now) = 0;
+
+    virtual bool isInTreatment() = 0;
+
+    virtual bool isNaive() = 0;
+    virtual bool isResistant() = 0;
+    virtual bool isPostTreatment() = 0;
+    virtual bool isTreatable(double now) = 0;
+    virtual HCVState getHCVState() = 0;
+    virtual bool getTestedHCV(double now) = 0;
+
+    virtual double getTreatmentStartDate() = 0;
+
+    virtual void setHCVInitState(double now, HCVState state, int logging) = 0;
+
+    virtual void leaveTreatment(bool treatment_succeeded) = 0;
+    virtual void startTreatment(bool adherent, double now) = 0;
+
+    virtual  void purgeActions() = 0;
 
     /**
      * start a NATURAL infection via exposure.
@@ -76,73 +83,11 @@ private:
      * @returns true iff new infection has been started
      *
      */
-    bool receiveInfectiousDose(double tick);
+    virtual bool receiveInfectiousDose(double tick) = 0;
 
-public:
-    Immunology(HCPerson* idu);
-    Immunology(HCPerson* idu, IPPtr params);
-    Immunology(HCPerson* idu, HCVState alter_state, IPPtr params);
-    virtual ~Immunology();
 
-    /**
-     * Exposes a partner, perhaps leading to infected.
-     *
-     * @return true if a new infection was established in partner, otherwise false.
-     */
-    // "give_exposure" in APK Immunology.java
-    bool exposePartner(std::shared_ptr<Immunology> partner_imm, double tick);
-
-    /**
-     * Deactivates this immunology by canceling any scheduled state transitions.
-     * This should be called with the IDU associated with this Immunology leaves
-     * the Simulation.
-     */
-    void deactivate();
-
-    void leaveExposed();
-
-    bool leaveAcute();
-
-    bool isAcute();
-    bool isChronic();
-    bool isCured();
-    bool isExposed();
-    bool isHcvABpos();
-    bool isHcvRNA(double now);
-    bool isInfectious(double now);
-
-    bool isInTreatment();
-
-    bool isNaive();
-    bool isResistant();
-    bool isPostTreatment();
-    bool isTreatable(double now);
-    HCVState getHCVState();
-    bool getTestedHCV(double now);
-
-    double getTreatmentStartDate();
-
-    /**
-     *
-     * for initializing agents
-     * this function overrides the normal course of an infection
-     * it should not be used for natural exposures
-     *
-     * censored_acute = in the middle of an acute infection
-     */
-    void setHCVInitState(double now, HCVState state, int logging);
-
-    void leaveTreatment(bool treatment_succeeded);
-
-    /**
-     * Initiates treatment.
-     */
-    void startTreatment(bool adherent, double now);
-
-    void purgeActions();
 };
 
+}  // namespace hepcep
 
-} /* namespace hepcep */
-
-#endif /* SRC_IMMUNOLOGY_H_ */
+#endif  // SRC_IMMUNOLOGY_INTERFACE_H

@@ -48,68 +48,68 @@ void write_person(HCPerson* person, AttributeWriter& write, double tick) {
 	write("active", person->isActive());
     write("deactivate_at", person->getDeactivateAt());
 
-	write_immunology(person->immunology, write, tick);
+	// write_immunology(person->immunology, write, tick);
 }
 
-void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPerson* person, double serialized_at) {
-    imm->idu_ = person;
-    imm->hcv_state = HCVState::valueOf(list->getAttribute<string>("hcv_state"));
-    imm->in_treatment = (bool)list->getAttribute<int>("in_treatment");
+// void read_immunology(NamedListAttribute* list, shared_ptr<Immunology> imm, HCPerson* person, double serialized_at) {
+//     imm->idu_ = person;
+//     imm->hcv_state = HCVState::valueOf(list->getAttribute<string>("hcv_state"));
+//     imm->in_treatment = (bool)list->getAttribute<int>("in_treatment");
     
-    NamedListAttribute* params = list->getAttribute<NamedListAttribute*>("params");
-    imm->params_->mean_days_acute_naive = params->getAttribute<double>("mean_days_acute_naive");
-    imm->params_->mean_days_acute_rechallenged = params->getAttribute<double>("mean_days_acute_rechallenged");
-    imm->params_->mean_days_naive_to_infectious = params->getAttribute<double>("mean_days_naive_to_infectious");
-    imm->params_->mean_days_residual_hcv_infectivity = params->getAttribute<double>("mean_days_residual_hcv_infectivity");
-    imm->params_->prob_clearing = params->getAttribute<double>("prob_clearing");
-    imm->params_->prob_self_limiting_female = params->getAttribute<double>("prob_self_limiting_female");
-    imm->params_->prob_self_limiting_male = params->getAttribute<double>("prob_self_limiting_male");
-    imm->params_->transmissibility = params->getAttribute<double>("transmissibility");
-    imm->params_->treatment_duration = params->getAttribute<double>("treatment_duration");
-    imm->params_->treatment_repeatable = (bool)params->getAttribute<int>("treatment_repeatable");
-    imm->params_->treatment_susceptibility = params->getAttribute<double>("treatment_susceptibility");
-    imm->params_->treatment_svr = params->getAttribute<double>("treatment_svr");
+//     NamedListAttribute* params = list->getAttribute<NamedListAttribute*>("params");
+//     imm->params_->mean_days_acute_naive = params->getAttribute<double>("mean_days_acute_naive");
+//     imm->params_->mean_days_acute_rechallenged = params->getAttribute<double>("mean_days_acute_rechallenged");
+//     imm->params_->mean_days_naive_to_infectious = params->getAttribute<double>("mean_days_naive_to_infectious");
+//     imm->params_->mean_days_residual_hcv_infectivity = params->getAttribute<double>("mean_days_residual_hcv_infectivity");
+//     imm->params_->prob_clearing = params->getAttribute<double>("prob_clearing");
+//     imm->params_->prob_self_limiting_female = params->getAttribute<double>("prob_self_limiting_female");
+//     imm->params_->prob_self_limiting_male = params->getAttribute<double>("prob_self_limiting_male");
+//     imm->params_->transmissibility = params->getAttribute<double>("transmissibility");
+//     imm->params_->treatment_duration = params->getAttribute<double>("treatment_duration");
+//     imm->params_->treatment_repeatable = (bool)params->getAttribute<int>("treatment_repeatable");
+//     imm->params_->treatment_susceptibility = params->getAttribute<double>("treatment_susceptibility");
+//     imm->params_->treatment_svr = params->getAttribute<double>("treatment_svr");
 
-    imm->past_cured = (bool)list->getAttribute<int>("past_cured");
-    imm->past_recovered = (bool)list->getAttribute<int>("past_recovered");
-    imm->in_treatment = (bool)list->getAttribute<int>("in_treatment");
-    imm->treatment_start_date = list->getAttribute<double>("treatment_start_date");
-    imm->treatment_failed = (bool)list->getAttribute<int>("treatment_failed");
+//     imm->past_cured = (bool)list->getAttribute<int>("past_cured");
+//     imm->past_recovered = (bool)list->getAttribute<int>("past_recovered");
+//     imm->in_treatment = (bool)list->getAttribute<int>("in_treatment");
+//     imm->treatment_start_date = list->getAttribute<double>("treatment_start_date");
+//     imm->treatment_failed = (bool)list->getAttribute<int>("treatment_failed");
     
-    if (list->hasAttribute("events")) {
-        NamedListAttribute* evts = list->getAttribute<NamedListAttribute*>("events");
-        repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+//     if (list->hasAttribute("events")) {
+//         NamedListAttribute* evts = list->getAttribute<NamedListAttribute*>("events");
+//         repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
 
-        for (auto kv : evts->attributes_) {
-            if (kv.first.find("event") == 0) {
-                NamedListAttribute* evt_list = dynamic_cast<NamedListAttribute*>(kv.second);
-                if (!(bool)evt_list->getAttribute<int>("canceled")) {
-                    double at = evt_list->getAttribute<double>("scheduled_for");
-                    if (at >= 0 && at > serialized_at) {
-                        // std::cout << person->id() << ": scheduling event for " << at << std::endl;
-                        EventFuncType ft = static_cast<EventFuncType>(evt_list->getAttribute<int>("ef_type"));
-                        boost::shared_ptr<Event> evt;
-                        if (ft == EventFuncType::LEAVE_ACUTE) {
-                            evt = boost::make_shared<Event>(at, EventFuncType::LEAVE_ACUTE,
-                                new MethodFunctor<Immunology, bool>(imm.get(), &Immunology::leaveAcute));
-                        } else if (ft == EventFuncType::LEAVE_EXPOSED) {
-                            evt = boost::make_shared<Event>(at, EventFuncType::LEAVE_EXPOSED,
-                                new MethodFunctor<Immunology, void>(imm.get(), &Immunology::leaveExposed));
-                        } else {
-                            // EventFuncType::END_TREATMENT
-                            bool succeeds = (bool)evt_list->getAttribute<int>("success");
-                            evt = boost::make_shared<Event>(at, EventFuncType::END_TREATMENT,
-                                new EndTreatmentFunctor(succeeds, imm.get()));
-                        }
-                        //std::cout << "evt scheduled at " << at << std::endl;
-                        imm->scheduled_actions.push_back(evt);
-                        runner.scheduleEvent(at, evt);
-                    } 
-                }
-            }
-        }
-    }
-}
+//         for (auto kv : evts->attributes_) {
+//             if (kv.first.find("event") == 0) {
+//                 NamedListAttribute* evt_list = dynamic_cast<NamedListAttribute*>(kv.second);
+//                 if (!(bool)evt_list->getAttribute<int>("canceled")) {
+//                     double at = evt_list->getAttribute<double>("scheduled_for");
+//                     if (at >= 0 && at > serialized_at) {
+//                         // std::cout << person->id() << ": scheduling event for " << at << std::endl;
+//                         EventFuncType ft = static_cast<EventFuncType>(evt_list->getAttribute<int>("ef_type"));
+//                         boost::shared_ptr<Event> evt;
+//                         if (ft == EventFuncType::LEAVE_ACUTE) {
+//                             evt = boost::make_shared<Event>(at, EventFuncType::LEAVE_ACUTE,
+//                                 new MethodFunctor<Immunology, bool>(imm.get(), &Immunology::leaveAcute));
+//                         } else if (ft == EventFuncType::LEAVE_EXPOSED) {
+//                             evt = boost::make_shared<Event>(at, EventFuncType::LEAVE_EXPOSED,
+//                                 new MethodFunctor<Immunology, void>(imm.get(), &Immunology::leaveExposed));
+//                         } else {
+//                             // EventFuncType::END_TREATMENT
+//                             bool succeeds = (bool)evt_list->getAttribute<int>("success");
+//                             evt = boost::make_shared<Event>(at, EventFuncType::END_TREATMENT,
+//                                 new EndTreatmentFunctor(succeeds, imm.get()));
+//                         }
+//                         //std::cout << "evt scheduled at " << at << std::endl;
+//                         imm->scheduled_actions.push_back(evt);
+//                         runner.scheduleEvent(at, evt);
+//                     } 
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void write_event(int idx, boost::shared_ptr<Event> evt, std::stringstream& ss) {
     ss << "          event_" + std::to_string(idx) <<  " [\n";
@@ -140,10 +140,10 @@ PersonPtr read_person(NamedListAttribute* node, std::map<unsigned int,ZonePtr>& 
     data.hcvState = HCVState::valueOf(imm_list->getAttribute<std::string>("hcv_state"));
 
     // create an immunology with no associated person
-    std::shared_ptr<Immunology> imm = std::make_shared<Immunology>(nullptr);
-    PersonPtr person = std::make_shared<HCPerson>(id, data, imm);
+    // std::shared_ptr<Immunology> imm = std::make_shared<Immunology>(nullptr);
+    PersonPtr person = std::make_shared<HCPerson>(id, data, nullptr);
     // udpates immunology with the specified person (among other things)
-    read_immunology(imm_list, imm, person.get(), serialized_at);
+    // read_immunology(imm_list, imm, person.get(), serialized_at);
     
     person->setZone(zoneMap.at(data.zipCode));
     person->active = (bool)node->getAttribute<int>("active");
@@ -162,52 +162,52 @@ PersonPtr read_person(NamedListAttribute* node, std::map<unsigned int,ZonePtr>& 
     return person;
 }
 
-void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick) {
-    write("immunology", "[");
-    write("hcv_state", quote_string(imm->getHCVState().stringValue()));
-    write("past_cured", imm->past_cured);
-    write("past_recovered", imm->past_recovered);
-    write("in_treatment", imm->in_treatment);
-    write("treatment_start_date", imm->treatment_start_date);
-    write("treatment_failed", imm->treatment_failed);
+// void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick) {
+//     write("immunology", "[");
+//     write("hcv_state", quote_string(imm->getHCVState().stringValue()));
+//     write("past_cured", imm->past_cured);
+//     write("past_recovered", imm->past_recovered);
+//     write("in_treatment", imm->in_treatment);
+//     write("treatment_start_date", imm->treatment_start_date);
+//     write("treatment_failed", imm->treatment_failed);
 
-    if (imm->scheduled_actions.size() > 0) {
-        std::stringstream ss;
-        int i = 0;
-        for (auto evt : imm->scheduled_actions) {
-            if (evt->scheduled_for() > tick) {
-                //std::cout << "writing future event scheduled for " << evt->scheduled_for() << std::endl;
-                write_event(i, evt, ss);
-                i++;
-            }
-        }
+//     if (imm->scheduled_actions.size() > 0) {
+//         std::stringstream ss;
+//         int i = 0;
+//         for (auto evt : imm->scheduled_actions) {
+//             if (evt->scheduled_for() > tick) {
+//                 //std::cout << "writing future event scheduled for " << evt->scheduled_for() << std::endl;
+//                 write_event(i, evt, ss);
+//                 i++;
+//             }
+//         }
 
-        if (!ss.str().empty()) {
-            write("events", "[");
-            write("", ss.str());
-            write("", "]");
-        }
-    }
+//         if (!ss.str().empty()) {
+//             write("events", "[");
+//             write("", ss.str());
+//             write("", "]");
+//         }
+//     }
     
-    write("params", "[");
-    IPPtr ip = imm->params_;
+//     write("params", "[");
+//     IPPtr ip = imm->params_;
 
-    write("mean_days_acute_naive", ip->mean_days_acute_naive);
-    write("mean_days_acute_rechallenged", ip->mean_days_acute_rechallenged);
-    write("mean_days_naive_to_infectious", ip->mean_days_naive_to_infectious);
-    write("mean_days_residual_hcv_infectivity", ip->mean_days_residual_hcv_infectivity);
-    write("prob_self_limiting_female", ip->prob_self_limiting_female);
-    write("prob_self_limiting_male", ip->prob_self_limiting_male);
-    write("prob_clearing", ip->prob_clearing);
-	write("transmissibility", ip->transmissibility);
-    write("treatment_duration", ip->treatment_duration);
-    write("treatment_svr", ip->treatment_svr);
-    write("treatment_susceptibility", ip->treatment_susceptibility);
-    write("treatment_repeatable", ip->treatment_repeatable);
-    write("", "]");
+//     write("mean_days_acute_naive", ip->mean_days_acute_naive);
+//     write("mean_days_acute_rechallenged", ip->mean_days_acute_rechallenged);
+//     write("mean_days_naive_to_infectious", ip->mean_days_naive_to_infectious);
+//     write("mean_days_residual_hcv_infectivity", ip->mean_days_residual_hcv_infectivity);
+//     write("prob_self_limiting_female", ip->prob_self_limiting_female);
+//     write("prob_self_limiting_male", ip->prob_self_limiting_male);
+//     write("prob_clearing", ip->prob_clearing);
+// 	write("transmissibility", ip->transmissibility);
+//     write("treatment_duration", ip->treatment_duration);
+//     write("treatment_svr", ip->treatment_svr);
+//     write("treatment_susceptibility", ip->treatment_susceptibility);
+//     write("treatment_repeatable", ip->treatment_repeatable);
+//     write("", "]");
 
-    write("", "]");
-}
+//     write("", "]");
+// }
 
 void write_edge(Edge<HCPerson>* edge, AttributeWriter& write) {
 	write("distance", edge->getAttribute("distance", 0));

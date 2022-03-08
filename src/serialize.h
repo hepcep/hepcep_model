@@ -30,10 +30,10 @@ void write_person(HCPerson* person, AttributeWriter& write, double tick);
 
 void write_edge(Edge<HCPerson>* edge, AttributeWriter& write);
 
-void read_immunology(NamedListAttribute* list, std::shared_ptr<Immunology> imm, 
-    HCPerson* person, double serialized_at);
+// void read_immunology(NamedListAttribute* list, std::shared_ptr<Immunology> imm, 
+//     HCPerson* person, double serialized_at);
 
-void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick);
+// void write_immunology(std::shared_ptr<Immunology> imm, AttributeWriter& write, double tick);
 
 void write_event(int idx, boost::shared_ptr<Event> evt, std::stringstream& ss);
 

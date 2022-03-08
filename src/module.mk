@@ -10,6 +10,7 @@ SRC = HCPlace.cpp \
 	ZoneLoader.cpp \
 	network_utils.cpp \
 	Immunology.cpp \
+	APK_Immunology.cpp \
 	Event.cpp \
 	EndRelationshipFunctor.cpp \
 	EndTreatmentFunctor.cpp \

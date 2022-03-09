@@ -44,14 +44,8 @@ private:
 
     IPPtr params_;
 
-    HCVState hcv_state;
+    // HCVState hcv_state;
     std::vector<boost::shared_ptr<Event>> scheduled_actions;
-
-    bool past_cured, past_recovered, in_treatment;
-    double treatment_start_date;
-    bool treatment_failed;  // indicates a prior treatment attempt has failed
-
-    unsigned int num_daa_treatments = 0;   // Number of times person has enrolled in DAA treatment
     
     bool isInTreatmentViralSuppression(double tick);
 
@@ -60,35 +54,20 @@ public:
     APK_Immunology(HCPerson* idu);
     APK_Immunology(HCPerson* idu, IPPtr params);
     APK_Immunology(HCPerson* idu, HCVState alter_state, IPPtr params);
+    
     virtual ~APK_Immunology();
 
     bool exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) override;
     bool receiveInfectiousDose(double tick) override;
 
     void deactivate() override;
-
     void leaveExposed() override;
-
     bool leaveAcute() override;
 
-    bool isAcute() override;
-    bool isChronic() override;
-    bool isCured() override;
-    bool isExposed() override;
-    bool isHcvABpos() override;
     bool isHcvRNA(double now) override;
-    bool isInfectious(double now) override;
+    // bool isInfectious(double now) override;
 
-    bool isInTreatment() override;
-
-    bool isNaive() override;
-    bool isResistant() override;
-    bool isPostTreatment() override;
-    bool isTreatable(double now) override;
-    HCVState getHCVState() override;
     bool getTestedHCV(double now) override;
-
-    double getTreatmentStartDate() override;
 
     void setHCVInitState(double now, HCVState state, int logging) override;
 
@@ -96,7 +75,6 @@ public:
     void startTreatment(bool adherent, double now) override;
 
     void purgeActions() override;
-
     
 };
 

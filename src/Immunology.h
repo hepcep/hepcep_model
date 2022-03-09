@@ -14,8 +14,23 @@ namespace hepcep {
 class HCPerson;
 class AttributeWriter;
 
+// flag to indicate in treatment_start_date that
+// treatment has not started
+const double TREATMENT_NOT_STARTED = -1.0;
+
 class Immunology {
-    
+
+protected:
+    HCVState hcv_state;
+    bool in_treatment;
+    bool past_cured;
+    bool past_recovered;
+
+    double treatment_start_date;
+    bool treatment_failed = false;  // indicates a prior treatment attempt has failed    
+    bool treatment_repeatable = false;
+    int max_num_daa_treatments = 0;
+    int num_daa_treatments = 0;   // Number of times person has enrolled in DAA treatment
 
 public:
 
@@ -31,7 +46,6 @@ public:
     // this is a pointer and not a shared_ptr because HCPerson needs to pass itself.
     HCPerson* idu_;
     
-    // HCVState hcv_state;
 
     /**
      * Exposes a partner, perhaps leading to infected.
@@ -48,24 +62,26 @@ public:
 
     virtual bool leaveAcute() = 0;
 
-    virtual bool isAcute() = 0;
-    virtual bool isChronic() = 0;
-    virtual bool isCured() = 0;
-    virtual bool isExposed() = 0;
-    virtual bool isHcvABpos() = 0;
+    bool isAcute();
+    bool isChronic();
+    bool isCured();
+    bool isExposed();
+    bool isHcvABpos();
+    bool isNaive();
+    bool isResistant();
+    
     virtual bool isHcvRNA(double now) = 0;
-    virtual bool isInfectious(double now) = 0;
+    // virtual bool isInfectious(double now) = 0;
 
-    virtual bool isInTreatment() = 0;
+    bool isInTreatment();
+    bool isPostTreatment();
+    bool isTreatable(double now);
+    
+    HCVState getHCVState();
 
-    virtual bool isNaive() = 0;
-    virtual bool isResistant() = 0;
-    virtual bool isPostTreatment() = 0;
-    virtual bool isTreatable(double now) = 0;
-    virtual HCVState getHCVState() = 0;
     virtual bool getTestedHCV(double now) = 0;
 
-    virtual double getTreatmentStartDate() = 0;
+    double getTreatmentStartDate();
 
     virtual void setHCVInitState(double now, HCVState state, int logging) = 0;
 

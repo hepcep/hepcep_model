@@ -25,10 +25,6 @@ namespace hepcep {
 const double CONTACT_RISK = 1.0;
 const double ACUTE_BOOST = 1.0;
 
-// flag to indicate in treatment_start_date that
-// treatment has not started
-const double TREATMENT_NOT_STARTED = -1.0;
-
 // Schedule uses old boost::shared_ptrs so we use that here
 // for scheduling events
 using EventPtr = boost::shared_ptr<Event>;
@@ -50,13 +46,7 @@ ImmunologyParameters::ImmunologyParameters() :
 {}
 
 APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu), 
-    hcv_state(HCVState::SUSCEPTIBLE), 
-    scheduled_actions(), 
-    past_cured(false),
-    past_recovered(false), 
-    in_treatment(false), 
-    treatment_start_date(TREATMENT_NOT_STARTED), 
-    treatment_failed(false) {
+    scheduled_actions() {
 
 	params_ = std::make_shared<ImmunologyParameters>();
 
@@ -74,28 +64,26 @@ APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu),
 	params_->treatment_susceptibility = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SUSCEPTIBILITY);
     params_->max_num_daa_treatments =  chi_sim::Parameters::instance()->getDoubleParameter(MAX_NUM_DAA_TREATMENTS);
 
+    max_num_daa_treatments =  params_->max_num_daa_treatments;
+    treatment_repeatable = params_->treatment_repeatable;
 }
 
 APK_Immunology::APK_Immunology(HCPerson* idu, IPPtr params) : Immunology(idu),
     params_(params), 
-    hcv_state(HCVState::SUSCEPTIBLE),
-    scheduled_actions(), 
-    past_cured(false), 
-    past_recovered(false), 
-    in_treatment(false), 
-    treatment_start_date(TREATMENT_NOT_STARTED) {
+    // hcv_state(HCVState::SUSCEPTIBLE),
+    scheduled_actions() {
 
+    max_num_daa_treatments =  params_->max_num_daa_treatments;
+    treatment_repeatable = params_->treatment_repeatable;
 }
 
 APK_Immunology::APK_Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : Immunology(idu),
     params_(params),
-    hcv_state(alter_state), 
-    scheduled_actions(), 
-    past_cured(false),
-    past_recovered(false), 
-    in_treatment(false), 
-    treatment_start_date(TREATMENT_NOT_STARTED) {
-
+    // hcv_state(alter_state), 
+    scheduled_actions() {
+    
+    max_num_daa_treatments =  params_->max_num_daa_treatments;
+    treatment_repeatable = params_->treatment_repeatable;
 }
 
 void APK_Immunology::deactivate(){
@@ -201,27 +189,6 @@ bool APK_Immunology::receiveInfectiousDose(double now) {
 }
 
 
-bool APK_Immunology::isAcute() {
-    return hcv_state == HCVState::EXPOSED || hcv_state == HCVState::INFECTIOUS_ACUTE;
-}
-
-bool APK_Immunology::isChronic() {
-    return hcv_state == HCVState::CHRONIC;;
-}
-
-bool APK_Immunology::isCured() {
-    return hcv_state == HCVState::CURED;
-}
-
-bool APK_Immunology::isExposed() {
-    return hcv_state == HCVState::EXPOSED;
-}
-
-bool APK_Immunology::isHcvABpos() { //presence of antigens
-    return (hcv_state != HCVState::SUSCEPTIBLE) || (hcv_state == HCVState::ABPOS)
-            || (hcv_state == HCVState::CURED);
-}
-
 bool APK_Immunology::isHcvRNA(double now) {
     return (hcv_state == HCVState::EXPOSED ||
             hcv_state == HCVState::INFECTIOUS_ACUTE ||
@@ -229,15 +196,11 @@ bool APK_Immunology::isHcvRNA(double now) {
             (!isInTreatmentViralSuppression(now));
 }
 
-bool APK_Immunology::isInfectious(double now) {
-    return (hcv_state == HCVState::INFECTIOUS_ACUTE ||
-            hcv_state == HCVState::CHRONIC)
-            && (!isInTreatmentViralSuppression(now));
-}
-
-bool APK_Immunology::isInTreatment() {
-    return in_treatment;
-}
+// bool APK_Immunology::isInfectious(double now) {
+//     return (hcv_state == HCVState::INFECTIOUS_ACUTE ||
+//             hcv_state == HCVState::CHRONIC)
+//             && (!isInTreatmentViralSuppression(now));
+// }
 
 bool APK_Immunology::isInTreatmentViralSuppression(double tick) {
     if (!in_treatment) {
@@ -246,45 +209,6 @@ bool APK_Immunology::isInTreatmentViralSuppression(double tick) {
     return (treatment_start_date + params_->mean_days_residual_hcv_infectivity) < tick;
 }
 
-bool APK_Immunology::isNaive() {
-    return hcv_state == HCVState::SUSCEPTIBLE;
-}
-
-bool APK_Immunology::isResistant() {
-    return hcv_state == HCVState::RECOVERED;
-}
-
-bool APK_Immunology::isPostTreatment() { //i.e. completed a course of treatment
-    return (!in_treatment) & (treatment_start_date != TREATMENT_NOT_STARTED);
-}
-
-/**
- * Determines if the individual is available for treatment.  Conditions include:
- *   - can't currently already be in treatment
- *   - must be currently infected
- *   - if treatment prohibition is enabled, then cannot have already been
- *     in treatment....
- *   - ...unless previous treatment failed due to SVR or adherence
- */
-bool APK_Immunology::isTreatable(double now) {
-	if (in_treatment){
-		return false;      // if not currently being treated
-	}
-    
-    // TODO - We don't need the treatment_repeatable boolean since we can just set 
-    //        max_num_daa_treatments to a large number, or = 1 for no re-treatments
-    if (num_daa_treatments >= params_->max_num_daa_treatments){
-        return false;      // Don't treat if re-treatment max has been exceeded
-    }
-
-	if (!(params_->treatment_repeatable)){          // if not repeatable then check conditions.
-        if (isPostTreatment() || treatment_failed){   // Has already been in one treatment)
-		                                              // or Treatment failure (not re-infect))
-  			return false;
-        }
-	}
-    return isHcvRNA(now);    // if currently infected
-}
 
 // Similar to isTreatable() check, but logs an HCV test event which is typically
 //   called when testing a person for treatment, but not in other cases, e.g. simple logging.
@@ -293,10 +217,6 @@ bool APK_Immunology::getTestedHCV(double now){
 	  Statistics::instance()->logStatusChange(LogType::HCVRNA_TEST, idu_, "");
 
 	  return (isTreatable(now));
-}
-
-HCVState APK_Immunology::getHCVState() {
-    return hcv_state;
 }
 
 /*
@@ -381,10 +301,6 @@ void APK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             throw std::invalid_argument("Unexpected state passed to setHCVInitState: " + state.stringValue());
 
     }
-}
-
-double APK_Immunology::getTreatmentStartDate() {
-    return treatment_start_date;
 }
 
 void APK_Immunology::leaveTreatment(bool treatment_succeeded) {

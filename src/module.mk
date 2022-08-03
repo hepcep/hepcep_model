@@ -11,6 +11,7 @@ SRC = HCPlace.cpp \
 	network_utils.cpp \
 	Immunology.cpp \
 	APK_Immunology.cpp \
+	VK_Immunology.cpp \
 	Event.cpp \
 	EndRelationshipFunctor.cpp \
 	EndTreatmentFunctor.cpp \

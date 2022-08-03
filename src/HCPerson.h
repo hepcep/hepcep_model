@@ -19,6 +19,7 @@
 #include "HCVState.h"
 #include "HarmReduction.h"
 #include "APK_Immunology.h"
+#include "VK_Immunology.h"
 #include "Gender.h"
 #include "Network.h"
 #include "Race.h"

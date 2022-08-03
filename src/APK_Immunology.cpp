@@ -40,9 +40,7 @@ ImmunologyParameters::ImmunologyParameters() :
 				transmissibility { std::numeric_limits<double>::signaling_NaN() },
 				treatment_duration { std::numeric_limits<double>::signaling_NaN() },
 				treatment_svr { std::numeric_limits<double>::signaling_NaN() },
-				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() },
-				treatment_repeatable(false),
-                max_num_daa_treatments { std::numeric_limits<unsigned int>::signaling_NaN()}
+				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() }
 {}
 
 APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu), 
@@ -58,36 +56,41 @@ APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu),
 	params_->prob_self_limiting_male = chi_sim::Parameters::instance()->getDoubleParameter(PROB_SELF_LIMITING_MALE);
 	params_->prob_clearing = chi_sim::Parameters::instance()->getDoubleParameter(PROB_CLEARING);
 	params_->transmissibility = chi_sim::Parameters::instance()->getDoubleParameter(TRANSMISSIBILITY);
-	params_->treatment_duration = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_DURATION);
-	params_->treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
+	params_->treatment_duration = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_DURATION);	
 	params_->treatment_svr = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SVR);
 	params_->treatment_susceptibility = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_SUSCEPTIBILITY);
-    params_->max_num_daa_treatments =  chi_sim::Parameters::instance()->getDoubleParameter(MAX_NUM_DAA_TREATMENTS);
 
-    max_num_daa_treatments =  params_->max_num_daa_treatments;
-    treatment_repeatable = params_->treatment_repeatable;
+    max_num_daa_treatments = chi_sim::Parameters::instance()->getDoubleParameter(MAX_NUM_DAA_TREATMENTS);
+    treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
 }
 
-APK_Immunology::APK_Immunology(HCPerson* idu, IPPtr params) : Immunology(idu),
-    params_(params), 
-    // hcv_state(HCVState::SUSCEPTIBLE),
-    scheduled_actions() {
+// TODO These other constructors were used in serialization, but need to be updated 
+//      to work with the new Immunology interface
 
-    max_num_daa_treatments =  params_->max_num_daa_treatments;
-    treatment_repeatable = params_->treatment_repeatable;
-}
+// APK_Immunology::APK_Immunology(HCPerson* idu, IPPtr params) : Immunology(idu),
+//     params_(params), 
+//     // hcv_state(HCVState::SUSCEPTIBLE),
+//     scheduled_actions() {
 
-APK_Immunology::APK_Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : Immunology(idu),
-    params_(params),
-    // hcv_state(alter_state), 
-    scheduled_actions() {
+//     max_num_daa_treatments =  params_->max_num_daa_treatments;
+//     treatment_repeatable = params_->treatment_repeatable;
+// }
+
+// APK_Immunology::APK_Immunology(HCPerson* idu, HCVState alter_state, IPPtr params) : Immunology(idu),
+//     params_(params),
+//     // hcv_state(alter_state), 
+//     scheduled_actions() {
     
-    max_num_daa_treatments =  params_->max_num_daa_treatments;
-    treatment_repeatable = params_->treatment_repeatable;
-}
+//     max_num_daa_treatments =  params_->max_num_daa_treatments;
+//     treatment_repeatable = params_->treatment_repeatable;
+// }
 
 void APK_Immunology::deactivate(){
     purgeActions();
+}
+
+void APK_Immunology::step(){
+    // APK Immunology does not have a step behavior
 }
 
 bool APK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {

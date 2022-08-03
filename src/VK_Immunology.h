@@ -1,56 +1,32 @@
 /*
- * @file APK_Immunology.h
+ * @file VK_Immunology.h
  *
- * Immunology class using the original APK infection mechanics.
+ * Class for the viral kinetics immunology that includes in-host dynamic time series.
  *
  */
 
-#ifndef SRC_APK_IMMUNOLOGY_H_
-#define SRC_APKIMMUNOLOGY_H_
+#ifndef SRC_VK_IMMUNOLOGY_H_
+#define SRC_VKIMMUNOLOGY_H_
 
 #include "Immunology.h"
 
 namespace hepcep {
 
-struct ImmunologyParameters {
-
-     double mean_days_acute_naive,
-		 mean_days_acute_rechallenged,
-         mean_days_naive_to_infectious,
-		 mean_days_residual_hcv_infectivity,
-         prob_self_limiting_female,
-		 prob_self_limiting_male,
-         prob_clearing,
-		 transmissibility,
-         treatment_duration,
-		 treatment_svr,
-         treatment_susceptibility;
-     
-     ImmunologyParameters();
-};
-
-using IPPtr = std::shared_ptr<ImmunologyParameters>;
-
-class APK_Immunology : public Immunology {
+class VK_Immunology : public Immunology {
 
 private:
     friend void write_immunology(std::shared_ptr<Immunology>, AttributeWriter&, double);
     friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*, double);
-
-    IPPtr params_;
-
-    // HCVState hcv_state;
-    std::vector<boost::shared_ptr<Event>> scheduled_actions;
     
     bool isInTreatmentViralSuppression(double tick);
 
+    // The current time in days along the viral load curve.
+    unsigned int viral_load_time; 
 
 public:
-    APK_Immunology(HCPerson* idu);
-//    APK_Immunology(HCPerson* idu, IPPtr params);
-//    APK_Immunology(HCPerson* idu, HCVState alter_state, IPPtr params);
+    VK_Immunology(HCPerson* idu);
     
-    virtual ~APK_Immunology();
+    virtual ~VK_Immunology();
 
     bool exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) override;
     bool receiveInfectiousDose(double tick) override;
@@ -78,4 +54,4 @@ public:
 
 } /* namespace hepcep */
 
-#endif /* SRC_APKIMMUNOLOGY_H_ */
+#endif /* SRC_VK_IMMUNOLOGY_H_ */

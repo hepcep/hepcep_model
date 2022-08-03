@@ -90,6 +90,8 @@ public:
 
     virtual  void purgeActions() = 0;
 
+    virtual void step() = 0;
+
     /**
      * start a NATURAL infection via exposure.
      * 1. the calling method is responsible for announcing the exposure, and updating the time of last exposure

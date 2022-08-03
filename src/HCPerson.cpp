@@ -58,6 +58,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 
 	auto my_imm = std::make_shared<APK_Immunology>(this);
 
+	auto my_imm_2 = std::make_shared<VK_Immunology>(this);
+
 	immunology = std::static_pointer_cast<Immunology>(my_imm);
 
 	age = data.age;

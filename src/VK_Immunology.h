@@ -9,6 +9,7 @@
 #define SRC_VKIMMUNOLOGY_H_
 
 #include "Immunology.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -20,9 +21,21 @@ private:
     
     bool isInTreatmentViralSuppression(double tick);
 
-    // The current time in days along the viral load curve.
-    unsigned int viral_load_time; 
+    // The intial VK profile types for any agent with an acute infection (defined in HCPersonData)
+    static const std::vector<VKProfile> initial_acute_profiles;
 
+    // The intial VK profile types for any agent with a chronic infection (defined in HCPersonData)
+    static const std::vector<VKProfile> initial_chronic_profiles;
+
+    // The current time in days along the viral load curve.
+    unsigned int viral_load_time;
+
+    // The current viral kinetics profile type
+    VKProfile vk_profile;
+
+    // Unique ID of the profile series (array) associated with the VKProfile
+    unsigned int vk_profile_id;  
+    
 public:
     VK_Immunology(HCPerson* idu);
     

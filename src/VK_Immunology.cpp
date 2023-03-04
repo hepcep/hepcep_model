@@ -19,6 +19,7 @@
 #include "EndTreatmentFunctor.h"
 #include "parameters_constants.h"
 #include "ViralKinetics.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -26,8 +27,23 @@ namespace hepcep {
 // for scheduling events
 using EventPtr = boost::shared_ptr<Event>;
 
+// The intial VK profile types for any agent with an acute infection (defined in HCPersonData)
+const std::vector<VKProfile> initial_acute_profiles({ 
+    VKProfile::ACUTE_INFECTION_CLEARANCE, 
+    VKProfile::ACUTE_INFECTION_INCOMPLETE, 
+    VKProfile::ACUTE_INFECTION_PERSISTENCE, 
+    VKProfile::REINFECT_HIGH_CLEARANCE, 
+    VKProfile::REINFECT_LOW_CLEARANCE, 
+    VKProfile::REINFECT_CHRONIC});
+
+// The intial VK profile types for any agent with a chronic infection (defined in HCPersonData)
+const std::vector<VKProfile> initial_chronic_profiles({ 
+    VKProfile::ACUTE_INFECTION_INCOMPLETE, 
+    VKProfile::ACUTE_INFECTION_PERSISTENCE, 
+    VKProfile::REINFECT_CHRONIC});
+
 VK_Immunology::VK_Immunology(HCPerson* idu) : Immunology(idu), 
-    viral_load_time(0) {
+    viral_load_time(0), vk_profile(VKProfile::NONE), vk_profile_id(0) {
 
     max_num_daa_treatments = chi_sim::Parameters::instance()->getDoubleParameter(MAX_NUM_DAA_TREATMENTS);
     treatment_repeatable = chi_sim::Parameters::instance()->getBooleanParameter(TREATMENT_REPEATABLE);
@@ -194,6 +210,9 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
         case HCVState::Value::susceptible:
         {
             hcv_state = HCVState::SUSCEPTIBLE;
+            vk_profile = VKProfile::NONE;
+            vk_profile_id = 0;
+
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::INFO, idu_, "new_hcv_state="+state.stringValue());
             }
@@ -205,6 +224,8 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             // TODO VK select from one of all six profile and set the time to 0ish
             // This assumes we don't know any past history of recover/past infection
 
+            // Select from one of the acute profiles and set time to 0
+            // TODO set time to another value or randomize?
             
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
@@ -217,7 +238,10 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
         {
              // TODO VK select from one of the three chronic profiles and set the time to 0ish
 
-            
+            // Select from one of the chronic profiles and set time to 0
+            // TODO set time to another value or randomize?
+            // TODO the google doc suggests setting to a time in the chronic phase
+
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
             }

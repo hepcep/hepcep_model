@@ -130,6 +130,16 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 	loadViralLoadSeries(file, viral_loads_treated);
 }
 
+
+// double ViralKinetics::get_viral_load(VKPROFILE vk_profile, int profile_id, double viral_load_time){
+// 	double viral_load  = 0;
+
+// 	// TODO VK
+
+
+// 	return viral_load;
+// }
+
 /**
  * @brief Find the closest map key to the provided key argument and return the corresponding
  *        value.  The transmi probability map uses viral load as the keys, so this finds
@@ -161,9 +171,9 @@ double ViralKinetics::get_transmission_probability(double viral_load){
 
 		if (x < y) val = a_val;
 		else val = b_val;
-	
-		return val;
 	}
+
+	return val;
 }
 
 ViralKinetics::~ViralKinetics(){

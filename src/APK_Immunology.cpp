@@ -247,23 +247,6 @@ void APK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             break;
         }
 
-//          case cured:
-//              assert false; //should not be called from here
-//              treatment_start_date = RepastEssentials.GetTickCount();
-//              hcv_state = HCV_state.cured;
-//              if (logging > 0) {
-//                  Statistics.fire_status_change(AgentMessage.started_treatment, this.agent, "", null);
-//              }
-//              break;
-//          case exposed:
-//              assert false;//should not be called
-//              receive_infectious_dose();
-//              if (logging > 0) {
-//                  Statistics.fire_status_change(AgentMessage.exposed, this.agent, "", null);
-//                  this.agent.setLastExposureDate(); //must follow fire, b/c it uses the signature
-//              }
-//              break;
-
         case HCVState::Value::infectious_acute:
         {
             double acute_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
@@ -279,7 +262,6 @@ void APK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             }
             break;
         }
-
 
         case HCVState::Value::chronic:
         {

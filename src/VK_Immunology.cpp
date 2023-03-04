@@ -18,6 +18,7 @@
 #include "HCPerson.h"
 #include "EndTreatmentFunctor.h"
 #include "parameters_constants.h"
+#include "ViralKinetics.h"
 
 namespace hepcep {
 
@@ -44,6 +45,12 @@ void VK_Immunology::reset_viral_load_time(){
     viral_load_time = 0;
 }
 
+double VK_Immunology::get_viral_load(){
+    double viral_load = 0;
+
+    return viral_load;
+}
+
 bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {
     Statistics* stats = Statistics::instance();
     stats->logStatusChange(LogType::EXPOSED, partner_imm->idu_, "by agent " + std::to_string(idu_->id()));
@@ -52,8 +59,9 @@ bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, doubl
         return false;
     }
 
-    // TODO Get from time series viral load probability of transmission
-    double transmissibility = 0;
+    // Get from time series viral load probability of transmission
+    double viral_load = get_viral_load();
+    double transmissibility = ViralKinetics::instance() -> get_transmission_probability(viral_load);
 
     if (repast::Random::instance()->nextDouble() > transmissibility ) {
         stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
@@ -104,17 +112,18 @@ bool VK_Immunology::receiveInfectiousDose(double now) {
         return false;
     }
     
-    // TODO VK
+    // TODO VK if not past_cured/recovered, then it is a new infection, so select from
+    // one of the three acute-infection profiles, else if its a re-infection, select
+    // from one of the re-infection profiles.
 
+    //note: this long memory changes the behavior compared to original APK, even in the default (no treatment) case.
+    past_recovered = past_recovered | (hcv_state == HCVState::RECOVERED);
+    past_cured     = past_cured     | (hcv_state == HCVState::CURED);
 
-    // //note: this long memory changes the behavior compared to original APK, even in the default (no treatment) case.
-    // past_recovered = past_recovered | (hcv_state == HCVState::RECOVERED);
-    // past_cured     = past_cured     | (hcv_state == HCVState::CURED);
+    hcv_state = HCVState::EXPOSED;
+    Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
 
-    // hcv_state = HCVState::EXPOSED;
-    // Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
-
-    // idu_->setLastInfectionDate(now);
+    idu_->setLastInfectionDate(now);
 
     // repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     // double exposed_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_naive_to_infectious).next();
@@ -193,42 +202,34 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
         case HCVState::Value::infectious_acute:
         {
-            // TODO VK
+            // TODO VK select from one of all six profile and set the time to 0ish
+            // This assumes we don't know any past history of recover/past infection
 
-            // double acute_end_time = now + repast::Random::instance()->createExponentialGenerator(1.0 / params_->mean_days_acute_naive).next();
-
-            // repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-            // EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
-            //     new MethodFunctor<APK_Immunology, bool>(this, &APK_Immunology::leaveAcute));
-            // scheduled_actions.push_back(leave_acute_evt);
-            // runner.scheduleEvent(acute_end_time, leave_acute_evt);
-            // if (logging > 0) {
-            //     Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
-            //     idu_->setLastExposureDate(now);
-            // }
+            
+            if (logging > 0) {
+                Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
+            }
             break;
         }
 
 
         case HCVState::Value::chronic:
         {
-             // TODO VK
+             // TODO VK select from one of the three chronic profiles and set the time to 0ish
 
-            // idu_->setLastExposureDate(now);
-            // if (logging > 0) {
-            //     Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
-            //     idu_->setLastExposureDate(now); //must follow fire, b/c it uses the signature
-            // }
+            
+            if (logging > 0) {
+                Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
+            }
             break;
         }
         case HCVState::Value::recovered:
         {
-            // TODO VK
-            // idu_->setLastExposureDate(now);
-            // if (logging > 0) {
-            //     Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
-            //     idu_->setLastExposureDate(now); //must follow fire, b/c it uses the signature
-            // }
+            // TODO VK nothing?  The recovered state will determine to select from a reinfection profile.
+
+            if (logging > 0) {
+                Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
+            }
 
             break;
         }

@@ -22,6 +22,13 @@ void ViralKinetics::init(const std::string& data_dir){
 	instance_ = new ViralKinetics(data_dir);
 }
 
+ViralKinetics* ViralKinetics::instance() {
+	if (instance_ == nullptr) {
+		throw std::domain_error("ViralKinetics must be initialized before use");
+	}
+	return instance_;
+}
+
 /**
  * Load a map viral load to transmission probability
  */

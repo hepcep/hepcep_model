@@ -50,6 +50,7 @@ public:
     void step() override;
 
     void reset_viral_load_time();
+    double get_viral_load();
     
 };
 

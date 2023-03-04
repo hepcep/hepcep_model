@@ -51,6 +51,8 @@ public:
     static void init(const std::string& data_dir);
     virtual ~ViralKinetics();
 
+    double get_transmission_probability(double viral_load);
+
 
 }; // ViralKinetics class
 

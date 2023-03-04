@@ -37,7 +37,11 @@ void VK_Immunology::deactivate(){
 }
 
 void VK_Immunology::step(){
-    // TODO VK
+    viral_load_time++;
+}
+
+void VK_Immunology::reset_viral_load_time(){
+    viral_load_time = 0;
 }
 
 bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {
@@ -51,18 +55,11 @@ bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, doubl
     // TODO Get from time series viral load probability of transmission
     double transmissibility = 0;
 
-    if (isAcute()) {
-        if (repast::Random::instance()->nextDouble() > transmissibility ) {
-            stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
-            return false;
-        }
-    } else {
-        if (repast::Random::instance()->nextDouble() > transmissibility) {
-            stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
-            return false;
-        }
+    if (repast::Random::instance()->nextDouble() > transmissibility ) {
+        stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
+        return false;
     }
-
+    
     bool established_new_infection = partner_imm->receiveInfectiousDose(tick); //receive_infectious_dose();
     if (established_new_infection) {
         partner_imm->idu_->setLastExposureDate(tick); //important: must follow Statistics.fire()

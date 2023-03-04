@@ -123,6 +123,42 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 	loadViralLoadSeries(file, viral_loads_treated);
 }
 
+/**
+ * @brief Find the closest map key to the provided key argument and return the corresponding
+ *        value.  The transmi probability map uses viral load as the keys, so this finds
+ *        the closest key and returns the transmit prob.
+ * 
+ * @param viral_load the viral load
+ * @param transmit_prob_map the map of viral load -> transmit probability
+ * @return double the transmisiont probability
+ */
+double ViralKinetics::get_transmission_probability(double viral_load){
+  	double val = 0;
+
+	auto it = transmit_prob_map.lower_bound(viral_load);
+	
+	// If iterator is the end, return the end-1 map valu
+	if (it == transmit_prob_map.end()){
+		val = std::prev(transmit_prob_map.end())->second;
+	}
+	// Otherwise need to compare the lower bound key with the --lower bound key
+	// to see which is closed to the key argument
+	else{
+		double a = (it) -> first ;
+		double a_val = it -> second;
+		double b = (--it) -> first ;
+		double b_val = it -> second;
+		
+		double x  = fabs(viral_load-a);
+		double y  = fabs(viral_load-b);
+
+		if (x < y) val = a_val;
+		else val = b_val;
+	
+		return val;
+	}
+}
+
 ViralKinetics::~ViralKinetics(){
 
 }

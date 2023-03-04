@@ -48,6 +48,8 @@ public:
     void purgeActions() override;
 
     void step() override;
+
+    void reset_viral_load_time();
     
 };
 

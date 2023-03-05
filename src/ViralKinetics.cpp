@@ -131,14 +131,14 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 }
 
 
-// double ViralKinetics::get_viral_load(VKPROFILE vk_profile, int profile_id, double viral_load_time){
-// 	double viral_load  = 0;
+double ViralKinetics::get_viral_load(VKProfile vk_profile, int profile_id, double viral_load_time){
+	double viral_load  = 0;
 
-// 	// TODO VK
+	// TODO VK
 
 
-// 	return viral_load;
-// }
+	return viral_load;
+}
 
 /**
  * @brief Find the closest map key to the provided key argument and return the corresponding

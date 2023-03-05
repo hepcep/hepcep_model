@@ -64,6 +64,10 @@ void VK_Immunology::reset_viral_load_time(){
 double VK_Immunology::get_viral_load(){
     double viral_load = 0;
 
+    // TODO perhaps some check is needed if no viral load is available?
+
+    viral_load = ViralKinetics::instance() -> get_viral_load(vk_profile, vk_profile_id, viral_load_time);
+
     return viral_load;
 }
 
@@ -204,12 +208,10 @@ bool VK_Immunology::getTestedHCV(double now){
  */
 void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
-
     hcv_state = state;
     switch (state.value()) {
         case HCVState::Value::susceptible:
         {
-            hcv_state = HCVState::SUSCEPTIBLE;
             vk_profile = VKProfile::NONE;
             vk_profile_id = 0;
 
@@ -221,26 +223,52 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
         case HCVState::Value::infectious_acute:
         {
-            // TODO VK select from one of all six profile and set the time to 0ish
+            // Select from one of all six profile
             // This assumes we don't know any past history of recover/past infection
+            repast::IntUniformGenerator generator = repast::Random::instance() -> createUniIntGenerator(0, initial_acute_profiles.size() - 1);
+            
+            int i = (int)generator.next();
+            vk_profile = initial_acute_profiles[i];
+
+            // Select a random VK time series from the vk_profile type
+            // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+            int num_profiles = 50;
+            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(0, num_profiles - 1);
+
+            vk_profile_id = (int)generator_2.next();
 
             // Select from one of the acute profiles and set time to 0
             // TODO set time to another value or randomize?
+            viral_load_time = 0;
             
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
+
+                string msg = vk_profile.stringValue() + ":" + std::to_string(vk_profile_id);
+                Statistics::instance()->logStatusChange(LogType::VK_PROFILE, idu_, msg);
             }
             break;
         }
 
-
         case HCVState::Value::chronic:
         {
-             // TODO VK select from one of the three chronic profiles and set the time to 0ish
+            // Select from one of the three chronic profiles
+            repast::IntUniformGenerator generator = repast::Random::instance() -> createUniIntGenerator(0, initial_chronic_profiles.size() - 1);
+            
+            int i = (int)generator.next();
+            vk_profile = initial_chronic_profiles[i];
 
-            // Select from one of the chronic profiles and set time to 0
+             // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+            int num_profiles = 50;
+            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(0, num_profiles - 1);
+
+            vk_profile_id = (int)generator_2.next();
+
             // TODO set time to another value or randomize?
             // TODO the google doc suggests setting to a time in the chronic phase
+
+            // TODO make a parameter input
+            viral_load_time = 14;  // Set to 14 days to make sure we get past the non-infectious acute phase
 
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");

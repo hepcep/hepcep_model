@@ -33,7 +33,8 @@ public:
         cured,
         regular_status,
         failed_treatment,
-				hcvrna_test
+		hcvrna_test,
+        vk_profile
     };
 
     static const LogType ACTIVATED;
@@ -52,6 +53,7 @@ public:
     static const LogType REGULAR_STATUS;
     static const LogType FAILED_TREATMENT;
     static const LogType HCVRNA_TEST;
+    static const LogType VK_PROFILE;
 
     bool operator==(const LogType& rhs) const;
     bool operator!=(const LogType& rhs) const;

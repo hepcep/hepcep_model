@@ -109,14 +109,15 @@ void HCPerson::step(NetworkPtr<HCPerson> network) {
 //    std::cout << id_ << ": step " << std::endl;
 
 	double n = repast::Random::instance()->nextDouble();
-	double num_sharing_episodes = round(n	* injectionIntensity * injectionIntensityMultiplier *
+	double num_sharing_episodes = round(n * injectionIntensity * injectionIntensityMultiplier *
 			fractionReceptSharing);
 
 	for (int episode=0; episode<num_sharing_episodes; ++episode) {
 		receive_equipment_or_drugs(network);
 	}
 
-  age += 1.0 / 365.0;
+	immunology -> step();
+  	age += 1.0 / 365.0;
 }
 
 double HCPerson::getDeactivateAt() const {

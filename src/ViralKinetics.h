@@ -16,6 +16,7 @@
 
 #include "chi_sim/Parameters.h"
 #include "parameters_constants.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -52,6 +53,8 @@ public:
     virtual ~ViralKinetics();
 
     double get_transmission_probability(double viral_load);
+
+    double get_viral_load(VKProfile vk_profile, int profile_id, double viral_load_time);
 
 
 }; // ViralKinetics class

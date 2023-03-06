@@ -63,12 +63,8 @@ void VK_Immunology::reset_viral_load_time(){
 }
 
 double VK_Immunology::get_viral_load(){
-    double viral_load = 0;
-
-    // TODO perhaps some check is needed if no viral load is available?
-
-    viral_load = ViralKinetics::instance() -> get_viral_load(vk_profile, vk_profile_id, viral_load_time);
-
+    double viral_load = ViralKinetics::instance() -> get_viral_load(vk_profile, vk_profile_id, viral_load_time);
+    
     return viral_load;
 }
 
@@ -76,7 +72,13 @@ bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, doubl
     Statistics* stats = Statistics::instance();
     stats->logStatusChange(LogType::EXPOSED, partner_imm->idu_, "by agent " + std::to_string(idu_->id()));
 
-    if (! isHcvRNA(tick)) {
+    // TODO VK check if we still need this state check.
+    // if (! isHcvRNA(tick)) {
+    //     return false;
+    // }
+
+    // If not currently infected and no VK profile, then no chance of infection
+    if (vk_profile == VKProfile::NONE){
         return false;
     }
 
@@ -233,8 +235,9 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
             // Select a random VK time series from the vk_profile type
             // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+            // NOTE that profiles are numbered 1 through 50 inclusive
             int num_profiles = 50;
-            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(0, num_profiles - 1);
+            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(1, num_profiles);
 
             vk_profile_id = (int)generator_2.next();
 
@@ -260,8 +263,9 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             vk_profile = initial_chronic_profiles[i];
 
             // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+            // NOTE that profiles are numbered 1 through 50 inclusive
             int num_profiles = 50;
-            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(0, num_profiles - 1);
+            repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(1, num_profiles);
 
             vk_profile_id = (int)generator_2.next();
 

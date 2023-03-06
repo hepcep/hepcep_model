@@ -143,9 +143,29 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 double ViralKinetics::get_viral_load(VKProfile vk_profile, int profile_id, double viral_load_time){
 	double viral_load  = 0;
 
-	// TODO VK
 	// TODO check if viral_load_time > length of profile and return last value
 
+	// If the Person is not infected, there is no viral load.
+    if (vk_profile == VKProfile::NONE){
+        return 0;
+    }
+
+	// Get all VL series for this VKProfile type
+	std::unordered_map<unsigned int, std::vector<double>> profiles = viral_load_profiles[vk_profile];
+
+	// Get the series associated with the profile_id
+	// TODO check if profile_id within range 1-50, inclusive
+	std::vector<double> series = profiles[profile_id];
+
+	// Finally get the viral load at viral_load_time
+	int len = series.size();
+
+	// Check if viral_load_time within range 0 to length, and return tha last value if over.
+	if (viral_load_time >= len){
+		viral_load_time = len-1;
+	}
+
+	viral_load = series[viral_load_time];
 
 	return viral_load;
 }

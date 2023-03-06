@@ -33,6 +33,7 @@
 #include "OpioidTreatment.h"
 #include "OpioidContinueTreatmentEvent.h"
 #include "ViralKinetics.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -336,6 +337,15 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
     // write t0 stats
     Statistics::instance()->recordStats(0, run, local_persons);
+
+    double viral_load = ViralKinetics::instance() -> get_viral_load(VKProfile::ACUTE_INFECTION_CLEARANCE, 4, 21);
+    std::cout << "TEST VIRAL LOAD ACUTE_INFECTION_CLEARANCE, 4, 21: " << viral_load << std::endl;
+
+    viral_load = ViralKinetics::instance() -> get_viral_load(VKProfile::REINFECT_CHRONIC, 26, 121);
+    std::cout << "TEST VIRAL LOAD REINFECT_CHRONIC, 26, 121: " << viral_load << std::endl;
+
+    viral_load = ViralKinetics::instance() -> get_viral_load(VKProfile::REINFECT_CHRONIC, 26, 900);
+    std::cout << "TEST VIRAL LOAD REINFECT_CHRONIC, 26, 900: " << viral_load << std::endl;
     
     // Random stream sanity check
     d = repast::Random::instance()->nextDouble();

@@ -94,7 +94,8 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 	viral_loads_reinfectin_chronic(),
 	viral_loads_reinfection_low_titer_clearance(),
 	viral_loads_reinfection_high_titer_clearance(),
-	viral_loads_treated() {
+	viral_loads_treated(),
+	viral_load_profiles() {
 	
 	std::string transmit_prob_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(VK_TRANSMIT_PROB_FILE);
     // std::cout << "VK transmit prob file: " << transmit_prob_file << std::endl;
@@ -128,6 +129,14 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
 	file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(VK_TREATMENT_FILE);
     // std::cout << "VK treatment file: " << file << std::endl;
 	loadViralLoadSeries(file, viral_loads_treated);
+
+ 	viral_load_profiles[VKProfile::ACUTE_INFECTION_CLEARANCE] = viral_loads_acute_infection_clearance;
+ 	viral_load_profiles[VKProfile::ACUTE_INFECTION_INCOMPLETE] = viral_loads_acute_infection_incomplete;
+ 	viral_load_profiles[VKProfile::ACUTE_INFECTION_PERSISTENCE] = viral_loads_acute_infection_persistence;
+
+ 	viral_load_profiles[VKProfile::REINFECT_LOW_CLEARANCE] = viral_loads_reinfection_low_titer_clearance;
+ 	viral_load_profiles[VKProfile::REINFECT_HIGH_CLEARANCE] = viral_loads_reinfection_high_titer_clearance;
+ 	viral_load_profiles[VKProfile::REINFECT_CHRONIC] = viral_loads_reinfectin_chronic;
 }
 
 
@@ -135,6 +144,7 @@ double ViralKinetics::get_viral_load(VKProfile vk_profile, int profile_id, doubl
 	double viral_load  = 0;
 
 	// TODO VK
+	// TODO check if viral_load_time > length of profile and return last value
 
 
 	return viral_load;

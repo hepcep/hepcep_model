@@ -27,7 +27,7 @@ public:
 
     bool operator==(const VKProfile& rhs) const;
     bool operator!=(const VKProfile& rhs) const;
-    std::string stringValue() const;
+    const std::string stringValue() const;
 
     const VKProfile::Value value() const;
 
@@ -47,7 +47,27 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const VKProfile& val);
 
+}
 
+// Needed for using as std::map keys
+namespace std{
+    template <>
+    struct hash < hepcep::VKProfile > {
+        public:
+            size_t operator() ( const hepcep::VKProfile & vkp ) const noexcept {
+               return ( ( 32768 * std::hash<std::string>{}(vkp.stringValue())));
+            }
+            size_t operator() ( const hepcep::VKProfile * vkp ) const noexcept {
+               return ( ( 32768 * std::hash<std::string>{}(vkp->stringValue())));
+            }
+    };
+
+    template<> 
+    struct less<hepcep::VKProfile>{
+    bool operator() (const hepcep::VKProfile& lhs, const hepcep::VKProfile& rhs) const{
+        return lhs.stringValue() < rhs.stringValue();
+    }
+};
 }
 
 #endif /* SRC_VKPROFILE_H_ */

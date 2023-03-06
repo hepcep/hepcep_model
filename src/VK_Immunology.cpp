@@ -18,6 +18,7 @@
 #include "HCPerson.h"
 #include "EndTreatmentFunctor.h"
 #include "parameters_constants.h"
+#include "VK_Immunology.h"
 #include "ViralKinetics.h"
 #include "VKProfile.h"
 
@@ -28,16 +29,16 @@ namespace hepcep {
 using EventPtr = boost::shared_ptr<Event>;
 
 // The intial VK profile types for any agent with an acute infection (defined in HCPersonData)
-const std::vector<VKProfile> initial_acute_profiles({ 
+const std::vector<VKProfile> VK_Immunology::initial_acute_profiles({
     VKProfile::ACUTE_INFECTION_CLEARANCE, 
     VKProfile::ACUTE_INFECTION_INCOMPLETE, 
     VKProfile::ACUTE_INFECTION_PERSISTENCE, 
     VKProfile::REINFECT_HIGH_CLEARANCE, 
     VKProfile::REINFECT_LOW_CLEARANCE, 
-    VKProfile::REINFECT_CHRONIC});
+    VKProfile::REINFECT_CHRONIC });
 
 // The intial VK profile types for any agent with a chronic infection (defined in HCPersonData)
-const std::vector<VKProfile> initial_chronic_profiles({ 
+const std::vector<VKProfile> VK_Immunology::initial_chronic_profiles({ 
     VKProfile::ACUTE_INFECTION_INCOMPLETE, 
     VKProfile::ACUTE_INFECTION_PERSISTENCE, 
     VKProfile::REINFECT_CHRONIC});
@@ -258,7 +259,7 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             int i = (int)generator.next();
             vk_profile = initial_chronic_profiles[i];
 
-             // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+            // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
             int num_profiles = 50;
             repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(0, num_profiles - 1);
 
@@ -272,6 +273,9 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
+
+                string msg = vk_profile.stringValue() + ":" + std::to_string(vk_profile_id);
+                Statistics::instance()->logStatusChange(LogType::VK_PROFILE, idu_, msg);
             }
             break;
         }

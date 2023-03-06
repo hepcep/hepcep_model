@@ -27,11 +27,12 @@ bool VKProfile::operator!=(const VKProfile& rhs) const {
     return val_ != rhs.val_;
 }
 
+
 VKProfile::VKProfile(const Value& val, const std::string& string_val) :
         val_(val), string_val_(string_val) {
 }
 
-std::string VKProfile::stringValue() const {
+const std::string VKProfile::stringValue() const {
     return string_val_;
 }
 

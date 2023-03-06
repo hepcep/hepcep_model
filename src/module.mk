@@ -11,7 +11,6 @@ SRC = HCPlace.cpp \
 	network_utils.cpp \
 	Immunology.cpp \
 	APK_Immunology.cpp \
-	VK_Immunology.cpp \
 	Event.cpp \
 	EndRelationshipFunctor.cpp \
 	EndTreatmentFunctor.cpp \
@@ -34,6 +33,7 @@ SRC = HCPlace.cpp \
 	OpioidTreatmentDrug.cpp \
 	OpioidContinueTreatmentEvent.cpp \
 	ViralKinetics.cpp \
-	VKProfile.cpp
+	VKProfile.cpp \
+	VK_Immunology.cpp
 	
 model_src += $(SRC)

@@ -55,12 +55,16 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
         injectionIntensityMultiplier(1.0) {
 
 	// TODO initialize immunology using input switch
+	string immunology_type = chi_sim::Parameters::instance()->getStringParameter(IMMUNOLOGY_TYPE);
 
-	auto my_imm = std::make_shared<APK_Immunology>(this);
-
-	auto my_imm_2 = std::make_shared<VK_Immunology>(this);
-
-	immunology = std::static_pointer_cast<Immunology>(my_imm);
+	if (immunology_type == "APK"){
+		auto my_imm = std::make_shared<APK_Immunology>(this);
+		immunology = std::static_pointer_cast<Immunology>(my_imm);
+	}
+	else{ // "VK"
+		auto my_imm = std::make_shared<VK_Immunology>(this);
+		immunology = std::static_pointer_cast<Immunology>(my_imm);
+	}
 
 	age = data.age;
 	ageStarted = data.ageStarted;

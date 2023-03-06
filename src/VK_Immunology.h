@@ -6,7 +6,7 @@
  */
 
 #ifndef SRC_VK_IMMUNOLOGY_H_
-#define SRC_VKIMMUNOLOGY_H_
+#define SRC_VK_IMMUNOLOGY_H_
 
 #include "Immunology.h"
 #include "VKProfile.h"

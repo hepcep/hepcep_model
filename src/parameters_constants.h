@@ -33,6 +33,7 @@ const std::string VK_REINFECT_HIT_CLEAR_FILE = "viral.kinetics.reinfection.high.
 const std::string VK_REINFECT_LOWT_CLEAR_FILE = "viral.kinetics.reinfection.low.titer.clearance.file";
 const std::string VK_TREATMENT_FILE = "viral.kinetics.treatment.file";
 
+const std::string IMMUNOLOGY_TYPE = "immunology.type";
 
 const std::string RESUME_FROM_SAVED = "resume.from.saved.net";
 const std::string RESUME_FROM_SAVED_FILE = "resume.from.saved.net.file";

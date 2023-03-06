@@ -21,6 +21,9 @@ viral.kinetics.reinfection.high.titer.clearance.file = viral_kinetics/reinfectio
 viral.kinetics.reinfection.low.titer.clearance.file = viral_kinetics/reinfection-low-titer-clearance.csv
 viral.kinetics.treatment.file = viral_kinetics/treatment.csv
 
+# Immonology implementation type, values are "APK" or "VK"
+immunology.type = "VK"
+
 run.number = 1
 random.seed = 42
 

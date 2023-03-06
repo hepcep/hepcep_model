@@ -44,6 +44,8 @@ private:
     // Treated individual viral loads
     std::unordered_map<unsigned int, std::vector<double>> viral_loads_treated;
 
+    // Map of all viral load profile types and associated VL series
+    std::unordered_map<VKProfile, std::unordered_map<unsigned int, std::vector<double>>> viral_load_profiles;
 
     ViralKinetics(const std::string& data_dir);
 

@@ -27,6 +27,12 @@ private:
     // The intial VK profile types for any agent with a chronic infection (defined in HCPersonData)
     static const std::vector<VKProfile> initial_chronic_profiles;
 
+    // The VK profile types for new infections (N1, N2, N3) for Naive PWID
+    static const std::vector<VKProfile> new_infection_profiles;
+
+    // The VK profile types for new infections (R1, R2, R3) for previously cleared PWID
+    static const std::vector<VKProfile> re_infection_profiles;
+
     // The current time in days along the viral load curve.
     unsigned int viral_load_time;
 

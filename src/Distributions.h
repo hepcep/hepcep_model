@@ -14,10 +14,12 @@
 
 #include "boost/random.hpp"
 #include "repast_hpc/Random.h"
+#include <boost/random/discrete_distribution.hpp>
 
 namespace hepcep {
 
 using PoissonGen = boost::variate_generator<boost::mt19937&, boost::poisson_distribution<>>;
+using DiscreteGen = boost::variate_generator<boost::mt19937&, boost::random::discrete_distribution<>>;
 
 class Distributions {
 

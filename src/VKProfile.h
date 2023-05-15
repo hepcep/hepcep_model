@@ -14,7 +14,7 @@ class VKProfile {
 public:
     enum Value {
         acute_infection_clearance, acute_infection_incomplete, acute_infection_persistence,
-        reinfect_high_clearance, reinfect_low_clearance, reinfect_chronic, none
+        reinfect_high_clearance, reinfect_low_clearance, reinfect_chronic, none, treatment
     };
 
     static const VKProfile ACUTE_INFECTION_CLEARANCE;    // Acute self-clearance
@@ -24,6 +24,7 @@ public:
     static const VKProfile REINFECT_LOW_CLEARANCE;       // Reinfection with self-clearance w Low titer
     static const VKProfile REINFECT_CHRONIC;             // Reinfection with chronic
     static const VKProfile NONE;
+    static const VKProfile TREATMENT;
 
     bool operator==(const VKProfile& rhs) const;
     bool operator!=(const VKProfile& rhs) const;

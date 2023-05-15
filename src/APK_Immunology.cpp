@@ -43,8 +43,7 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() }
 {}
 
-APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu), 
-    scheduled_actions() {
+APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu){
 
 	params_ = std::make_shared<ImmunologyParameters>();
 

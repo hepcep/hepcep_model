@@ -16,7 +16,8 @@ Immunology::Immunology(HCPerson* idu) : hcv_state(HCVState::SUSCEPTIBLE),
     in_treatment(false),
     past_cured(false),
     past_recovered(false),
-     treatment_start_date(TREATMENT_NOT_STARTED),  
+    treatment_start_date(TREATMENT_NOT_STARTED),  
+    scheduled_actions(),
     idu_(idu){
 
 }

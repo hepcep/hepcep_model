@@ -14,10 +14,11 @@ const VKProfile VKProfile::REINFECT_HIGH_CLEARANCE(VKProfile::reinfect_high_clea
 const VKProfile VKProfile::REINFECT_LOW_CLEARANCE(VKProfile::reinfect_low_clearance, "reinfect_low_clearance");
 const VKProfile VKProfile::REINFECT_CHRONIC(VKProfile::reinfect_chronic, "reinfect_chronic");
 const VKProfile VKProfile::NONE(VKProfile::none, "none");
+const VKProfile VKProfile::TREATMENT(VKProfile::treatment, "treatment");
 
 const std::vector<VKProfile> VKProfile::values_({ VKProfile::ACUTE_INFECTION_CLEARANCE, VKProfile::ACUTE_INFECTION_INCOMPLETE,
         VKProfile::ACUTE_INFECTION_PERSISTENCE, VKProfile::REINFECT_HIGH_CLEARANCE, VKProfile::REINFECT_LOW_CLEARANCE, 
-        VKProfile::REINFECT_CHRONIC, VKProfile::NONE });
+        VKProfile::REINFECT_CHRONIC, VKProfile::NONE, VKProfile::TREATMENT });
 
 bool VKProfile::operator==(const VKProfile& rhs) const {
     return val_ == rhs.val_;
@@ -26,7 +27,6 @@ bool VKProfile::operator==(const VKProfile& rhs) const {
 bool VKProfile::operator!=(const VKProfile& rhs) const {
     return val_ != rhs.val_;
 }
-
 
 VKProfile::VKProfile(const Value& val, const std::string& string_val) :
         val_(val), string_val_(string_val) {

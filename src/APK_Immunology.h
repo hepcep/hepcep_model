@@ -38,9 +38,6 @@ private:
     friend void read_immunology(NamedListAttribute*, std::shared_ptr<Immunology>, HCPerson*, double);
 
     IPPtr params_;
-
-    // HCVState hcv_state;
-    std::vector<boost::shared_ptr<Event>> scheduled_actions;
     
     bool isInTreatmentViralSuppression(double tick);
 

@@ -242,6 +242,13 @@ bool VK_Immunology::isHcvRNA(double now) {
             (!isInTreatmentViralSuppression(now));
 }
 
+double VK_Immunology::get_transmissibility(){
+    double viral_load = get_viral_load();
+    double transmissibility = ViralKinetics::instance() -> get_transmission_probability(viral_load);
+
+    return transmissibility;
+}
+
 bool VK_Immunology::isInTreatmentViralSuppression(double tick) {
     if (!in_treatment) {
         return false;
@@ -305,7 +312,11 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
             // Select from one of the acute profiles and set time to 0
             // TODO set time to another value or randomize?
-            viral_load_time = 0;
+            // TODO we know that each viral load profile is 800 time steps, but it would be better to 
+            //      get the array size instead of using it hard coded here.
+            int max_viral_load_time = 800;
+            repast::IntUniformGenerator generator_time = repast::Random::instance() -> createUniIntGenerator(0, max_viral_load_time - 1);
+            viral_load_time = (int)generator_2.next();
             
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
@@ -335,7 +346,13 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             // TODO the google doc suggests setting to a time in the chronic phase
 
             // TODO make a parameter input
-            viral_load_time = 14;  // Set to 14 days to make sure we get past the non-infectious acute phase
+            // viral_load_time = 14;  // Set to 14 days to make sure we get past the non-infectious acute phase
+            
+            // TODO we know that each viral load profile is 800 time steps, but it would be better to 
+            //      get the array size instead of using it hard coded here.
+            int max_viral_load_time = 800;
+            repast::IntUniformGenerator generator_time = repast::Random::instance() -> createUniIntGenerator(0, max_viral_load_time - 1);
+            viral_load_time = (int)generator_2.next();
 
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");

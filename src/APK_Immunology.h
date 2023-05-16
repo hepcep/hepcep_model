@@ -59,6 +59,9 @@ public:
     bool isHcvRNA(double now) override;
     // bool isInfectious(double now) override;
 
+    double get_transmissibility() override;
+    double get_viral_load() override;
+
     bool getTestedHCV(double now) override;
 
     void setHCVInitState(double now, HCVState state, int logging) override;

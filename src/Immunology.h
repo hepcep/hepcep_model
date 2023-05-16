@@ -80,6 +80,9 @@ public:
     bool isPostTreatment();
     bool isTreatable(double now);
     
+    virtual double get_transmissibility() = 0;
+    virtual double get_viral_load() = 0;
+
     HCVState getHCVState();
 
     virtual bool getTestedHCV(double now) = 0;

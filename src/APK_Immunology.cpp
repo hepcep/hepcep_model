@@ -198,6 +198,15 @@ bool APK_Immunology::isHcvRNA(double now) {
             (!isInTreatmentViralSuppression(now));
 }
 
+double APK_Immunology::get_transmissibility(){
+    return  params_->transmissibility;
+}
+
+double APK_Immunology::get_viral_load(){
+    // NOTE APK does not model viral load but this must return a number for logging.
+    return 0;
+}
+
 // bool APK_Immunology::isInfectious(double now) {
 //     return (hcv_state == HCVState::INFECTIOUS_ACUTE ||
 //             hcv_state == HCVState::CHRONIC)

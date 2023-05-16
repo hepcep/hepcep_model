@@ -145,7 +145,8 @@ public:
 	bool isPostTreatment() const;
 	bool isTreatable() const;
 	bool getTestedHCV() const;
-
+	double get_transmissibility() const;
+	double get_viral_load() const;
 	double getDeactivateAt() const;
 
     bool isInOpioidTreatment() const;

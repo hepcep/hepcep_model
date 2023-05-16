@@ -75,6 +75,29 @@ void VK_Immunology::deactivate(){
 
 void VK_Immunology::step(){
     viral_load_time++;
+
+    // Check acute clearance profiles VL level and reset to recovered
+    // when log VL <= 0.  This signals end of infection and reset to 
+    // recovered when re-infection can occur.
+
+    // TODO It probably makes sense to just check if person is acute
+    //      because VL proviles acute incompleted/chronic are just set to
+    //      HCVState::CHRONIC at time of infection.
+    if (hcv_state == HCVState::INFECTIOUS_ACUTE){
+
+    // if (vk_profile == VKProfile::ACUTE_INFECTION_CLEARANCE ||
+    //     vk_profile == VKProfile::REINFECT_HIGH_CLEARANCE ||
+    //     vk_profile == VKProfile::REINFECT_LOW_CLEARANCE){
+
+        double viral_load = ViralKinetics::instance() -> get_viral_load(vk_profile, vk_profile_id, viral_load_time);
+
+        if (viral_load <= 0){
+            hcv_state = HCVState::RECOVERED;
+            Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
+        }
+    }
+
+
 }
 
 void VK_Immunology::reset_viral_load_time(){
@@ -123,9 +146,9 @@ bool VK_Immunology::leaveAcute() {
     
     // TODO VK doesnt need this so we could remove from the Immunology base class
     
-    hcv_state = HCVState::RECOVERED;
-    Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
-    return true;
+    // hcv_state = HCVState::RECOVERED;
+    // Statistics::instance()->logStatusChange(LogType::RECOVERED, idu_, "");
+    // return true;
 
     return false;
 }
@@ -157,12 +180,12 @@ bool VK_Immunology::receiveInfectiousDose(double now) {
     //  - R2 (reinfection high titer)  :  5/27 = 0.185
     //  - R3 (reinfection chronic)     : 10/27 = 0.371
 
-    // NOTE VK does not use HCVState::RECOVERED
     Statistics::instance()->logStatusChange(LogType::INFECTED, idu_, "");
 
     // NOTE VK this state check is different from APK since it only considers if the
-    //      current state is recovered.
+    //      current state is recovered and not if any recovered occured in the past.
     if (hcv_state == HCVState::RECOVERED){
+        // TODO put in model props
         // Reinfection R1,R2,R3
         // Draw on options R1, R2, R3 from integer values 0 (44.4%), 1 (18.5%), 2 (37.1%)
         double probabilities[] = {0.444, 0.185, 0.371};
@@ -173,6 +196,7 @@ bool VK_Immunology::receiveInfectiousDose(double now) {
         vk_profile = re_infection_profiles[draw];
     }
     else{
+        // TODO put in model props
         // Naive infection N1, N2, N3
         // Draw on options N1, N2, N3 from integer values 0 (20%), 1 (40%), 2 (40%)
         double probabilities[] = {0.2, 0.4, 0.4};
@@ -211,20 +235,22 @@ bool VK_Immunology::receiveInfectiousDose(double now) {
             hcv_state = HCVState::CHRONIC;
             Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
     }
-    else{ // If the infection is recovered type VK profile
+    else{ 
         // Schedule the end of the acute infectious time
-        double acute_end_time;
+        // double acute_end_time;
 
         hcv_state == HCVState::INFECTIOUS_ACUTE;
 
-        // TODO VK Should be based on ? criteria
-        acute_end_time =  now + repast::Random::instance()->createExponentialGenerator(1.0 / mean_days_acute_naive).next();
+        // NOTE: VK step() checks the acute profile VL level and resets to recovered when VL <= 0.
+
+        // // TODO VK Should be based on ? criteria
+        // acute_end_time =  now + repast::Random::instance()->createExponentialGenerator(1.0 / mean_days_acute_naive).next();
         
-        repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-        EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
-        new MethodFunctor<VK_Immunology, bool>(this, &VK_Immunology::leaveAcute));
-        scheduled_actions.push_back(leave_acute_evt);
-        runner.scheduleEvent(acute_end_time, leave_acute_evt);
+        // repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+        // EventPtr leave_acute_evt = boost::make_shared<Event>(acute_end_time, EventFuncType::LEAVE_ACUTE,
+        // new MethodFunctor<VK_Immunology, bool>(this, &VK_Immunology::leaveAcute));
+        // scheduled_actions.push_back(leave_acute_evt);
+        // runner.scheduleEvent(acute_end_time, leave_acute_evt);
     }
     
     return true;
@@ -280,10 +306,10 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 	//      schedule actions that are not valid after the second call.
 	purgeActions();
 
-    hcv_state = state;
     switch (state.value()) {
         case HCVState::Value::susceptible:
         {
+            hcv_state = HCVState::SUSCEPTIBLE;
             vk_profile = VKProfile::NONE;
             vk_profile_id = 0;
 
@@ -302,6 +328,26 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             int i = (int)generator.next();
             vk_profile = initial_acute_profiles[i];
 
+            // Set HCV state to acute or chronic depending on what type of VK profile is selected.
+            // NOTE this differs from APK becuase VK does not track acute->chronic state transitions.
+            if (vk_profile == VKProfile::ACUTE_INFECTION_CLEARANCE ||
+                vk_profile == VKProfile::REINFECT_HIGH_CLEARANCE ||
+                vk_profile == VKProfile::REINFECT_LOW_CLEARANCE){
+
+                    hcv_state = HCVState::INFECTIOUS_ACUTE;
+
+                    if (logging > 0) {
+                        Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
+                    }
+            }
+            else{
+                hcv_state = HCVState::CHRONIC;
+
+                if (logging > 0) {
+                    Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
+                }
+            }
+
             // Select a random VK time series from the vk_profile type
             // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
             // NOTE that profiles are numbered 1 through 50 inclusive
@@ -316,11 +362,9 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             //      get the array size instead of using it hard coded here.
             int max_viral_load_time = 800;
             repast::IntUniformGenerator generator_time = repast::Random::instance() -> createUniIntGenerator(0, max_viral_load_time - 1);
-            viral_load_time = (int)generator_2.next();
+            viral_load_time = (int)generator_time.next();
             
             if (logging > 0) {
-                Statistics::instance()->logStatusChange(LogType::INFECTIOUS, idu_, "");
-
                 string msg = vk_profile.stringValue() + ":" + std::to_string(vk_profile_id);
                 Statistics::instance()->logStatusChange(LogType::VK_PROFILE, idu_, msg);
             }
@@ -329,6 +373,8 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
 
         case HCVState::Value::chronic:
         {
+            hcv_state = HCVState::CHRONIC;
+
             // Select from one of the three chronic profiles
             repast::IntUniformGenerator generator = repast::Random::instance() -> createUniIntGenerator(0, initial_chronic_profiles.size() - 1);
             
@@ -343,7 +389,6 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             vk_profile_id = (int)generator_2.next();
 
             // TODO set time to another value or randomize?
-            // TODO the google doc suggests setting to a time in the chronic phase
 
             // TODO make a parameter input
             // viral_load_time = 14;  // Set to 14 days to make sure we get past the non-infectious acute phase
@@ -352,7 +397,7 @@ void VK_Immunology::setHCVInitState(double now, HCVState state, int logging) {
             //      get the array size instead of using it hard coded here.
             int max_viral_load_time = 800;
             repast::IntUniformGenerator generator_time = repast::Random::instance() -> createUniIntGenerator(0, max_viral_load_time - 1);
-            viral_load_time = (int)generator_2.next();
+            viral_load_time = (int)generator_time.next();
 
             if (logging > 0) {
                 Statistics::instance()->logStatusChange(LogType::CHRONIC, idu_, "");
@@ -384,11 +429,32 @@ void VK_Immunology::leaveTreatment(bool treatment_succeeded) {
         // NOTE: VK CURED and SUSCEPTIBLE have the same effect on re-infection dynamics
         hcv_state = HCVState::CURED;
         Statistics::instance()->logStatusChange(LogType::CURED, idu_, "");
+
+        // hcv_state = HCVState::SUSCEPTIBLE;
+        vk_profile = VKProfile::NONE;
+        vk_profile_id = 0;
+        viral_load_time = 0;
     }
     else {
         Statistics::instance()->logStatusChange(LogType::FAILED_TREATMENT, idu_, "");
         hcv_state = HCVState::CHRONIC; //even if entered as acute.  ignore the case where was about to self-limit
         treatment_failed = true;
+
+        // Set VK profile to CHRONIC
+        // Select from one of the three chronic profiles
+        repast::IntUniformGenerator generator = repast::Random::instance() -> createUniIntGenerator(0, initial_chronic_profiles.size() - 1);
+        
+        int i = (int)generator.next();
+        vk_profile = initial_chronic_profiles[i];
+
+        // TODO There are 50 VK series in each profile typy, but we could treat this as a parameter for safety
+        // NOTE that profiles are numbered 1 through 50 inclusive
+        int num_profiles = 50;
+        repast::IntUniformGenerator generator_2 = repast::Random::instance() -> createUniIntGenerator(1, num_profiles);
+
+        vk_profile_id = (int)generator_2.next();
+        viral_load_time = 0;
+
     }
 }
 

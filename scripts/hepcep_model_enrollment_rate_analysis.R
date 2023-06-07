@@ -51,6 +51,9 @@ for (d in dirs){
       table$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
       table$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
       
+      # Enable this prop when comparing VK vs APK
+      table$immunology_type <- props[Name=="immunology.type"]$Value
+      
       tableList[[d]]  <- table  
     }, 
     warning = function(w) {
@@ -97,9 +100,14 @@ dt$Week <- unlist(lapply(dt$tick, dayToWeek))
 
 years <- unlist(unique(dt$Year))
 
+dt_vk <- dt[immunology_type=="VK"]
+dt_apk <- dt[immunology_type=="APK"]
+
+data <- dt_vk
+
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count
-incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily_chronic/(population_ALL-infected_ALL))), 
+incidenceYear <- data[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily_chronic/(population_ALL-infected_ALL))), 
                     by=list(Year,treatment_enrollment_per_PY, treatment_nonadherence, max_num_daa_treatments, run)]
 
 # Calculate the mean and std of yearly incidence rate
@@ -117,7 +125,7 @@ incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(2.
                                              
                                              # Manually update the DAA treatment max
                                              
-                                             max_num_daa_treatments %in% c(NA)]
+                                             max_num_daa_treatments %in% c(999)]
 
 # Relative incidence via the baseline normalization of the no-treatment mean in 2019
 baseline <- incidenceSummaryBaseline[Year==2019]$mean
@@ -131,16 +139,17 @@ incidenceSummarySubset$std <- incidenceSummarySubset$std / baseline # / incidenc
 # 95% CI
 z <- 1.960
 
+# Color Version
 p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=1) +
   geom_point(aes(x=Year+1, y=mean, color=treatment_enrollment_per_PY), size=2) +
   scale_x_continuous(limits = c(2020, endYear), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
-  scale_y_continuous(limits = c(0, 1.5)) +
+  scale_y_continuous(limits = c(0, 6)) +
   
   geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, fill=treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
   
   geom_hline(yintercept=0.1, linetype="dashed", color = "red") +
   
-  facet_wrap(vars(Adherence), labeller = label_both) +
+#  facet_wrap(vars(Adherence), labeller = label_both) +
   
   labs(y="Relative Incidence", x="Year", color="treatment_enrollment_per_PY") + #, title="All Incidence") +
   theme_bw() +
@@ -155,6 +164,35 @@ p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=trea
 
 ggsave("Treatment Incidence num DAA treat no limit.png", plot=p, width=10, height=8)
 fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
+
+# Black & White symbol Version
+p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, group=treatment_enrollment_per_PY), size=1) +
+  geom_point(aes(x=Year+1, y=mean, shape=treatment_enrollment_per_PY), size=5) +
+  scale_x_continuous(limits = c(2020, endYear), breaks=c(2020, 2022, 2024, 2026, 2028, 2030)) +
+  scale_y_continuous(limits = c(0, 6)) +
+  
+  geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, group=treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
+  
+  geom_hline(yintercept=0.1, linetype="dashed", color = "black") +
+  
+  #  facet_wrap(vars(Adherence), labeller = label_both) +
+  
+  scale_shape_manual(values=c(15, 16, 17, 18)) +
+  
+  labs(y="Relative Incidence", x="Year", color="treatment_enrollment_per_PY") + #, title="All Incidence") +
+  theme_bw() +
+  #  theme_minimal() + 
+  theme(text = element_text(size=22), 
+        legend.position = c(.85, .85), 
+        legend.text=element_text(size=22),
+        legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
+  theme(axis.text=element_text(size=22),axis.title=element_text(size=22)) +
+  
+  guides(shape=guide_legend(title="Enrollment %"),fill=guide_legend(title="Enrollment %"))
+
+ggsave("Treatment Incidence VK num DAA treat no limit.png", plot=p, width=10, height=8)
+
+
 
 # Manually compare the incidence of chronic vs all infections.  Need to run above incidence
 #  summary again for 'incidence_daily' and store in incidenceSummarySubset_2

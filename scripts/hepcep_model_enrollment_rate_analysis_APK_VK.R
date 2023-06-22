@@ -22,7 +22,11 @@ colsToKeep <- c("tick","run","cured_ALL",
                 "population_agegrp_LEQ_30", "population_agegrp_OVER_30", 
                 "infected_agegrp_LEQ_30", "infected_agegrp_OVER_30",
                 "incidence_daily","incidence_daily_chronic","population_ALL","infected_ALL",
-                "treatment_recruited_daily")
+                "treatment_recruited_daily", "intreatment_ALL",
+                "population_hcv_chronic",
+                "population_hcv_cured",	"population_hcv_exposed",	"population_hcv_infectiousacute",
+                "population_hcv_recovered",	"population_hcv_susceptible",	"population_hcv_unknown"
+)
 
 tableList <- list()
 for (d in dirs){
@@ -101,12 +105,12 @@ years <- unlist(unique(dt$Year))
 
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count
-incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily_chronic/(population_ALL-infected_ALL))), 
-                    by=list(Year,treatment_enrollment_per_PY, treatment_nonadherence, max_num_daa_treatments, immunology_type, run)]
+#incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=1000*sum(incidence_daily_chronic/(population_ALL-infected_ALL))), 
+#                    by=list(Year,treatment_enrollment_per_PY, treatment_nonadherence, max_num_daa_treatments, immunology_type, run)]
 
 # Note !!!
 # Can also show absolute number of new infections
-incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=mean(infected_ALL)), 
+incidenceYear <- dt[Year %in% startYear:endYear, .(incidence=sum(incidence_daily_chronic)), 
                     by=list(Year,treatment_enrollment_per_PY, treatment_nonadherence, max_num_daa_treatments, immunology_type, run)]
 
 # Calculate the mean and std of yearly incidence rate
@@ -119,18 +123,20 @@ incidenceSummary$Adherence <- factor (100 * (1 - as.numeric(incidenceSummary$tre
 incidenceSummary$treatment_enrollment_per_PY <- factor (100 * as.numeric(incidenceSummary$treatment_enrollment_per_PY))
 
 incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
-incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(0) & #, 2.5,5,7.5,10) & 
+incidenceSummarySubset <- incidenceSummary[treatment_enrollment_per_PY %in% c(10) & #, 2.5,5,7.5,10) & 
                                              Adherence %in% c(90, 80, 70, 60) &
                                              
                                              # Manually update the DAA treatment max
                                              
-                                             max_num_daa_treatments %in% c(999) #&
+                                             max_num_daa_treatments %in% c(4) #&
                                            
                                             #immunology_type %in% c("VK")
                                            ]
 
 # Relative incidence via the baseline normalization of the no-treatment mean in 2019
 baseline <- incidenceSummaryBaseline[Year==2019]$mean
+
+baseline <- 1
 
 # optionally normalize the means relative to the untreated group
 #  ... we also normalize the sd by the baseline mean
@@ -152,11 +158,11 @@ p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=immu
   
 #  facet_wrap(vars(Adherence), labeller = label_both) +
   
-  labs(y="Total infections", x="Year", color="immunology_type", title="No DAA Treatment") +
+  labs(y="Total infections", x="Year", color="immunology_type", title="2.5% DAA Treatment") +
   theme_bw() +
   #  theme_minimal() + 
   theme(text = element_text(size=14), 
-        legend.position = c(.1, .17), 
+        legend.position = c(.1, .27), 
         legend.text=element_text(size=14),
         legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
   theme(axis.text=element_text(size=14),axis.title=element_text(size=14)) +

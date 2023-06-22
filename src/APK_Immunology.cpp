@@ -43,8 +43,7 @@ ImmunologyParameters::ImmunologyParameters() :
 				treatment_susceptibility { std::numeric_limits<double>::signaling_NaN() }
 {}
 
-APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu), 
-    scheduled_actions() {
+APK_Immunology::APK_Immunology(HCPerson* idu) : Immunology(idu){
 
 	params_ = std::make_shared<ImmunologyParameters>();
 
@@ -197,6 +196,15 @@ bool APK_Immunology::isHcvRNA(double now) {
             hcv_state == HCVState::INFECTIOUS_ACUTE ||
             hcv_state == HCVState::CHRONIC) &&
             (!isInTreatmentViralSuppression(now));
+}
+
+double APK_Immunology::get_transmissibility(){
+    return  params_->transmissibility;
+}
+
+double APK_Immunology::get_viral_load(){
+    // NOTE APK does not model viral load but this must return a number for logging.
+    return 0;
 }
 
 // bool APK_Immunology::isInfectious(double now) {

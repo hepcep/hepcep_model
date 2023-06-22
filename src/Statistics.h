@@ -37,8 +37,9 @@ class HCPerson;
 
 struct MeanStats {
     double age, career, daily_inj, in_deg,
-        out_deg, sharing;
+        out_deg, sharing, transmissibility, viral_load;
     unsigned int count;
+    unsigned int count_trans;
 
     void increment(std::shared_ptr<HCPerson> person);
     void calcMean();

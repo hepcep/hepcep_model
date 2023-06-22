@@ -137,6 +137,8 @@ ViralKinetics::ViralKinetics(const std::string& data_dir) :
  	viral_load_profiles[VKProfile::REINFECT_LOW_CLEARANCE] = viral_loads_reinfection_low_titer_clearance;
  	viral_load_profiles[VKProfile::REINFECT_HIGH_CLEARANCE] = viral_loads_reinfection_high_titer_clearance;
  	viral_load_profiles[VKProfile::REINFECT_CHRONIC] = viral_loads_reinfectin_chronic;
+
+	viral_load_profiles[VKProfile::TREATMENT] = viral_loads_treated;
 }
 
 

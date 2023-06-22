@@ -32,6 +32,9 @@ protected:
     int max_num_daa_treatments = 0;
     int num_daa_treatments = 0;   // Number of times person has enrolled in DAA treatment
 
+    // HCVState hcv_state;
+    std::vector<boost::shared_ptr<Event>> scheduled_actions;
+
 public:
 
     Immunology(HCPerson* idu);
@@ -77,6 +80,9 @@ public:
     bool isPostTreatment();
     bool isTreatable(double now);
     
+    virtual double get_transmissibility() = 0;
+    virtual double get_viral_load() = 0;
+
     HCVState getHCVState();
 
     virtual bool getTestedHCV(double now) = 0;

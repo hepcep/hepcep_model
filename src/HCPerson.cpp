@@ -54,7 +54,7 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		deactivateAt(-1.0),
         injectionIntensityMultiplier(1.0) {
 
-	// TODO initialize immunology using input switch
+	// Initialize immunology using input switch
 	string immunology_type = chi_sim::Parameters::instance()->getStringParameter(IMMUNOLOGY_TYPE);
 
 	if (immunology_type == "APK"){
@@ -421,6 +421,14 @@ bool HCPerson::isPostTreatment() const {
 bool HCPerson::isTreatable() const {
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	return immunology->isTreatable(tick);
+}
+
+double HCPerson::get_transmissibility() const {
+	return immunology->get_transmissibility();
+}
+
+double HCPerson::get_viral_load() const {
+	return immunology->get_viral_load();
 }
 
 bool HCPerson::isActive() const{

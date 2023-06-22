@@ -50,11 +50,15 @@ void MeanStats::calcMean() {
 	in_deg /= count;
 	out_deg /= count;
 	sharing /= count;
+
+	transmissibility /= count_trans;
+	viral_load /= count_trans;
 }
 
 void MeanStats::reset() {
-	age = career = daily_inj = in_deg = out_deg = sharing = 0;
+	age = career = daily_inj = in_deg = out_deg = sharing = transmissibility = viral_load = 0;
 	count = 0;
+	count_trans = 0;
 }
 
 void MeanStats::increment(std::shared_ptr<HCPerson> person) {
@@ -65,15 +69,22 @@ void MeanStats::increment(std::shared_ptr<HCPerson> person) {
 	out_deg += person->getDrugGivingDegree();
 	sharing += person->getFractionReceptSharing();
 	++count;
+
+	// Log transmissibility and viral load for infected people
+	if (person->isHcvRNA()){
+		transmissibility += person->get_transmissibility();
+		viral_load += person->get_viral_load();
+		++count_trans;
+	}
 }
 
 void MeanStats::write(FileOut& out) {
 	out << "," << age << "," << career << "," << daily_inj << "," << in_deg << "," << out_deg << ","
-			<< sharing;
+			<< sharing << "," << transmissibility << "," << viral_load;
 }
 
 void MeanStats::writeHeader(FileOut& out) {
-	out << ",mean_age_ALL,mean_career_ALL,mean_daily_inj_ALL,mean_in_deg_ALL,mean_out_deg_ALL,mean_sharing_ALL";
+	out << ",mean_age_ALL,mean_career_ALL,mean_daily_inj_ALL,mean_in_deg_ALL,mean_out_deg_ALL,mean_sharing_ALL,mean_transmissibility_ALL,mean_viral_load_ALL";
 }
 
 Statistics* Statistics::instance_ = nullptr;

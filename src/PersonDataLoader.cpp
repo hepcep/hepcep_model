@@ -14,19 +14,21 @@
 
 namespace hepcep {
 
-const int AGE_IDX = 0;						// Age (String)
+const int AGE_IDX = 0;				// Age (String)
 const int AGE_STARTED_IDX = 1;		// Age started year (float double)
-const int GENDER_IDX = 2;					// Gender : MALE | FEMALE (String)
-const int RACE_IDX = 3;						// Race  (String)
+const int GENDER_IDX = 2;			// Gender : MALE | FEMALE (String)
+const int RACE_IDX = 3;				// Race  (String)
 const int SYRINGE_SOURCE_IDX = 4;	// Syringe Source (String)
-const int ZIP_IDX = 5;						// Initial zip code (String) since some are not all numeric
-const int HCV_STATE_IDX = 6;			// HCV State (String)  susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS
+const int ZIP_IDX = 5;				// Initial zip code (String) since some are not all numeric
+const int HCV_STATE_IDX = 6;		// HCV State (String)  susceptible, exposed, infectiousacute, recovered, cured, chronic, unknown, ABPOS
 const int DRUG_REC_DEG_IDX = 7;		// Network drug recept (in) degree (int)
 const int DRUG_GIV_DEG_IDX = 8;		// Network drug giving (out) degree (int)
 const int INJECT_INTENS_IDX = 9;	// Injection intensity (float double)
 const int FRAC_REC_SHAR_IDX = 10;	// Fraction recept sharing (float double)
 
-void loadPersonData(const string& filename, std::vector<HCPersonData> & personData) {
+const int ERGM_VERTEX_NAME_IDX = 11; // Vertex name in ERGM network loading
+
+void loadPersonData(const string& filename, std::vector<HCPersonData> & personData, const std::string& pwid_data_type) {
 	SVReader reader(filename, ',');
 	vector<std::string> line;
 
@@ -53,7 +55,18 @@ void loadPersonData(const string& filename, std::vector<HCPersonData> & personDa
 
 		data.drug_inDegree = std::stoul(line[DRUG_REC_DEG_IDX]);
 		data.drug_outDegree = std::stoul(line[DRUG_GIV_DEG_IDX]);
-		data.injectionIntensity = std::stod(line[INJECT_INTENS_IDX]);
+		
+		// Handle the input data for some attributes differently if loading CNEP+ vs ERGM
+		if (pwid_data_type == "CNEP+"){
+			data.injectionIntensity = std::stod(line[INJECT_INTENS_IDX]);
+			data.ergm_injectionIntensity = "";  // not used
+			data.ergm_vertex_name = 0;  // not used
+		}
+		else{
+			data.injectionIntensity = 0;  // Determined via ERGM injection intensity
+			data.ergm_injectionIntensity = line[INJECT_INTENS_IDX]; // String injectinon frequency
+			data.ergm_vertex_name = std::stoul(line[ERGM_VERTEX_NAME_IDX]);
+		}
 		data.fractionReceptSharing = std::stod(line[FRAC_REC_SHAR_IDX]);
 
 		data.early_career = (data.age - data.ageStarted) < maturityThreshold;

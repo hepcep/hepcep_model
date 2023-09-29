@@ -17,7 +17,7 @@ namespace hepcep {
 /**
  * Load person data from the specified file
  */
-void loadPersonData(const std::string& filename, std::vector<HCPersonData> & personData) ;
+void loadPersonData(const std::string& filename, std::vector<HCPersonData> & personData, const std::string& pwid_data_type);
 
 }
 

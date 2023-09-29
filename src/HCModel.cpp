@@ -222,9 +222,11 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     // personData and personCreator are used to create initial persons and arriving new persons
     // so we need it regardless of how the initial population is 
     // created.
-    std::string cnep_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(CNEP_PLUS_FILE);
+    std::string pwid_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(PWID_INPUT_FILE);
     // std::cout << "CNEP+ file: " << cnep_file << std::endl;
-    loadPersonData(cnep_file, personData);
+
+    std::string pwid_file_type = chi_sim::Parameters::instance()->getStringParameter(PWID_DATA_INPUT_TYPE);
+    loadPersonData(pwid_file, personData, pwid_file_type);
 
     init_stats(output_directory, run, zoneMap);
 

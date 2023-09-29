@@ -10,8 +10,7 @@
 namespace hepcep {
 
 const std::string DATA_DIR = "data.dir";
-const std::string CNEP_PLUS_FILE = "cnep_plus.file";
-const std::string CNEP_PLUS__EARLY_FILE = "cnep_plus_early.file";
+const std::string PWID_INPUT_FILE = "pwid.input.file";
 const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";
@@ -34,6 +33,8 @@ const std::string VK_REINFECT_LOWT_CLEAR_FILE = "viral.kinetics.reinfection.low.
 const std::string VK_TREATMENT_FILE = "viral.kinetics.treatment.file";
 
 const std::string IMMUNOLOGY_TYPE = "immunology.type";
+
+const std::string PWID_DATA_INPUT_TYPE = "pwid.data.input.type";
 
 const std::string RESUME_FROM_SAVED = "resume.from.saved.net";
 const std::string RESUME_FROM_SAVED_FILE = "resume.from.saved.net.file";

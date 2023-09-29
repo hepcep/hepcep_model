@@ -20,7 +20,7 @@ check_directory_exists
 
 # TODO edit the number of processes as required.
 # 288
-export PROCS=18
+export PROCS=36
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
@@ -29,7 +29,7 @@ export PROCS=18
 #export PROJECT=naerm
 export PROJECT=condo
 export QUEUE=dis
-export WALLTIME=01:00:00
+export WALLTIME=06:00:00
 export PPN=18
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -68,7 +68,7 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/upf_test_small.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/single_run.txt" \
   -config_file=$CONFIG_FILE \
   -data_dir=$DATA_DIR \
   $CMD_LINE_ARGS

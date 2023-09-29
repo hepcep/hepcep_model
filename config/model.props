@@ -1,18 +1,23 @@
 # Properties file for general runs
 #
 
-stop.at = 400
+#stop.at = 8030
+stop.at = 800
 
-# relative to where the hepcep-model executable is run
-# NOTE !!!!!!!  for emewes runs, files are defined in hepcep_sweep.swift !!!!!!
-cnep_plus.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv
+# Data file containing the PWID instances from which to sample
+pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
+#cnep_plus.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv
 
+# PWID data input type, values are "CNEP+" or "ERGM"
+pwid.data.input.type = "CNEP+"
+
+# MOUD scenario input files
 zones.file = zones.csv
 zones.distance.file = zones_distance.csv
 opioid_treatment_zone_distance_file = min_dist_real_reshuffled.csv
 
+# Viral Kinetics Immonology input files
 viral.kinetics.transmit.prob.file = viral_kinetics/transmission_probability.csv
-
 viral.kinetics.acute.infection.clearance.file = viral_kinetics/acute-infection-clearance.csv
 viral.kinetics.acute.infection.incomplete.file = viral_kinetics/acute-infection-incomplete.csv
 viral.kinetics.acute.infection.persistence.file = viral_kinetics/acute-infection-persistence.csv
@@ -22,7 +27,7 @@ viral.kinetics.reinfection.low.titer.clearance.file = viral_kinetics/reinfection
 viral.kinetics.treatment.file = viral_kinetics/treatment.csv
 
 # Immonology implementation type, values are "APK" or "VK"
-immunology.type = "VK"
+immunology.type = APK
 
 run.number = 1
 random.seed = 42
@@ -44,8 +49,8 @@ resume.from.saved.net = false
 # ACTIVATED, EXPOSED, INFECTED, INFECTIOUS, CHRONIC, RECOVERED, DEACTIVATED, INFO,
 # STATUS, STARTED_TREATMENT, CURED, REGULAR_STATUS, FAILED_TREATMENT, HCVRNA_TEST,
 # STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT
-log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
-#log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEACTIVATED
+#log.events = STARTED_OPIOID_TREATMENT, STOPPED_OPIOID_TREATMENT, CHRONIC, CURED, ACTIVATED, DEACTIVATED
+log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEACTIVATED
 
 # Frequently changed parameters
 burn_in_days = 365
@@ -53,9 +58,9 @@ treatment_enrollment_start_delay = 3650
 treatment_enrollment_stop_at = 999999999
 initial_pwid_count = 32000
 
-treatment_enrollment_per_PY = 0.0
+treatment_enrollment_per_PY = 0.075
 treatment_repeatable = true
-max_num_daa_treatments = 999
+max_num_daa_treatments = 4
 
 treatment_enrollment_probability_unbiased = 1.0
 treatment_enrollment_probability_HRP = 0.0

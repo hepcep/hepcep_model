@@ -13,14 +13,6 @@ string turbine_output = getenv("TURBINE_OUTPUT");
 string config_file = argv("config_file");
 string data_dir = argv("data_dir");
 
-// string cnep_plus_file = "cnep_plus.file = %s/../data/100k_CNEP+_pwid_catalog_2018-11-23.csv" % emews_root;
-// string zones_file = "zones.file = %s/../data/zones.csv" % emews_root;
-// string zones_distance_file = "zones.distance.file = %s/../data/zones_distance.csv" % emews_root;
-
-// string opioid_treatment_zone_distance_file = "opioid_treatment_zone_distance_file = %s/../data/min_dist_real_reshuffled.csv" % emews_root;
-
-// string vk_file = "viral.kinetics.transmit.prob.file = %s/../data/vk.transmission_probability.csv" % emews_root;
-
 (string run_param) get_run_number(string params, int line_num) {
   if (find(params, "run.number", 0, -1) == -1) {
     run_param = "run.number=%d\t" % line_num;

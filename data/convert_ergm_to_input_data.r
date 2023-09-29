@@ -5,13 +5,13 @@ setwd("E:\\ANL\\Projects\\HepCEP\\hepcep_networks\\simulate-from-ergms\\out")
 
 load("on-revamped-oscar-non-randomized-indeg-0-only.RData")
 
-class(sim_results[[1]])
+# Grab an edge list instance
+#class(sim_results[[1]])
 list.vertex.attributes(sim_results[[1]])
 el <- as.edgelist(sim_results[[1]])
-dim(el)
 
-net <- sim_results[[1]]
-class(net)
+#net <- sim_results[[1]]
+#class(net)
 
 sim_results <- NULL  # clear huge list
 
@@ -65,5 +65,13 @@ setcolorder(pwid_dt, c("Age", "Age_Started", "Gender", "Race", "Syringe_source",
                       "Daily_injection_intensity","Fraction_recept_sharing"))
 
 fwrite(pwid_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_catalog.csv")
+
+# Convert the edge table V1 -> V2 to a table V1 -> V21, V22, V23...
+#  eg for every unique V1, create one V1 row and map all V2s to it.
+edges_dt <- as.data.table(el)
+# Group by values in V1, and paste all values in other cols together separated by comma
+compact_edges_dt <- edges_dt[, lapply(.SD, paste0, collapse = ","), by=V1]
+
+fwrite(compact_edges_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_edges.csv", quote=F)
 
 

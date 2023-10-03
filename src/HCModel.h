@@ -41,6 +41,8 @@ protected:
 	// PersonData vector used for generating new HCPerson instances.
 	std::vector<HCPersonData> personData;
 
+	std::unordered_map<unsigned int, std::vector<int>> pwid_edge_data;
+
 	std::map<unsigned int,ZonePtr> zoneMap;
 	std::unordered_map<unsigned int, std::unordered_map<unsigned int,double>> zoneDistanceMap;
 	std::map<unsigned int, std::vector<PersonPtr>> effectiveZonePopulation;
@@ -89,6 +91,7 @@ protected:
 	void generateArrivingPersons();
 	void burnInControl();
 	void burnInEnd();
+	void construct_network_from_ergm_data();
 	void performInitialLinking();
 	void performLinking();
 	double interactionRate(const ZonePtr& zone1, const ZonePtr& zone2);

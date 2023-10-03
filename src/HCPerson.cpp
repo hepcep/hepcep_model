@@ -43,6 +43,10 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunolo
 	injectionIntensity = data.injectionIntensity;
 	zipCode = data.zipCode;
 	syringeSource = HarmReduction::valueOf(data.syringeSource);
+
+	// Person attributes specific to ERGM type input data
+	string ergm_injectionIntensity = data.ergm_injectionIntensity;
+	ergm_vertex_name = data.ergm_vertex_name;
 }
 
 
@@ -76,6 +80,10 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 	injectionIntensity = data.injectionIntensity;
 	zipCode = data.zipCode;
 	syringeSource = HarmReduction::valueOf(data.syringeSource);
+
+	// Person attributes specific to ERGM type input data
+	string ergm_injectionIntensity = data.ergm_injectionIntensity;
+	ergm_vertex_name = data.ergm_vertex_name;
 
 	HCVState hcvState = HCVState::UNKNOWN;
 
@@ -365,6 +373,15 @@ double HCPerson::getInjectionIntensity() const {
 double HCPerson::getFractionReceptSharing() const {
 	return fractionReceptSharing;
 }
+
+std::string HCPerson::get_ergm_injectionIntensity() const{
+	return ergm_injectionIntensity;
+}
+
+int HCPerson::get_ergm_vertex_name() const{
+	return ergm_vertex_name;
+}
+
 
 void HCPerson::setLastExposureDate(double tick){
     lastExposureDate = tick;

@@ -5,11 +5,14 @@
 stop.at = 800
 
 # Data file containing the PWID instances from which to sample
-pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
-#cnep_plus.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv
+#pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
+pwid.input.file = ergm_pwid_catalog.csv 
 
-# PWID data input type, values are "CNEP+" or "ERGM"
-pwid.data.input.type = "CNEP+"
+# Edge list file for creating ERGM PWID network
+pwid.network.edges.input.file = ergm_pwid_edges.csv
+
+# PWID data input type, values are "CNEP+" or "ERGM" (no quotes)
+pwid.data.input.type = ERGM
 
 # MOUD scenario input files
 zones.file = zones.csv
@@ -26,7 +29,7 @@ viral.kinetics.reinfection.high.titer.clearance.file = viral_kinetics/reinfectio
 viral.kinetics.reinfection.low.titer.clearance.file = viral_kinetics/reinfection-low-titer-clearance.csv
 viral.kinetics.treatment.file = viral_kinetics/treatment.csv
 
-# Immonology implementation type, values are "APK" or "VK"
+# Immonology implementation type, values are "APK" or "VK" (no quotes)
 immunology.type = APK
 
 run.number = 1

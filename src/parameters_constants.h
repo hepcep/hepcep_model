@@ -11,6 +11,7 @@ namespace hepcep {
 
 const std::string DATA_DIR = "data.dir";
 const std::string PWID_INPUT_FILE = "pwid.input.file";
+const std::string PWID_NETWORK_EDGES_INPUT_FILE = "pwid.network.edges.input.file";
 const std::string RUN = "run.number";
 const std::string OUTPUT_DIRECTORY = "output.directory";
 const std::string STATS_OUTPUT_FILE = "stats.output.file";

@@ -205,26 +205,19 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
     // TODO put all the data loading into a separate method
 
-    // Load zones
+    // Load zones (zip codes)
     std::string zones_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_FILE);
     std::string dist_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ZONE_DISTANCE_FILE);
     std::string access_scenario = chi_sim::Parameters::instance()->getStringParameter(OPIOID_TREATMENT_ACCESS_SCENARIO);
-    // std::cout << "Zones file: " << zones_file << std::endl;
-    // std::cout << "Zones Distance From Treatment File: " << dist_file << std::endl;
-    // std::cout << "Zones Treatment Access Scenario: " << access_scenario << std::endl;
     loadZones(zones_file, dist_file, access_scenario, zoneMap);
-    // std::cout << "Initial zoneMap size = " << zoneMap.size() << std::endl;
-
+    
+    // Load zone-zone (zipcode) distances file
     std::string zones_distance_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(ZONES_DISTANCE_FILE);
-    // std::cout << "Zones distance file: " << zones_distance_file << std::endl;
     loadZonesDistances(zones_distance_file, zoneMap, zoneDistanceMap);
 
     // personData and personCreator are used to create initial persons and arriving new persons
-    // so we need it regardless of how the initial population is 
-    // created.
+    //   so we need it regardless of how the initial population is created.
     std::string pwid_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(PWID_INPUT_FILE);
-    // std::cout << "CNEP+ file: " << cnep_file << std::endl;
-
     std::string pwid_file_type = chi_sim::Parameters::instance()->getStringParameter(PWID_DATA_INPUT_TYPE);
     loadPersonData(pwid_file, personData, pwid_file_type);
 
@@ -238,41 +231,54 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     // it was serialized + 1
     double start_at = 1;
     
-    bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
-    if (resume) {
-        burnInDays = 0;
-        std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
-        double serialized_at;
-        network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
-        unsigned int max_id = 0;
-        for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
-            unsigned int id = (*iter)->id();
-            if (id > max_id) {
-                max_id = id;
-            }
-            local_persons.emplace(id, (*iter));
-        }
-        // The start time for regular actions is at the next integer from the serialization time
-        start_at = floor(serialized_at) + 1; //.000000000001;
+    // TODO Determine if we want to get the resume (deserialized) workking properly.
+    // bool resume =  chi_sim::Parameters::instance()->getBooleanParameter(RESUME_FROM_SAVED);
+    // if (resume) {
+    //     burnInDays = 0;
+    //     std::string fname = chi_sim::Parameters::instance()->getStringParameter(RESUME_FROM_SAVED_FILE);
+    //     double serialized_at;
+    //     network = read_network<HCPerson>(fname, &read_person, &read_edge, zoneMap, &serialized_at);
+    //     unsigned int max_id = 0;
+    //     for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
+    //         unsigned int id = (*iter)->id();
+    //         if (id > max_id) {
+    //             max_id = id;
+    //         }
+    //         local_persons.emplace(id, (*iter));
+    //     }
+    //     // The start time for regular actions is at the next integer from the serialization time
+    //     start_at = floor(serialized_at) + 1; //.000000000001;
         
-        // Perform an initial zone census
-        zoneCensus();
+    //     // Perform an initial zone census
+    //     zoneCensus();
         
-        personCreator = std::make_shared<PersonCreator>(max_id + 1);
-        std::cout << "Resuming from " << fname << ", starting at: " << std::setprecision(20) << std::fixed << start_at << std::endl;
-    } else {
-        personCreator = std::make_shared<PersonCreator>(1);
-        network = std::make_shared<Network<HCPerson>>(true);
-        int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
+    //     personCreator = std::make_shared<PersonCreator>(max_id + 1);
+    //     std::cout << "Resuming from " << fname << ", starting at: " << std::setprecision(20) << std::fixed << start_at << std::endl;
+    // } else {
+    
+    personCreator = std::make_shared<PersonCreator>(1);
+    network = std::make_shared<Network<HCPerson>>(true);
+    int personCount = chi_sim::Parameters::instance()->getIntParameter(INITIAL_PWID_COUNT);
 
-        // Burn-in needs to be set after person creator but before generating persons
-        burnInControl(); 
+    // Burn-in needs to be set after person creator but before generating persons
+    burnInControl(); 
 
-        personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
+    std::cout << "Creating Persons..."<< std::endl;
+    personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
+    
+    // If the PWID input file type is ERGM, initialize the network from the input efge 
+    if (pwid_file_type == "ERGM"){
+        
+        std::string pwid_edge_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(PWID_NETWORK_EDGES_INPUT_FILE);
+        load_pwid_edge_data(pwid_edge_file, pwid_edge_data);
+
+        construct_network_from_ergm_data();
+    }
+    else{  // Using CNEP+ data, the network is created programmatically.
         performInitialLinking();
     }
 
-    // std::cout << "Initial PWID count: " << local_persons.size() << std::endl;
+    std::cout << "Initializing Schedule..."<< std::endl;
     
     // Schedule model events
     // Model step
@@ -353,7 +359,10 @@ HCModel::~HCModel() {}
 void HCModel::atEnd() {
     Statistics::instance()->close();
 }
-
+/**
+ * @brief The main model step method.
+ * 
+ */
 void HCModel::step() {
 //    auto t1 = std::chrono::high_resolution_clock::now();
     
@@ -393,6 +402,10 @@ void HCModel::step() {
 //    std::cout << "step() time: " << duration << std::endl; 
 }
 
+/**
+ * @brief Generate new PWID agents to maintain the constant population size.
+ * 
+ */
 void HCModel::generateArrivingPersons(){
     int totalLost = Statistics::instance()->getDailyLosses();
 
@@ -410,6 +423,46 @@ void HCModel::generateArrivingPersons(){
     personCreator->create_persons(local_persons, personData, zoneMap, network, newCount, true);
 }
 
+/**
+ * @brief Construct the PWID netork from ERGM input data.
+ * 
+ */
+void HCModel::construct_network_from_ergm_data(){
+
+    // Create a mapping between the ERGM vertex ID and persn
+    std::unordered_map<unsigned int, PersonPtr> ergm_vertex_person_map;
+
+    for (auto entry : local_persons) {
+        PersonPtr & person = entry.second;
+
+        ergm_vertex_person_map[person->get_ergm_vertex_name()] = person;
+
+        std::cout << person->get_ergm_vertex_name() << " -> " << person->id() << std::endl;
+    }
+
+    for (auto const& kv : pwid_edge_data){
+        int source_person_vertex_id = kv.first;
+
+        std::vector<int> target_person_vertex_ids = kv.second;  
+
+        PersonPtr & source_person = ergm_vertex_person_map[source_person_vertex_id];
+
+        for (auto target_vertex : target_person_vertex_ids){
+            PersonPtr & target_person = ergm_vertex_person_map[target_vertex];
+
+            std::cout << "Linking Person " << source_person->id() << " to Person " << target_person->id() << std::endl;
+
+            // TODO Link the people (with 100% certainly)
+        }
+        std::cout << std::endl;
+    }
+
+}
+
+/**
+ * @brief Create the PWID network programmatically based on PWID in/out degree targets.
+ * 
+ */
 void HCModel::performInitialLinking(){
 
     double total_edges = network->edgeCount();
@@ -454,6 +507,10 @@ void HCModel::performInitialLinking(){
 
 }
 
+/**
+ * @brief Programmaticaly link PWID in the network if they need more peers.
+ * 
+ */
 void HCModel::performLinking(){
  
 //    auto total_t1 = std::chrono::high_resolution_clock::now();
@@ -537,8 +594,11 @@ void HCModel::performLinking(){
 }
 
 /**
- * Attempt a bi-directional network connection pair between person1 & person2
- *
+ * @brief Attempt a bi-directional network connection pair between person1 & person2
+ * 
+ * @param person1 
+ * @param person2 
+ * 
  * TODO move to HCPerson
  */
 void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
@@ -670,9 +730,10 @@ void HCModel::burnInEnd() {
 
     std::cout << "**** Finished burn-in. Duration: " << burnInDays << " ****" << std::endl;
 }
-/*
- * DAA Treatment Enrollment
- *
+
+/**
+ * @brief DAA Treatment Enrollment
+ * 
  */
 void HCModel::daa_treatment(){
     double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);

@@ -49,6 +49,10 @@ struct HCPersonData {
 	double fractionReceptSharing;
 	bool early_career;
 
+	// Person attributes specific to ERGM type input data
+	std::string ergm_injectionIntensity;
+	int ergm_vertex_name;
+
 };
 
 class HCPerson : public AbsPersonT {
@@ -76,6 +80,10 @@ protected:
 	double lastInfectionDate;
 	double deactivateAt;
     double injectionIntensityMultiplier;
+
+	// Person attributes specific to ERGM type input data
+	std::string ergm_injectionIntensity;
+	int ergm_vertex_name;
 	
     ZonePtr myZone;
 
@@ -138,6 +146,8 @@ public:
 	bool isHcvRNA() const;
 	bool isActive() const;
 	bool isInfectedToday() const;
+	std::string get_ergm_injectionIntensity() const;
+	int get_ergm_vertex_name() const;
 
 	bool isCured() const;
 	bool isInTreatment() const;

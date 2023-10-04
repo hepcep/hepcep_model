@@ -20,7 +20,6 @@ protected:
 	bool burnInMode = false;
 	double burnInDays = 0;
 	double probInfectedNewArriving;
-	double statusReportFrequency;
 	unsigned int id_counter;
 
 public:
@@ -33,8 +32,16 @@ public:
 	 * Create Persons from the specified file, placing them in the specified map.
 	 */
 	void create_persons(std::map<unsigned int, PersonPtr>& persons,
-			std::vector<HCPersonData> & personData,  std::map<unsigned int,ZonePtr>& zoneMap,
+			std::vector<HCPersonData> & personData, std::map<unsigned int,ZonePtr>& zoneMap,
 			NetworkPtr<HCPerson> network, unsigned int person_count, bool earlyCareerOnly);
+
+	void create_persons_from_ergm_data(std::map<unsigned int, PersonPtr>& persons,
+		std::vector<HCPersonData> & personData, std::map<unsigned int,ZonePtr>& zoneMap,
+		NetworkPtr<HCPerson> network);
+
+	void create_person_from_data(std::map<unsigned int, PersonPtr>& persons,
+		HCPersonData & data, std::map<unsigned int,ZonePtr>& zoneMap,
+		NetworkPtr<HCPerson> network, bool earlyCareerOnly);
 
 	void setBurnInPeriod(bool burnInMode, double burnInPeriod);
 

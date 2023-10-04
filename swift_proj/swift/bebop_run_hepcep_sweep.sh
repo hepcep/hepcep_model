@@ -20,7 +20,7 @@ check_directory_exists
 
 # TODO edit the number of processes as required.
 # 288
-export PROCS=36
+export PROCS=4
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
@@ -29,7 +29,7 @@ export PROCS=36
 #export PROJECT=naerm
 export PROJECT=condo
 export QUEUE=dis
-export WALLTIME=06:00:00
+export WALLTIME=01:00:00
 export PPN=18
 export TURBINE_JOBNAME="${EXPID}_job"
 

@@ -263,18 +263,20 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     // Burn-in needs to be set after person creator but before generating persons
     burnInControl(); 
 
-    std::cout << "Creating Persons..."<< std::endl;
-    personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
-    
     // If the PWID input file type is ERGM, initialize the network from the input efge 
     if (pwid_file_type == "ERGM"){
-        
+        std::cout << "Creating Persons from ERGM."<< std::endl;
+        personCreator->create_persons_from_ergm_data(local_persons, personData, zoneMap, network);
+    
         std::string pwid_edge_file = data_dir + "/" + chi_sim::Parameters::instance()->getStringParameter(PWID_NETWORK_EDGES_INPUT_FILE);
         load_pwid_edge_data(pwid_edge_file, pwid_edge_data);
 
         construct_network_from_ergm_data();
     }
     else{  // Using CNEP+ data, the network is created programmatically.
+        std::cout << "Creating Persons from CNEP+."<< std::endl;
+        personCreator->create_persons(local_persons, personData, zoneMap, network, personCount, false);
+    
         performInitialLinking();
     }
 
@@ -437,9 +439,10 @@ void HCModel::construct_network_from_ergm_data(){
 
         ergm_vertex_person_map[person->get_ergm_vertex_name()] = person;
 
-        std::cout << person->get_ergm_vertex_name() << " -> " << person->id() << std::endl;
+        // std::cout << person->get_ergm_vertex_name() << " -> " << person->id() << std::endl;
     }
 
+    // Create edges between persons using the ERGM vertex ID
     for (auto const& kv : pwid_edge_data){
         int source_person_vertex_id = kv.first;
 

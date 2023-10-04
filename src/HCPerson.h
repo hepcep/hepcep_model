@@ -114,7 +114,7 @@ public:
 	void step(NetworkPtr<HCPerson> network);
 
 	double getDemographicDistance(PersonPtr other) const;
-	bool activate(double residualBurninDays, double elapsedCareerDays,double statusReportFrequency);
+	bool activate(double residualBurninDays, double elapsedCareerDays);
 	bool scheduleEnd(double residualBurninDays, double elapsedCareerDays);
 
 	void deactivate();

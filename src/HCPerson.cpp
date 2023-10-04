@@ -159,8 +159,7 @@ double HCPerson::getDemographicDistance(PersonPtr other) const {
  * life_extension is used to adjust for possible burn-in time or time already in
  * the drug career
  */
-bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays,
-		double statusReportFrequency) {
+bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays) {
 
 	active = true;
 
@@ -168,12 +167,6 @@ bool HCPerson::activate(double residualBurninDays, double elapsedCareerDays,
 		return false;
 	}
 
-	// TODO event recording
-//	if(status_report_frequency > 0) {
-//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-//		ScheduleParameters sched_params = ScheduleParameters.createRepeating(RepastEssentials.GetTickCount()+0.0001, status_report_frequency);
-//		my_status = schedule.schedule(sched_params, this, "report_status");
-//	}
 	return true;
 }
 
@@ -181,12 +174,6 @@ void HCPerson::deactivate(){
     Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
     active = false;
     immunology->deactivate();
-
-	// TODO schedule this may not be needed depending on how we implement reporting
-	//	if(my_status != null) {
-//		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-//		schedule.removeAction(my_status);
-//	}
 }
 
 void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
@@ -250,7 +237,8 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 
 	double probCessation = chi_sim::Parameters::instance()->getDoubleParameter(PROB_CESSATION);
 
-	for(int trial=0; trial<100; ++trial) {
+	// Iterate until a residual time is found longer than the burn in period.
+	for(int trial=0; trial<500; ++trial) {
 		//anticipate lifetime from birth, accounting for burnin period
 		
         residualLife = residualBurninDays + Distributions::instance()->getLifespanRandom();
@@ -274,10 +262,6 @@ bool HCPerson:: scheduleEnd(double residualBurninDays, double elapsedCareerDays)
 		return false;
 	}
 
-
-	// TODO decide if the scheduled action needs an equivalent HPC object
-//	my_end = schedule.schedule(death_sched_params, this, "deactivate");
-
 	// Schedule death deactivate method
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	residualTimeInApk += tick;
@@ -296,8 +280,6 @@ void HCPerson::startTreatment() {
 	bool adherent = (roll > treatmentNonadherence);
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	immunology->startTreatment(adherent,tick);
-
-//	std::cout << "Treatment started: " << this->id() << std::endl;
 }
 
 void HCPerson::endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network){

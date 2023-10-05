@@ -280,6 +280,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
         performInitialLinking();
     }
 
+    std::cout << "Initial network number of edges: " << network->edgeCount() <<std::endl;
     std::cout << "Initializing Schedule..."<< std::endl;
     
     // Schedule model events
@@ -344,7 +345,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
         }
     }
 
-
     // write t0 stats
     Statistics::instance()->recordStats(0, run, local_persons);
 
@@ -366,7 +366,6 @@ void HCModel::atEnd() {
  * 
  */
 void HCModel::step() {
-//    auto t1 = std::chrono::high_resolution_clock::now();
     
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
@@ -387,7 +386,6 @@ void HCModel::step() {
 
     // Remove inactive persons
     for (PersonPtr person : inActivePersons){
-//		std::cout << "Removing inactive person: " << person->id() << std::endl;
         local_persons.erase(person->id());
         network->removeVertex(person);
 
@@ -399,9 +397,6 @@ void HCModel::step() {
     // Record stats MUST always be last since it resets some values used above.
     Statistics::instance()->recordStats(tick, run, local_persons);
     
-//    auto t2 = std::chrono::high_resolution_clock::now();
-//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count() / 1E3;
-//    std::cout << "step() time: " << duration << std::endl; 
 }
 
 /**
@@ -431,35 +426,59 @@ void HCModel::generateArrivingPersons(){
  */
 void HCModel::construct_network_from_ergm_data(){
 
-    // Create a mapping between the ERGM vertex ID and persn
+    // Create a mapping between the ERGM vertex ID and persn pointer
+    // so that we have a fast lookup for creating initial edges.
     std::unordered_map<unsigned int, PersonPtr> ergm_vertex_person_map;
 
     for (auto entry : local_persons) {
         PersonPtr & person = entry.second;
-
         ergm_vertex_person_map[person->get_ergm_vertex_name()] = person;
-
-        // std::cout << person->get_ergm_vertex_name() << " -> " << person->id() << std::endl;
     }
 
     // Create edges between persons using the ERGM vertex ID
     for (auto const& kv : pwid_edge_data){
+        // Each key-value pair is the source PWID ERGM ID -> list of target PWID ERGM IDs
         int source_person_vertex_id = kv.first;
-
         std::vector<int> target_person_vertex_ids = kv.second;  
 
+        // Get the actual source person pointer
         PersonPtr & source_person = ergm_vertex_person_map[source_person_vertex_id];
 
+        // Connect each actual source person to the target persons
         for (auto target_vertex : target_person_vertex_ids){
             PersonPtr & target_person = ergm_vertex_person_map[target_vertex];
 
-            std::cout << "Linking Person " << source_person->id() << " to Person " << target_person->id() << std::endl;
-
-            // TODO Link the people (with 100% certainly)
+            // Link the people (with 100% certainly)
+            connect(source_person,target_person);
         }
-        std::cout << std::endl;
     }
 
+    // Record the initial in/out degree for each person and save to the HCPersonData.
+    // Used to later check sampled HCPersonData in/out degree targets for generaring
+    // new PWID during the simulation.
+    for (auto& data : personData){
+        PersonPtr & person = ergm_vertex_person_map[data.ergm_vertex_name];
+
+        data.drug_inDegree = network->inEdgeCount(person);
+        data.drug_outDegree = network->outEdgeCount(person);
+
+        // std::cout << data.ergm_vertex_name << "," << data.age << "," 
+        //     << data.drug_inDegree << "," << data.drug_outDegree << std::endl;
+
+    }
+
+    // Set each initial person in/out targets based on the person's initial network structure.
+     for (auto entry : local_persons) {
+        PersonPtr & person = entry.second;
+        person->setDrugReceptDegree(network->inEdgeCount(person));
+        person->setDrugGivingDegree(network->outEdgeCount(person));
+     }
+
+    // Testing
+    // for (HCPersonData data : personData){
+    // std::cout << data.ergm_vertex_name << "," << data.age << "," 
+    //     << data.drug_inDegree << "," << data.drug_outDegree << std::endl;
+    // }
 }
 
 /**
@@ -491,8 +510,8 @@ void HCModel::performInitialLinking(){
                 (total_edges/total_give_edge_target < DENSITY_TARGET) &&
                 (iteration < MAXITER)) {
 
-//		std::cout << "> Total edges: " << total_edges << ". target in: " << total_recept_edge_target
-//				<< ". target out: " << total_give_edge_target << std::endl;
+		// std::cout << "> Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+		// 		<< ". target out: " << total_give_edge_target << std::endl;
 
         zoneCensus();
         performLinking();
@@ -501,12 +520,12 @@ void HCModel::performInitialLinking(){
         total_edges = network->edgeCount();
         iteration ++;
     }
-//	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
-//				<< ". target out: " << total_give_edge_target << std::endl;
+	std::cout << " Final Total edges: " << total_edges << ". target in: " << total_recept_edge_target
+				<< ". target out: " << total_give_edge_target << std::endl;
 
-//	if (iteration == MAXITER) {
-//		std::cout << "Initial linking reached the maximum number of iterations (" << MAXITER << ")" << std::endl;
-//	}
+	// if (iteration == MAXITER) {
+	// 	std::cout << "Initial linking reached the maximum number of iterations (" << MAXITER << ")" << std::endl;
+	// }
 
 }
 
@@ -515,9 +534,12 @@ void HCModel::performInitialLinking(){
  * 
  */
 void HCModel::performLinking(){
- 
-//    auto total_t1 = std::chrono::high_resolution_clock::now();
-    
+
+    // Effective zone populations are the people in each zip code (zone) that
+    //   need more network connections based on their predefined in and out 
+    //   degrees in the PWID data.
+
+    // Loop over every zone (zip code)
     for (auto entry1 : effectiveZonePopulation){
         unsigned int zipcode_1 = entry1.first;
         std::vector<PersonPtr> pop_1 = entry1.second;
@@ -529,6 +551,7 @@ void HCModel::performLinking(){
             continue;
         }
 
+        // Loop over every zone (zip code) again
         for (auto entry2 : effectiveZonePopulation){
             unsigned int zipcode_2 = entry2.first;
             std::vector<PersonPtr> pop_2 = entry2.second;
@@ -588,12 +611,6 @@ void HCModel::performLinking(){
             }
         }
     }
-    
-//    auto total_t2 = std::chrono::high_resolution_clock::now();
-//    auto total_duration = std::chrono::duration_cast<std::chrono::microseconds>( total_t2 - total_t1 ).count() / 1E3;
-    
-//    std::cout << "performLinking() time: " << total_duration << std::endl;  
-
 }
 
 /**
@@ -602,11 +619,10 @@ void HCModel::performLinking(){
  * @param person1 
  * @param person2 
  * 
- * TODO move to HCPerson
+ * TODO move to HCPerson ? 
  */
 void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
-    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
-
+    
     // Check conditions for adding a directed edge from person1 -> person2
     if (network->inEdgeCount(person2) >= person2->getDrugReceptDegree()) {
         return;
@@ -619,6 +635,28 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
     if (person1->getDemographicDistance(person2) * homophily > roll) {
         return;
     }
+
+    connect(person1,person2);
+
+    // Check conditions for adding a directed edge from person2 -> person1
+    if (network->inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
+        return;
+    }
+    if (network->outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
+        return;
+    }
+
+    connect(person2,person1);
+}
+
+/**
+ * @brief Add a directed PWID network connection from person1 to person2.
+ * 
+ * @param person1 
+ * @param person2 
+ */
+void HCModel::connect(const PersonPtr& person1, const PersonPtr& person2){
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
     double dist = zoneDistanceMap[person1->getZipcode()][person2->getZipcode()];
 
@@ -635,24 +673,6 @@ void HCModel::tryConnect(const PersonPtr& person1, const PersonPtr& person2){
     EndRelationshipFunctor* endRelationshipEvent1 = new EndRelationshipFunctor(person1,person2,network);
     runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent1));
 
-    // Check conditions for adding a directed edge from person2 -> person1
-    if (network->inEdgeCount(person1) >= person1->getDrugReceptDegree()) {
-        return;
-    }
-    if (network->outEdgeCount(person2) >= person2->getDrugGivingDegree()) {
-        return;
-    }
-    
-    edge = network->addEdge(person2, person1);
-    edge->putAttribute("distance", dist);
-
-    // Schedule the p2 -> p1 edge removal in the future
-    edgeLifespan = Distributions::instance()->getNetworkLifespanRandom();
-    endTime = tick + edgeLifespan;
-    edge->putAttribute("ends_at", endTime);
-
-    EndRelationshipFunctor* endRelationshipEvent2 = new EndRelationshipFunctor(person2,person1,network);
-    runner.scheduleEvent(endTime, repast::Schedule::FunctorPtr(endRelationshipEvent2));
 }
 
 /*

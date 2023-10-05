@@ -125,6 +125,9 @@ public:
 
 	unsigned int getDrugReceptDegree() const;
 	unsigned int getDrugGivingDegree() const;
+	void setDrugReceptDegree(unsigned int d);
+	void setDrugGivingDegree(unsigned int d);
+	
 	ZonePtr getZone() const;
 	void setZone(ZonePtr zone);
 	unsigned int getZipcode() const;

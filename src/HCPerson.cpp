@@ -308,6 +308,14 @@ unsigned int HCPerson::getDrugGivingDegree() const {
 	return drug_outDegree;
 }
 
+void HCPerson::setDrugReceptDegree(unsigned int d){
+	drug_inDegree = d;
+}
+
+void HCPerson::setDrugGivingDegree(unsigned int d) {
+	drug_outDegree = d;
+}
+
 ZonePtr HCPerson::getZone() const {
 	return myZone;
 }

@@ -98,6 +98,7 @@ protected:
 	void zoneCensus();
 	void linkZones(const ZonePtr& zone1, const ZonePtr& zone2);
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
+	void connect(const PersonPtr& person1, const PersonPtr& person2);
 	void daa_treatment();
     void opioid_treatment();
 	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,

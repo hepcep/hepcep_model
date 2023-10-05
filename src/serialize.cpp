@@ -40,9 +40,16 @@ void write_person(HCPerson* person, AttributeWriter& write, double tick) {
 	write("inject_intens", person->getInjectionIntensity());
 	write("frac_recept", person->getFractionReceptSharing());
 
-	write("lat", person->getZone()->getLat() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-	write("lon", person->getZone()->getLon() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
-
+    // If the Zone object is not defined, just write -1,-1 instead of crashing.
+    auto zone = person->getZone();
+    if (zone != nullptr){
+	    write("lat",zone->getLat() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
+	    write("lon",zone->getLon() + 0.1 * (repast::Random::instance()->nextDouble() - 0.5));
+    }
+    else{
+        write("lat", -1);
+        write("lon", -1);
+    }
 	write("last_exposure_date", person->getLastExposureDate());
 	write("last_infection_date", person->getLastInfectionDate());
 	write("active", person->isActive());

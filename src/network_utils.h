@@ -81,6 +81,9 @@ void write_network(const std::string& fname, double tick, NetworkPtr<VertexType>
     write("tick", tick); 
     for (auto iter = network->verticesBegin(); iter != network->verticesEnd(); ++iter) {
         if ((*iter)->isActive()) {
+
+            // std::cout << **iter << std::endl;  // Test print the HCPerson
+
             out << INDENT_1 << "node [\n" << INDENT_2 << "id " << (*iter)->id() << "\n";
             vwriter((*iter).get(), write, tick);
             out << INDENT_1 << "]\n";

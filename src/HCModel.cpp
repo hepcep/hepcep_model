@@ -280,6 +280,21 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
         performInitialLinking();
     }
 
+    // Check for missing or bad person data
+    // TODO implement a more robust data integrety check.
+    int missing_zip_count = 0;
+    for (auto entry : local_persons) {
+        PersonPtr& p = entry.second;
+        
+        if (p->getZone() == nullptr){
+            missing_zip_count++;
+        }
+    }
+    if (missing_zip_count > 0){
+        std::cout << "WARNING: total persons with missing zip codes: " << missing_zip_count << std::endl;
+    }
+
+
     std::cout << "Initial network number of edges: " << network->edgeCount() <<std::endl;
     std::cout << "Initializing Schedule..."<< std::endl;
     
@@ -675,11 +690,9 @@ void HCModel::connect(const PersonPtr& person1, const PersonPtr& person2){
 
 }
 
-/*
- * Determine how many IDUs in each zones are available to form new connections
- * - the census is stored in zone_population (all) and effective_zone_population
- * 		(only those that can form new connections)
- * - typically occurs once a day (linking_time_window)
+/**
+ * @brief Determine how many IDUs in each zones are available to form new network connections.
+ * 
  */
 void HCModel::zoneCensus(){
     effectiveZonePopulation.clear();
@@ -692,25 +705,20 @@ void HCModel::zoneCensus(){
 
         unsigned int zipcode = person->getZipcode();
 
-        if (zoneMap.find(zipcode) == zoneMap.end()){
-            // TODO handle zone undefined
-
-            std::cout << "Error: zone not found: " << zipcode << std::endl;
+        // If the person has a zone/zip that's not in the zones map, then don't count the person for linking
+        // NOTE: This should not normally occur but we check to avoid crash.
+        if (zoneMap[zipcode] == nullptr){
+            // std::cout << "WARNING: Zone Census - zipcode not found: " << zipcode << std::endl;
+            continue;
         }
 
-//		ZonePtr & zone = zoneMap[zipcode];
-
+        // Record "effective" agents that have available in or out degree connections
         std::vector<PersonPtr> & myEffAgents = effectiveZonePopulation[zipcode];
-
-        // Effective agents are not incarcerated status and have available in or out
-        // degree connections
-        // TODO check against incarceration state
 
         unsigned int inCount = network->inEdgeCount(person);
         unsigned int outCount = network->outEdgeCount(person);
 
-        if (inCount < person->getDrugReceptDegree() ||
-                outCount < person->getDrugGivingDegree()){
+        if (inCount < person->getDrugReceptDegree() || outCount < person->getDrugGivingDegree()){
             myEffAgents.push_back(person);
         }
     }

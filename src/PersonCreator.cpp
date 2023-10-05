@@ -58,7 +58,7 @@ void PersonCreator::create_persons(std::map<unsigned int, PersonPtr>& persons,
 				int i = (int)generator.next();
 				HCPersonData candidate = personData[i];
 				if (candidate.early_career == true){
-					data = candidate;
+					data = candidate; 
 					break;
 				}
 			}
@@ -103,8 +103,19 @@ void PersonCreator::create_person_from_data(std::map<unsigned int, PersonPtr>& p
 	// TODO use a vector of zone ids insteaf of zone pointers
 	
 	auto person = std::make_shared<HCPerson>(id_counter, data);
+	auto zone = zoneMap[data.zipCode];
 
-	person->setZone(zoneMap[data.zipCode]);
+	// std::cout << "Create Person: " << person->id() << ", zip: " << person->getZipcode() << std::endl;
+	
+	// NOTE: person can have a valid 5-digit int zip code, but a corresponding zone may not exist.
+	if (zone == nullptr){
+		// std::cout << "WARNING: Person " << person->id() << ", zip: " << person->getZipcode() <<
+		//  " does not exist in Zones data." << std::endl;
+	}
+	else {
+		// std::cout << "\t Zone zip: " << zone->getZipcode() << std::endl;
+	}
+	person->setZone(zone);
 
 	if (earlyCareerOnly){
 		// Force early career PWIDs to be young.  Subtract some time from the

@@ -6,10 +6,13 @@ stop.at = 800
 
 # Data file containing the PWID instances from which to sample
 #pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
-pwid.input.file = ergm_pwid_catalog.csv 
+#pwid.input.file = ergm_pwid_catalog.csv 
+pwid.input.file = ergm_pwid_catalog_oct122023.csv 
 
 # Edge list file for creating ERGM PWID network
-pwid.network.edges.input.file = ergm_pwid_edges.csv
+#pwid.network.edges.input.file = ergm_pwid_edges.csv
+pwid.network.edges.input.file = ergm_pwid_edges_oct122023.csv
+
 
 # PWID data input type, values are "CNEP+" or "ERGM" (no quotes)
 pwid.data.input.type = ERGM

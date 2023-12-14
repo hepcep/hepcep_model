@@ -3,7 +3,7 @@ library(data.table)
 
 setwd("E:\\ANL\\Projects\\HepCEP\\hepcep_networks\\simulate-from-ergms\\out")
 
-load("on-revamped-oscar-non-randomized-indeg-0-only.RData")
+load("on-revamped-oscar-non-randomized-indeg-0-outdeg-0.RData")
 
 # Grab an edge list instance
 #class(sim_results[[1]])
@@ -17,11 +17,13 @@ sim_results <- NULL  # clear huge list
 
 ## vertex.att.all object is a nested list of 100 elements, 
 ## Each of the 100 lists is composed of a list of 19 elements, corresponding to the attributes below:
-vertex.att.all <- readRDS("vertex_att_all_july202023.RDS")
+vertex.att.all <- readRDS("vertex_att_all_oct122023.RDS")
+
+y <- vertex.att.all[[2]]
 
 # pwid_w_vertex_names is a dataframe consisting of 31,999 rows and 16 cols
 # the column names correspond to > colnames(pwid_w_vertex_names)
-pwid_w_vertex_names <- readRDS("pwid_w_vertex_names_july2023.RDS")
+pwid_w_vertex_names <- readRDS("pwid_w_vertex_names_oct122023.RDS")
 
 pwid_dt <- as.data.table(pwid_w_vertex_names)
 
@@ -56,6 +58,9 @@ pwid_dt[, Syringe_source := as.character(Syringe_source)]
 pwid_dt[Syringe_source == "0", Syringe_source := "nonHR"]
 pwid_dt[Syringe_source == "1", Syringe_source := "HR"]
 
+# TODO Hack to fix NA but should be fixed in the ERGM data
+pwid_dt[is.na(Syringe_source), Syringe_source := "nonHR"]
+
 pwid_dt[HCV == "sucseptible", HCV := "susceptible"]
 pwid_dt[HCV == "acute", HCV := "infectiousacute"]
 
@@ -64,7 +69,7 @@ setcolorder(pwid_dt, c("Age", "Age_Started", "Gender", "Race", "Syringe_source",
                       "HCV","Drug_in_degree",	"Drug_out_degree", 
                       "Daily_injection_intensity","Fraction_recept_sharing"))
 
-fwrite(pwid_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_catalog.csv")
+fwrite(pwid_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_catalog_oct122023.csv")
 
 # Convert the edge table V1 -> V2 to a table V1 -> V21, V22, V23...
 #  eg for every unique V1, create one V1 row and map all V2s to it.
@@ -72,6 +77,6 @@ edges_dt <- as.data.table(el)
 # Group by values in V1, and paste all values in other cols together separated by comma
 compact_edges_dt <- edges_dt[, lapply(.SD, paste0, collapse = ","), by=V1]
 
-fwrite(compact_edges_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_edges.csv", quote=F)
+fwrite(compact_edges_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_edges_oct122023.csv", quote=F)
 
 

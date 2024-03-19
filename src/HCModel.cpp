@@ -321,8 +321,16 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
     double enrollmentStart = burnInDays + treatmentStartDelay;
 
+    // The DAA treatment  strategy may attempt either a total daily enrollment of infected PWID, or a total screening of all PWID
+    std::string treatment_enrollment_strategy = chi_sim::Parameters::instance()->getStringParameter(TREATMENT_ENROLLMENT_STRATEGY);
+    std::cout << "DAA enrollment strategy: "<< treatment_enrollment_strategy << std::endl;
     if (treatmentEnrollPerPY > 0){
-        runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::daa_treatment)));
+        if (treatment_enrollment_strategy == "INFECTED_ONLY") {
+            runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::daa_treatment)));
+        }
+        else { // ALL_PWID
+            runner.scheduleEvent(start_at + enrollmentStart + 0.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<HCModel>(this, &HCModel::daa_treatment_all_PWID)));
+        }
     }
     
     // Opioid Treatment schedule
@@ -763,7 +771,9 @@ void HCModel::burnInEnd() {
 }
 
 /**
- * @brief DAA Treatment Enrollment
+ * @brief DAA Treatment Enrollment.
+ *
+ *  DAA enrollment using a daily enrollment target for enrollment of HCV+ PWID, as described in the 2022 Plos One.
  * 
  */
 void HCModel::daa_treatment(){
@@ -791,7 +801,7 @@ void HCModel::daa_treatment(){
 
             if (person->isTreatable()){
                 candidates.push_back(person);
-            }
+            }          
     }
 
     if (candidates.size() == 0){
@@ -818,8 +828,9 @@ void HCModel::daa_treatment(){
         // Person IDs to be enrolled
         std::vector<PersonPtr> enrolled;
 
-        treatmentSelection(mthd, candidates, enrolled, enrollmentTarget);
-
+      
+        treatment_selection_infected_only(mthd, candidates, enrolled, enrollmentTarget);
+      
         //carried over from day to the next day.  this can give below 0
         treatmentEnrollmentResidual[mthd] = (enrollmentTarget - enrolled.size());
 
@@ -829,7 +840,247 @@ void HCModel::daa_treatment(){
     }
 }
 
-void HCModel::treatmentSelection(EnrollmentMethod enrMethod,
+/**
+ * @brief DAA Treatment Screening
+ *
+ * DAA screening and treatment enrollment that attempts to screen a specified number of all PWID per day.
+ * 
+ */
+void HCModel::daa_treatment_all_PWID(){
+    double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
+
+    if (stopTreatmentTime !=0 && tick >= stopTreatmentTime){
+        return;
+    }
+    
+    // The mean number of PWID to screen per day
+    double screening_mean_daily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
+
+    PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(screening_mean_daily));
+    repast::DefaultNumberGenerator<PoissonGen> gen(treat_gen);
+
+    // The number of PWID to screen today.
+    double number_to_screen = gen.next();
+
+    if (number_to_screen <= 0) {
+        return; 
+    }
+
+    // Persons who can be screened today (potentially everyone)
+    std::vector<PersonPtr> screen_candidates;
+    for (auto entry : local_persons) {
+            PersonPtr & person = entry.second;
+
+            // Don't consider PWID already in DAA treatment.
+            if (!person->isInTreatment()){
+                screen_candidates.push_back(person);
+            }
+    }
+
+    if (screen_candidates.size() == 0){
+        return;
+    }
+
+    // Divide up the screen/treatment approaches based on the enrollment method.
+    // NOTE We still ust the treatmentEnrollmentProb  property to split up the screening
+    //      methods.
+    // NOTE Does not consider daily residuals like the oringal enrollment methods.
+    for (EnrollmentMethod mthd : EnrollmentMethod::values()){
+        double screening_Target = number_to_screen * treatmentEnrollmentProb[mthd];
+
+        if(screening_Target < 1) {
+            continue;
+        }
+
+        // Use Repast random to ensure repeatability
+//		repast::shuffleList(screen_candidates);
+
+        // TODO maybe figure out how to use random_shuffle with the Repast generator
+
+        std::random_shuffle(screen_candidates.begin(), screen_candidates.end(), myrandom);
+
+        // Person IDs to be enrolled
+        //  This works just like the original DAA treatment enrollment, such that all persons
+        //  that end up in this list are actually enrolled.
+        std::vector<PersonPtr> enrolled;
+
+        treatment_selection_all_PWID(mthd, screen_candidates, enrolled, screening_Target);
+
+        for (PersonPtr person: enrolled){
+            person->startTreatment();
+        }
+    }
+}
+
+/**
+* Treatment selection when screeing all PWID, including non-infected persons. This
+*   approach is based on HCV screening efforts, by which we have limited resources
+*   to screen a certain number of PWID per day, and only those PWID who are screened
+*   and HCV+ can be enrolled in DAA treatment.
+*
+* Here, candidate persons are all PWID who are not currently in treatment.
+*
+*/
+void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
+        std::vector<PersonPtr>& candidates, std::vector<PersonPtr>& enrolled,
+        double screening_target){
+
+    std::vector<PersonPtr>::iterator iter;
+
+    int num_screened = 0;
+        
+    if(enrMethod == EnrollmentMethod::UNBIASED) {
+        for (iter = candidates.begin(); iter != candidates.end(); ){
+            PersonPtr person = *iter;
+                         
+            // Continue screening if less than the target screening number.
+            if (num_screened < screening_target){
+                if(person->isTreatable()) {           
+                    enrolled.push_back(person);       // Enroll person
+                }
+
+                // At this point, whether the person is enrolled or not, remove the
+                // person from the candidates list, and increment the num screened counter.
+                iter = candidates.erase(iter);    // Remove person from candidates
+                ++iter;
+                num_screened++;
+            }
+            // Otherwise the screening target is met, so stop screening.
+            else{
+                break;
+            }
+        }
+    }
+    // Here we only want to check against PWID in HRP and not check against PWID not in HRP
+    else if(enrMethod == EnrollmentMethod::HRP) {
+        for (iter = candidates.begin(); iter != candidates.end(); ){
+            PersonPtr person = *iter;
+                         
+            // In reality here we want to just subset the candidates on PWID in HRP so that
+            //   this is simulating a total effort just with HRPs.
+            if (!person->isInHarmReduction()){
+                ++iter;
+                continue;
+            }
+
+            // Continue screening if less than the target screening number.
+            if (num_screened < screening_target){
+                if(person->isTreatable()) {           
+                    enrolled.push_back(person);       // Enroll person
+                }
+
+                // At this point, whether the person is enrolled or not, remove the
+                // person from the candidates list, and increment the num screened counter.
+                iter = candidates.erase(iter);    // Remove person from candidates
+                ++iter;
+                num_screened++;
+            }
+            // Otherwise the screening target is met, so stop screening.
+            else{
+                break;
+            }
+        }
+    }
+    // else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
+    //     for (iter = candidates.begin(); iter != candidates.end();   ){
+    //         PersonPtr person = *iter;
+                         
+    //         // Continue enrolling while enrollment target is not met.
+    //         if (enrolled.size() < screening_target){
+    //             // HCV test returns true if person can be treated now
+    //             if(person->getTestedHCV() && person->isInHarmReduction()) {  
+    //                 enrolled.push_back(person);       // Enroll person
+    //                 iter = candidates.erase(iter);    // Remove person from candidates
+                    
+    //                 // Try to enroll all connected persons
+    //                 std::vector<EdgePtrT<HCPerson>> inEdges;
+    //                 std::vector<EdgePtrT<HCPerson>> outEdges;
+                    
+    //                 network->inEdges(person,inEdges);
+    //                 network->outEdges(person,outEdges);
+                    
+    //                 for (EdgePtrT<HCPerson> edge : inEdges){
+    //                     PersonPtr other = edge->v1();   // Other agent is edge v1
+    //                     if (other->getTestedHCV()){
+    //                         enrolled.push_back(other);       // Enroll person
+    //                     }
+    //                 }
+    //                 for (EdgePtrT<HCPerson> edge : outEdges){
+    //                     PersonPtr other = edge->v2();  // Other agent is edge v2
+    //                     if (other->getTestedHCV()){
+    //                         enrolled.push_back(other);       // Enroll person
+    //                     }
+    //                 }
+    //             }
+    //             else {
+    //                 ++iter;
+    //             }
+    //         }
+    //         // Otherwise the enrollment target is met, so stop enrolling.
+    //         else{
+    //             break;
+    //         }
+    //     }
+    // }
+    // else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {        
+    //     for (iter = candidates.begin(); iter != candidates.end();   ){
+    //         PersonPtr person = *iter;
+                         
+    //         // Continue enrolling while enrollment target is not met.
+    //         if (enrolled.size() < screening_target){
+    //             if(person->getTestedHCV()) {          // HCV test returns true if person can be treated now
+    //                 enrolled.push_back(person);       // Enroll person
+    //                 iter = candidates.erase(iter);    // Remove person from candidates
+
+    //                 // Try to enroll connected persons
+    //                 if(enrMethod == EnrollmentMethod::INPARTNER) {
+    //                     std::vector<EdgePtrT<HCPerson>> inEdges;
+    //                     network->inEdges(person,inEdges);
+
+    //                     for (EdgePtrT<HCPerson> edge : inEdges){
+    //                         PersonPtr other = edge->v1();   // Other agent is edge v1
+    //                         if (other->getTestedHCV()){
+    //                             enrolled.push_back(other);   // Enroll person
+    //                             break; //only one in-edge person
+    //                         }
+    //                     }
+    //                 }
+    //                 else {  // outpartner
+    //                     std::vector<EdgePtrT<HCPerson>> outEdges;
+    //                     network->outEdges(person,outEdges);
+
+    //                     for (EdgePtrT<HCPerson> edge : outEdges){
+    //                         PersonPtr other = edge->v2();  // Other agent is edge v2
+    //                         if (other->getTestedHCV()){
+    //                             enrolled.push_back(other);   // Enroll person
+    //                             break; //only one out-edge person
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //             else {
+    //                 ++iter;
+    //             }
+    //         }
+    //         // Otherwise the enrollment target is met, so stop enrolling.
+    //         else{
+    //             break;
+    //         }
+    //     }
+    // }
+}
+
+/**
+* Treatment enrollment when only checking infected persons. This approach is based
+*  on DAA treatment enrollment resources, which means that the model is always aware
+*  of which PWID is treatable, but can only enroll a certain number of PWID in treatment
+*  per day.
+*
+* Here, candidate persons are all PWID who have already been checked for treatment
+*  eligibility, meaning they are not currently in treatment AND are also HCV+.
+*/
+void HCModel::treatment_selection_infected_only(EnrollmentMethod enrMethod,
         std::vector<PersonPtr>& candidates, std::vector<PersonPtr>& enrolled,
         double enrollmentTarget){
 

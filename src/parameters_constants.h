@@ -74,6 +74,7 @@ const std::string PROB_CESSATION = "prob_cessation";
 const std::string STATUS_REPORT_FREQUENCY = "status_report_frequency";
 
 const std::string TRANSMISSIBILITY = "transmissibility";
+const std::string TREATMENT_ENROLLMENT_STRATEGY = "treatment_enrollment_strategy";
 const std::string TREATMENT_DURATION = "treatment_duration";
 const std::string TREATMENT_REPEATABLE = "treatment_repeatable";
 const std::string TREATMENT_SVR = "treatment_svr";

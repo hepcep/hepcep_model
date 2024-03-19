@@ -1,21 +1,21 @@
 # Properties file for general runs
 #
 
+stop.at = 15330
 #stop.at = 8030
-stop.at = 800
+#stop.at = 800
 
 # Data file containing the PWID instances from which to sample
-#pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
+pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
 #pwid.input.file = ergm_pwid_catalog.csv 
-pwid.input.file = ergm_pwid_catalog_oct122023.csv 
+#pwid.input.file = ergm_pwid_catalog_oct122023.csv 
 
 # Edge list file for creating ERGM PWID network
 #pwid.network.edges.input.file = ergm_pwid_edges.csv
-pwid.network.edges.input.file = ergm_pwid_edges_oct122023.csv
-
+#pwid.network.edges.input.file = ergm_pwid_edges_oct122023.csv
 
 # PWID data input type, values are "CNEP+" or "ERGM" (no quotes)
-pwid.data.input.type = ERGM
+pwid.data.input.type = CNEP+
 
 # MOUD scenario input files
 zones.file = zones.csv
@@ -46,7 +46,7 @@ needle_sharing.output.file = needle_sharing.csv
 
 # 0 for init network, n to log at tick n, and END to log at end
 # comment out for no net logging
-log.network.at = 0,366,3650,END
+#log.network.at = 0,366,3650,END
 
 resume.from.saved.net = false
 #resume.from.saved.net.file = net.gml
@@ -61,12 +61,16 @@ log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEA
 # Frequently changed parameters
 burn_in_days = 365
 treatment_enrollment_start_delay = 3650
-treatment_enrollment_stop_at = 999999999
+treatment_enrollment_stop_at = 7665
 initial_pwid_count = 32000
+
+# DAA treatment enrollment strategy prefilters candidates by either being infected, or any PWID
+# Options are INFECTED_ONLY or ALL_PWID
+treatment_enrollment_strategy = ALL_PWID
 
 treatment_enrollment_per_PY = 0.075
 treatment_repeatable = true
-max_num_daa_treatments = 4
+max_num_daa_treatments = 99999
 
 treatment_enrollment_probability_unbiased = 1.0
 treatment_enrollment_probability_HRP = 0.0

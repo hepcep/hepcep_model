@@ -100,8 +100,11 @@ protected:
 	void tryConnect(const PersonPtr& person1, const PersonPtr& person2);
 	void connect(const PersonPtr& person1, const PersonPtr& person2);
 	void daa_treatment();
+	void daa_treatment_all_PWID();
     void opioid_treatment();
-	void treatmentSelection(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
+	void treatment_selection_infected_only(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
+			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
+	void treatment_selection_all_PWID(EnrollmentMethod mthd, std::vector<PersonPtr>& candidates,
 			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
             
     void opioidTreatmentSelection(DrugName drug, std::vector<PersonPtr>& candidates,

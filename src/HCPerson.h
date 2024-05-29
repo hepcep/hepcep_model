@@ -81,6 +81,8 @@ protected:
 	double deactivateAt;
     double injectionIntensityMultiplier;
 
+	double last_hcv_screened_date;   // Day (tick) person was last screening
+
 	// Person attributes specific to ERGM type input data
 	std::string ergm_injectionIntensity;
 	int ergm_vertex_name;
@@ -164,6 +166,9 @@ public:
 
     bool isInOpioidTreatment() const;
 	void setInOpioidTreatment(bool val);
+	
+	void set_last_hcv_screen_date(double tick);
+	bool is_eligible_for_hcv_screeening(double tick, int screening_interval_days) const;
       
     double getLastOpioidTreatmentStartTime() const {
         return last_opioid_treatment_start_time;

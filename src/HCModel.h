@@ -60,6 +60,7 @@ protected:
 	double interactionRateExzone;
 	double interactionRateConst;
 	double treatmentEnrollPerPY;
+	double reduced_treatmentEnrollPerPY;
     double opioidTreatmentEnrollPerPY;
 	double linkingTimeWindow;
 	double homophily;

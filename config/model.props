@@ -1,6 +1,7 @@
 # Properties file for general runs
 #
 
+#stop.at = 11680
 stop.at = 15330
 #stop.at = 8030
 #stop.at = 800
@@ -17,7 +18,7 @@ pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv
 # PWID data input type, values are "CNEP+" or "ERGM" (no quotes)
 pwid.data.input.type = CNEP+
 
-# MOUD scenario input files
+# MOUD scenario input files 
 zones.file = zones.csv
 zones.distance.file = zones_distance.csv
 opioid_treatment_zone_distance_file = min_dist_real_reshuffled.csv
@@ -61,14 +62,23 @@ log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEA
 # Frequently changed parameters
 burn_in_days = 365
 treatment_enrollment_start_delay = 3650
-treatment_enrollment_stop_at = 7665
+#treatment_enrollment_reduce_at = 7665
+treatment_enrollment_reduce_at = 0
 initial_pwid_count = 32000
 
 # DAA treatment enrollment strategy prefilters candidates by either being infected, or any PWID
 # Options are INFECTED_ONLY or ALL_PWID
-treatment_enrollment_strategy = ALL_PWID
+treatment_enrollment_strategy = INFECTED_ONLY
 
+# Screening (testing) interval (days) for the ALL_PWID strategy
+hcv_screening_interval = 180
+
+# Nominal treatment enrollment percent
 treatment_enrollment_per_PY = 0.075
+
+# Reduced level treatment enrollment percent (zero for stop treatment)
+reduced_treatment_enrollment_per_PY = 0.075
+
 treatment_repeatable = true
 max_num_daa_treatments = 99999
 

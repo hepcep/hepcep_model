@@ -206,12 +206,14 @@ void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
 				//      maybe tally the episodes per tick and log above once per tick
 
 				//  DO logging for both the receipient and the donor (if in different zip codes)
-                
+
+				// TODO Use a parameter to toggle needle sharing logging
+				// NOTE: Disabled needle sharing logging to reduce output
                 // Log this person as sharing a needle
-                Statistics::instance()->recordNeedleSharing(this->getZipcode());
+//                Statistics::instance()->recordNeedleSharing(this->getZipcode());
                 
                 // Log the needle donor as sharing a needle
-                Statistics::instance()->recordNeedleSharing(donor->getZipcode());
+//                Statistics::instance()->recordNeedleSharing(donor->getZipcode());
                 
                 // Expose the donor to this person
                 donor->immunology->exposePartner(this->immunology, tick);
@@ -299,6 +301,22 @@ std::ostream& operator<<(std::ostream& os, const HCPerson& person) {
 
      return os;
  }
+
+/** REturns true if the person last screen date is longer than the HCV screening interval*/
+bool HCPerson::is_eligible_for_hcv_screeening(double tick, int screening_interval_days) const {
+
+	double time_since_last_screen = tick - last_hcv_screened_date;	
+
+	if (time_since_last_screen > screening_interval_days){
+		return true;	
+	}
+
+	return false;
+}
+
+void HCPerson::set_last_hcv_screen_date(double tick){
+	last_hcv_screened_date = tick;
+}
 
 unsigned int HCPerson::getDrugReceptDegree() const {
 	return drug_inDegree;

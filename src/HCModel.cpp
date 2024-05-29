@@ -151,7 +151,6 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
     interactionRateDrugSites = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_DRUG_SITES);
     interactionRateExzone = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_EXZONE);
     interactionRateConst = chi_sim::Parameters::instance()->getDoubleParameter(INTERACTION_RATE_CONST);
-//	treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
     linkingTimeWindow = chi_sim::Parameters::instance()->getDoubleParameter(LINKING_TIME_WINDOW);
     homophily = chi_sim::Parameters::instance()->getDoubleParameter(HOMOPHILY_STRENGTH);
     
@@ -318,6 +317,7 @@ HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
 
     // DAA Treatment schedule
     treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_PER_PY);
+    reduced_treatmentEnrollPerPY = chi_sim::Parameters::instance()->getDoubleParameter(REDUCED_TREATMENT_ENROLLMENT_PER_PY);
     double treatmentStartDelay = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_START_DELAY);
     double enrollmentStart = burnInDays + treatmentStartDelay;
 
@@ -777,14 +777,22 @@ void HCModel::burnInEnd() {
  * 
  */
 void HCModel::daa_treatment(){
-    double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
+    double reduceTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_REDUCE_AT);
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
     
-    if (stopTreatmentTime !=0 && tick >= stopTreatmentTime){
+     // Default treatment enrollment is just the specified level
+    double enrollment_per_py = treatmentEnrollPerPY;
+
+    // Used the reduced treatment level if set
+    if (reduceTreatmentTime !=0 && tick >= reduceTreatmentTime){
+        enrollment_per_py = reduced_treatmentEnrollPerPY;
+    }
+
+    if (enrollment_per_py == 0){  // Can just return if treatment level set to zero
         return;
     }
     
-    double treatmentMeanDaily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
+    double treatmentMeanDaily = totalIDUPopulation * enrollment_per_py / 365.0;
 
     PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(treatmentMeanDaily));
     repast::DefaultNumberGenerator<PoissonGen> gen(treat_gen);
@@ -847,15 +855,26 @@ void HCModel::daa_treatment(){
  * 
  */
 void HCModel::daa_treatment_all_PWID(){
-    double stopTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_STOP_AT);
+    double reduceTreatmentTime = chi_sim::Parameters::instance()->getDoubleParameter(TREATMENT_ENROLLMENT_REDUCE_AT);
     double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 
-    if (stopTreatmentTime !=0 && tick >= stopTreatmentTime){
+    // Days interval for HCV screening per person (cannot be screened more than once per interval)
+    int screening_interval_days = chi_sim::Parameters::instance()->getIntParameter(HCV_SCREENING_INTERVAL);
+
+    // Default treatment enrollment is just the specified level
+    double enrollment_per_py = treatmentEnrollPerPY;
+
+    // Used the reduced treatment level if set
+    if (reduceTreatmentTime !=0 && tick >= reduceTreatmentTime){
+        enrollment_per_py = reduced_treatmentEnrollPerPY;
+    }
+
+    if (enrollment_per_py == 0){  // Can just return if treatment level set to zero
         return;
     }
     
     // The mean number of PWID to screen per day
-    double screening_mean_daily = totalIDUPopulation * treatmentEnrollPerPY / 365.0;
+    double screening_mean_daily = totalIDUPopulation * enrollment_per_py / 365.0;
 
     PoissonGen treat_gen(repast::Random::instance()->engine(), boost::random::poisson_distribution<>(screening_mean_daily));
     repast::DefaultNumberGenerator<PoissonGen> gen(treat_gen);
@@ -872,8 +891,8 @@ void HCModel::daa_treatment_all_PWID(){
     for (auto entry : local_persons) {
             PersonPtr & person = entry.second;
 
-            // Don't consider PWID already in DAA treatment.
-            if (!person->isInTreatment()){
+            // Don't consider PWID already in DAA treatment or who have been tested already within the screening interval.
+            if (!person->isInTreatment() && person->is_eligible_for_hcv_screeening(tick, screening_interval_days)){
                 screen_candidates.push_back(person);
             }
     }
@@ -929,6 +948,8 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
     std::vector<PersonPtr>::iterator iter;
 
     int num_screened = 0;
+
+    double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
         
     if(enrMethod == EnrollmentMethod::UNBIASED) {
         for (iter = candidates.begin(); iter != candidates.end(); ){
@@ -936,6 +957,7 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
                          
             // Continue screening if less than the target screening number.
             if (num_screened < screening_target){
+                person->set_last_hcv_screen_date(tick);
                 if(person->isTreatable()) {           
                     enrolled.push_back(person);       // Enroll person
                 }
@@ -966,6 +988,7 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
 
             // Continue screening if less than the target screening number.
             if (num_screened < screening_target){
+                person->set_last_hcv_screen_date(tick);
                 if(person->isTreatable()) {           
                     enrolled.push_back(person);       // Enroll person
                 }

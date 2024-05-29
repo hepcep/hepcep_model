@@ -279,13 +279,14 @@ void Statistics::recordStats(double tick, int run,
 	means.reset();
 	event_counts.reset();
     
-    // Set all the needle sharing zip counts to zero
-    needle_sharing_out << tick << "," << run;
-    for (auto& entry : needle_sharing_map){ 
-        needle_sharing_out << "," << entry.second;
-        entry.second = 0;
-    }
-    needle_sharing_out << "\n";
+	// NOTE: Disabled needle sharing logging to reduce output
+    // // Set all the needle sharing zip counts to zero
+    // needle_sharing_out << tick << "," << run;
+    // for (auto& entry : needle_sharing_map){ 
+    //     needle_sharing_out << "," << entry.second;
+    //     entry.second = 0;
+    // }
+    // needle_sharing_out << "\n";
     //needle_sharing_map.clear();
 }
 

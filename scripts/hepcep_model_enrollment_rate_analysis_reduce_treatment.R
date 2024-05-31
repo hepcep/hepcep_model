@@ -73,7 +73,7 @@ tableList <- NULL           # clear mem
 saveRDS(dt, "all_runs_dt.rds")
 
 # NOTE can also read an existing dt from RDS here.
-dt <- readRDS("all_runs_dt.rds")
+dt <- readRDS("all_runs_dt_2_3_4.rds")
 
 # rows should be the number of entries in a single run
 rows <- max(dt$tick)
@@ -83,6 +83,7 @@ burninDays <- 365
 # Day samples that correspond to the END (day 365) of each simulation year
 days <- seq((burninDays+365), rows, 365)
 
+treatement_start_year <- 2020
 startYear <- 2010   # First year of simulation
 endYear <- 2050    
 #years <- seq(startYear, (startYear + length(days) - 1))    # list of all sim years in data
@@ -106,7 +107,17 @@ years <- unlist(unique(dt$Year))
 dt_vk <- dt[immunology_type=="VK"]
 dt_apk <- dt[immunology_type=="APK"]
 
-data <- dt_apk
+# Frame the DAA enrollment in terms of total PWID treated annually instead of percent
+pwid_population_size <- 32000
+dt$treatment_enrollment_size <- as.numeric(dt$treatment_enrollment_per_PY) * pwid_population_size
+
+data <- dt_vk
+
+data$reduced_treatment_enrollment_per_PY <- as.numeric(data$reduced_treatment_enrollment_per_PY)
+
+data <- data[reduced_treatment_enrollment_per_PY != 0.00025]
+data <- data[reduced_treatment_enrollment_per_PY != 0.0005]
+data <- data[reduced_treatment_enrollment_per_PY != 0.00075]
 
 # Calculate the yearly incidence rate per 1000 person-years which is the yearly sum of 
 #   the dt$incidence_daily by the population count
@@ -125,9 +136,13 @@ incidenceSummary <- incidenceYear[, list(mean=mean(incidence), sd=sd(incidence),
 
 # Change the enrollment rate and adherence into factors for nicer plotting and..
 #   convert DAA treatment non-adherence to adherence.
-incidenceSummary$Adherence <- factor (100 * (1 - as.numeric(incidenceSummary$treatment_nonadherence)))
+#incidenceSummary$Adherence <- factor (100 * (1 - as.numeric(incidenceSummary$treatment_nonadherence)))
 incidenceSummary$treatment_enrollment_per_PY <- factor (100 * as.numeric(incidenceSummary$treatment_enrollment_per_PY))
-incidenceSummary$reduced_treatment_enrollment_per_PY <- factor (100 * as.numeric(incidenceSummary$reduced_treatment_enrollment_per_PY))
+incidenceSummary$reduced_treatment_enrollment_per_PY <- factor (100 * incidenceSummary$reduced_treatment_enrollment_per_PY)
+incidenceSummary$treatment_enrollment_size <- factor(incidenceSummary$treatment_enrollment_size)
+
+# Set what factor should be used for the figure legend series color
+incidenceSummary$series_group <- incidenceSummary$reduced_treatment_enrollment_per_PY
 
 incidenceSummaryBaseline <- incidenceSummary[treatment_enrollment_per_PY == 0]
 
@@ -154,32 +169,35 @@ incidenceSummarySubset$std <- incidenceSummarySubset$std / baseline # / incidenc
 # 95% CI
 z <- 1.960
 
+legend_title <- "Annual DAA\nEnrollment %  "
+
 # Color Version
-p <- ggplot(incidenceSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=reduced_treatment_enrollment_per_PY), size=1) +
-  geom_point(aes(x=Year+1, y=mean, color=reduced_treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(limits = c(2020, endYear), breaks=seq(2020,2050,5)) +
+p <- ggplot(incidenceSummarySubset) + 
+  geom_line(aes(x=Year-treatement_start_year+1, y=mean, color=series_group), size=1) +
+  geom_point(aes(x=Year-treatement_start_year+1, y=mean, color=series_group), size=2) +
+  scale_x_continuous(limits = c(0, endYear-treatement_start_year), breaks=seq(0,endYear-treatement_start_year,5)) +
   scale_y_continuous(limits = c(0, 6)) +
   
-  geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, fill=reduced_treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
+  geom_ribbon(aes(x=Year-treatement_start_year+1, ymin=mean-z*std, ymax=mean+z*std, fill=series_group),alpha=0.3,colour=NA) +
   
   geom_hline(yintercept=0.1, linetype="dashed", color = "red") +
   geom_hline(yintercept=1.0, linetype="dashed", color = "black") +
   
 #  facet_wrap(vars(Adherence), labeller = label_both) +
   
-  labs(y="Relative Incidence", x="Year", color="reduced_treatment_enrollment_per_PY") + #, title="All Incidence") +
+  labs(y="Relative Incidence", x="Year", color="series_group") + #, title="All Incidence") +
   theme_bw() +
   #  theme_minimal() + 
   theme(text = element_text(size=20), 
-        legend.position = c(.85, .5), 
+        legend.position = c(.6, .7), 
         legend.text=element_text(size=20),
         legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
   theme(axis.text=element_text(size=20),axis.title=element_text(size=20)) +
   
-  guides(color=guide_legend(title="Enrollment %"),fill=guide_legend(title="Enrollment %"))
+  guides(color=guide_legend(title=legend_title),fill=guide_legend(title=legend_title))
 
 show(p)
-ggsave("New Chronic Incidence VK reduce treatment 2030.png", plot=p, width=10, height=8)
+ggsave("New Chronic Incidence VK reduce treatment 2030 new.png", plot=p, width=10, height=8)
 fwrite(incidenceSummarySubset, file="incidenceSummary.csv")
 
 
@@ -265,6 +283,9 @@ treatedYearSUmmary$Adherence <- factor (100 * (1 - as.numeric(treatedYearSUmmary
 treatedYearSUmmary$treatment_enrollment_per_PY <- factor (100 * as.numeric(treatedYearSUmmary$treatment_enrollment_per_PY))
 treatedYearSUmmary$reduced_treatment_enrollment_per_PY <- factor (100 * as.numeric(treatedYearSUmmary$reduced_treatment_enrollment_per_PY))
 
+# Set what factor should be used for the figure legend series color
+treatedYearSUmmary$series_group <- treatedYearSUmmary$reduced_treatment_enrollment_per_PY
+
 #treatedYearSummaryBaseline <- treatedYearSUmmary[treatment_enrollment_per_PY == 0]
 #treatedYearSummarySubset <- treatedYearSUmmary[treatment_enrollment_per_PY %in% c(2.5,5,7.5,10,20,40,60,80,100) & 
 #                                                 Adherence %in% c(90, 80, 70, 60) &
@@ -275,25 +296,31 @@ treatedYearSUmmary$reduced_treatment_enrollment_per_PY <- factor (100 * as.numer
 
 treatedYearSummarySubset <- treatedYearSUmmary[treatment_enrollment_per_PY != 0]
 
-r <- ggplot(treatedYearSummarySubset) + geom_line(aes(x=Year+1, y=mean, color=reduced_treatment_enrollment_per_PY), size=1) +
-  geom_point(aes(x=Year+1, y=mean, color=reduced_treatment_enrollment_per_PY), size=2) +
-  scale_x_continuous(limits = c(2020, endYear), breaks=seq(2020,2050,5)) +
+# 95% CI
+z <- 1.960
+
+legend_title <- "Annual DAA\nEnrollment %  "
+
+r <- ggplot(treatedYearSummarySubset) + 
+  geom_line(aes(x=Year-treatement_start_year+1, y=mean, color=series_group), size=1) +
+  geom_point(aes(x=Year-treatement_start_year+1, y=mean, color=series_group), size=2) +
   
-#  scale_y_continuous(limits = c(0, 200)) + 
+  scale_x_continuous(limits = c(0, endYear-treatement_start_year), breaks=seq(0,endYear-treatement_start_year,5)) +
   
-  geom_ribbon(aes(x=Year+1, ymin=mean-z*std, ymax=mean+z*std, fill=reduced_treatment_enrollment_per_PY),alpha=0.3,colour=NA) +
+  scale_y_continuous(limits = c(0, 100)) + 
   
- 
-  labs(y="Total In Treatment", x="Year", color="reduced_treatment_enrollment_per_PY", title="") +
+  geom_ribbon(aes(x=Year-treatement_start_year+1, ymin=mean-z*std, ymax=mean+z*std, fill=series_group),alpha=0.3,colour=NA) +
+  
+  labs(y="Total In Treatment", x="Year", color="series_group", title="") +
   theme_bw() +
-  theme(text = element_text(size=14), 
-        legend.position = c(0.1, 0.5), 
-        legend.text=element_text(size=14),
+  theme(text = element_text(size=20), 
+        legend.position = c(0.2, 0.5), 
+        legend.text=element_text(size=20),
         legend.background = element_rect(fill="white", size=0.5, linetype="solid", colour ="gray")) +
-  theme(axis.text=element_text(size=14),axis.title=element_text(size=14)) +
+  theme(axis.text=element_text(size=20),axis.title=element_text(size=20)) +
   
-  guides(color=guide_legend(title="Enrollment"),fill=guide_legend(title="Enrollment"))
+  guides(color=guide_legend(title=legend_title),fill=guide_legend(title=legend_title))
 
 show(r)
-ggsave("Treatment Counts VK reduce treatment 2030.png", plot=r, width=10, height=8)
+ggsave("Treatment Counts VK reduce treatment 2030 detail.png", plot=r, width=10, height=8)
 fwrite(treatedYearSummarySubset, file="treatmentSummary.csv")

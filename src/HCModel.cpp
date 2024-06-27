@@ -818,9 +818,9 @@ void HCModel::daa_treatment(){
 
     for (EnrollmentMethod mthd : EnrollmentMethod::values()){
         double enrollmentTarget = todaysTotalEnrollment *
-                treatmentEnrollmentProb[mthd] + treatmentEnrollmentResidual[mthd];
+                treatmentEnrollmentProb[mthd]; // + treatmentEnrollmentResidual[mthd];
 
-        treatmentEnrollmentResidual[mthd] = enrollmentTarget;  //update.  might be fractional increase
+//        treatmentEnrollmentResidual[mthd] = enrollmentTarget;  //update.  might be fractional increase
 
         if(enrollmentTarget < 1) {
             continue;
@@ -840,7 +840,7 @@ void HCModel::daa_treatment(){
         treatment_selection_infected_only(mthd, candidates, enrolled, enrollmentTarget);
       
         //carried over from day to the next day.  this can give below 0
-        treatmentEnrollmentResidual[mthd] = (enrollmentTarget - enrolled.size());
+//        treatmentEnrollmentResidual[mthd] = (enrollmentTarget - enrolled.size());
 
         for (PersonPtr person: enrolled){
             person->startTreatment();
@@ -1005,47 +1005,49 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
             }
         }
     }
-    // else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
-    //     for (iter = candidates.begin(); iter != candidates.end();   ){
-    //         PersonPtr person = *iter;
-                         
-    //         // Continue enrolling while enrollment target is not met.
-    //         if (enrolled.size() < screening_target){
-    //             // HCV test returns true if person can be treated now
-    //             if(person->getTestedHCV() && person->isInHarmReduction()) {  
-    //                 enrolled.push_back(person);       // Enroll person
-    //                 iter = candidates.erase(iter);    // Remove person from candidates
-                    
-    //                 // Try to enroll all connected persons
-    //                 std::vector<EdgePtrT<HCPerson>> inEdges;
-    //                 std::vector<EdgePtrT<HCPerson>> outEdges;
-                    
-    //                 network->inEdges(person,inEdges);
-    //                 network->outEdges(person,outEdges);
-                    
-    //                 for (EdgePtrT<HCPerson> edge : inEdges){
-    //                     PersonPtr other = edge->v1();   // Other agent is edge v1
-    //                     if (other->getTestedHCV()){
-    //                         enrolled.push_back(other);       // Enroll person
-    //                     }
-    //                 }
-    //                 for (EdgePtrT<HCPerson> edge : outEdges){
-    //                     PersonPtr other = edge->v2();  // Other agent is edge v2
-    //                     if (other->getTestedHCV()){
-    //                         enrolled.push_back(other);       // Enroll person
-    //                     }
-    //                 }
-    //             }
-    //             else {
-    //                 ++iter;
-    //             }
-    //         }
-    //         // Otherwise the enrollment target is met, so stop enrolling.
-    //         else{
-    //             break;
-    //         }
-    //     }
-    // }
+    else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
+        for (iter = candidates.begin(); iter != candidates.end();   ){
+            PersonPtr person = *iter;
+
+            // Continue screening if less than the target screening number.
+            if (num_screened < screening_target){
+                person->set_last_hcv_screen_date(tick);
+                if(person->isTreatable()) {           
+                    enrolled.push_back(person);       // Enroll person
+
+                    // Try to enroll all connected persons (if treatable)
+                    // NOTE: Does not consider connected persons in screening target limit
+                    std::vector<EdgePtrT<HCPerson>> inEdges;
+                    std::vector<EdgePtrT<HCPerson>> outEdges;
+
+                    for (EdgePtrT<HCPerson> edge : inEdges){
+                        PersonPtr other = edge->v1();   // Other agent is edge v1
+                        other->set_last_hcv_screen_date(tick);
+                        if (other->isTreatable()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                    for (EdgePtrT<HCPerson> edge : outEdges){
+                        PersonPtr other = edge->v2();  // Other agent is edge v2
+                        other->set_last_hcv_screen_date(tick);
+                        if (other->isTreatable()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                }
+
+                // At this point, whether the person is enrolled or not, remove the
+                // person from the candidates list, and increment the num screened counter.
+                iter = candidates.erase(iter);    // Remove person from candidates
+                ++iter;
+                num_screened++;
+            }
+            // Otherwise the screening target is met, so stop screening.
+            else{
+                break;
+            }
+        }
+    }
     // else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {        
     //     for (iter = candidates.begin(); iter != candidates.end();   ){
     //         PersonPtr person = *iter;

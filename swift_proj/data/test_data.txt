@@ -1,3 +1,0 @@
-run.number=10	random.seed=42	stop.at=730.5
-run.number=32	random.seed=43	stop.at=730.5
-run.number=12	random.seed=44	stop.at=730.5

@@ -40,7 +40,6 @@ bool filter_true(double tick, std::shared_ptr<HCPerson> person);
 bool filter_hcv_rna(double tick,  std::shared_ptr<HCPerson> person);
 bool filter_hcv_abpos(double tick,  std::shared_ptr<HCPerson> person);
 bool filter_in_treatment(double tick, std::shared_ptr<HCPerson> person);
-bool filter_cured(double tick, std::shared_ptr<HCPerson> person);
 bool filter_infected_today(double tick, std::shared_ptr<HCPerson> person);
 
 bool filter_in_opioid_treatment(double tick, std::shared_ptr<HCPerson> person);
@@ -48,6 +47,21 @@ bool filter_in_opioid_treatment(double tick, std::shared_ptr<HCPerson> person);
 bool filter_in_opioid_treatment_M(double tick, std::shared_ptr<HCPerson> person);
 bool filter_in_opioid_treatment_B(double tick, std::shared_ptr<HCPerson> person);
 bool filter_in_opioid_treatment_N(double tick, std::shared_ptr<HCPerson> person);
+
+bool filter_hcv_state_susceptible(double tick, std::shared_ptr<HCPerson> person);
+bool filter_hcv_state_acute(double tick, std::shared_ptr<HCPerson> person);
+bool filter_hcv_state_chronic(double tick, std::shared_ptr<HCPerson> person);
+bool filter_hcv_state_cured(double tick, std::shared_ptr<HCPerson> person);
+bool filter_hcv_state_recovered(double tick, std::shared_ptr<HCPerson> person);
+
+bool filter_vkprofile_none(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_acute_infect_clear(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_acute_infect_incomplete(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_acute_infect_persist(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_reinfect_high_clearance(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_reinfect_low_clearance(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_reinfect_chronic(double tick, std::shared_ptr<HCPerson> person);
+bool filter_vkprofile_treatment(double tick, std::shared_ptr<HCPerson> person);
 
 class AggregateStats {
     

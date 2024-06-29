@@ -21,6 +21,7 @@
 #include "Statistics.h"
 #include "OpioidTreatment.h"
 #include "OpioidContinueTreatmentEvent.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -374,6 +375,10 @@ HCVState HCPerson::getHCVState() const {
 	return immunology->getHCVState();
 }
 
+VKProfile HCPerson::getVKProfile() const {
+	return immunology->getVKProfile();
+}
+
 double HCPerson::getInjectionIntensity() const {
 	return injectionIntensity;
 }
@@ -425,10 +430,6 @@ bool HCPerson::getTestedHCV() const {
 bool HCPerson::isInfectedToday() const{
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	return tick == lastInfectionDate;
-}
-
-bool HCPerson::isCured() const {
-	return immunology->isCured();
 }
 
 bool HCPerson::isInTreatment() const {

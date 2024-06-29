@@ -72,6 +72,8 @@ public:
     void purgeActions() override;
 
     void step() override;
+
+    VKProfile getVKProfile() override;
     
 };
 

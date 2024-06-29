@@ -31,33 +31,9 @@ HCVState Immunology::getHCVState() {
     return hcv_state;
 }
 
-bool Immunology::isAcute() {
-    return hcv_state == HCVState::EXPOSED || hcv_state == HCVState::INFECTIOUS_ACUTE;
-}
-
-bool Immunology::isChronic() {
-    return hcv_state == HCVState::CHRONIC;;
-}
-
-bool Immunology::isCured() {
-    return hcv_state == HCVState::CURED;
-}
-
-bool Immunology::isExposed() {
-    return hcv_state == HCVState::EXPOSED;
-}
-
 bool Immunology::isHcvABpos() { //presence of antigens
     return (hcv_state != HCVState::SUSCEPTIBLE) || (hcv_state == HCVState::ABPOS)
             || (hcv_state == HCVState::CURED);
-}
-
-bool Immunology::isNaive() {
-    return hcv_state == HCVState::SUSCEPTIBLE;
-}
-
-bool Immunology::isResistant() {
-    return hcv_state == HCVState::RECOVERED;
 }
 
 bool Immunology::isInTreatment() {

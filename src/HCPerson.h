@@ -154,7 +154,7 @@ public:
 	std::string get_ergm_injectionIntensity() const;
 	int get_ergm_vertex_name() const;
 
-	bool isCured() const;
+	VKProfile getVKProfile() const;
 	bool isInTreatment() const;
 	bool isInHarmReduction() const;
 	bool isPostTreatment() const;

@@ -100,7 +100,8 @@ bool APK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, doub
         return false;
     }
 
-    if (isAcute()) {
+    // ACUTE
+    if (hcv_state == HCVState::EXPOSED || hcv_state == HCVState::INFECTIOUS_ACUTE) {
         if (repast::Random::instance()->nextDouble() > CONTACT_RISK * params_->transmissibility * ACUTE_BOOST) {
             stats->logStatusChange(LogType::EXPOSED, idu_, "transmission failed");
             return false;
@@ -205,6 +206,11 @@ double APK_Immunology::get_transmissibility(){
 double APK_Immunology::get_viral_load(){
     // NOTE APK does not model viral load but this must return a number for logging.
     return 0;
+}
+
+// APK does not have a viral profile
+VKProfile APK_Immunology::getVKProfile(){
+    return VKProfile::NONE;
 }
 
 // bool APK_Immunology::isInfectious(double now) {

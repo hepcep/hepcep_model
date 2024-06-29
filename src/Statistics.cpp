@@ -15,7 +15,6 @@ const std::string POPULATION = "population";
 const std::string INFECTED = "infected";
 const std::string HCV_ABPOS = "hcvabpos";
 const std::string IN_TREATMENT = "intreatment";
-const std::string CURED = "cured";
 const std::string INFECTED_TODAY = "infected_daily";
 const std::string IN_OPIOID_TREATMENT = "inopioidtreatment";
 
@@ -23,9 +22,24 @@ const std::string IN_OPIOID_TREATMENT_M = "inopioidtreatment_m";
 const std::string IN_OPIOID_TREATMENT_B = "inopioidtreatment_b";
 const std::string IN_OPIOID_TREATMENT_N = "inopioidtreatment_n";
 
+const std::string CURED = "cured";
+const std::string ACUTE = "acute";
+const std::string CHRONIC = "chronic";
+const std::string SUSCEPTIBLE = "susceptible";
+const std::string RECOVERED = "recovered";
+
 const std::string PREVALENCE = "prevalence";
 const std::string RNA_PREVALENCE = "RNApreval";
 const std::string FRACTION = "fraction";
+
+const std::string VK_NONE = "vk_none";
+const std::string VK_ACUTE_INFECT_CLEAR = "vk_acute_infect_clear";
+const std::string VK_ACUTE_INFECT_INCOM = "vk_acute_infect_incomplete";
+const std::string VK_ACUTE_INFECT_PERSI = "vk_acute_infect_persist";
+const std::string VK_REINFECT_HIGH_CLEAR = "vk_reinfect_high_clear";
+const std::string VK_REINFECT_LOW_CLEAR = "vk_reinfect_low_clear";
+const std::string VK_REINFECT_CHRONIC = "vk_reinfect_chronic";  
+const std::string VK_TREATMENT = "vk_treatment";
 
 void EventCounts::reset() {
 	activations_daily = cured_daily = losses_daily = aggregate_posttreat = 
@@ -102,33 +116,36 @@ void Statistics::init(const std::string& fname, const std::string& events_fname,
 }
 
 void init_metrics(std::vector<std::string>& metrics) {
-	for (auto& gender : Gender::values()) {
-		metrics.push_back(GENDER_INFIX + gender.stringValue());
-	}
+	// TODO could use model.props to define these, if really needed.
+	// NOTE: Only need the _ALL metric for most recent analysis
+	// for (auto& gender : Gender::values()) {
+	// 	metrics.push_back(GENDER_INFIX + gender.stringValue());
+	// }
 
-	for (auto& state : HCVState::values()) {
-		metrics.push_back(HCV_INFIX + state.stringValue());
-	}
+	// for (auto& state : HCVState::values()) {
+	// 	metrics.push_back(HCV_INFIX + state.stringValue());
+	// }
 
-	for (auto& race : Race::values()) {
-		metrics.push_back(RACE_INFIX + race.stringValue());
-	}
+	// for (auto& race : Race::values()) {
+	// 	metrics.push_back(RACE_INFIX + race.stringValue());
+	// }
 
-	for (auto& dec : AgeDecade::values()) {
-		metrics.push_back(AGEDEC_INFIX + dec.stringValue());
-	}
+	// for (auto& dec : AgeDecade::values()) {
+	// 	metrics.push_back(AGEDEC_INFIX + dec.stringValue());
+	// }
 
-	for (auto& grp : AgeGroup::values()) {
-		metrics.push_back(AGEGRP_INFIX + grp.stringValue());
-	}
+	// for (auto& grp : AgeGroup::values()) {
+	// 	metrics.push_back(AGEGRP_INFIX + grp.stringValue());
+	// }
 
-	for (auto& at : AreaType::values()) {
-		metrics.push_back(AREATYPE_INFIX + at.stringValue());
-	}
+	// for (auto& at : AreaType::values()) {
+	// 	metrics.push_back(AREATYPE_INFIX + at.stringValue());
+	// }
 
-	for (auto& hr : HarmReduction::values()) {
-		metrics.push_back(SYRSRC_INFIX + hr.stringValue());
-	}
+	// for (auto& hr : HarmReduction::values()) {
+	// 	metrics.push_back(SYRSRC_INFIX + hr.stringValue());
+	// }
+
 	metrics.push_back("_ALL");
 }
 
@@ -148,13 +165,27 @@ Statistics::Statistics(const std::string& fname, const std::string& events_fname
 	stats.emplace(INFECTED, AggregateStats(INFECTED, metrics, &filter_hcv_rna));
 	stats.emplace(HCV_ABPOS, AggregateStats(HCV_ABPOS, metrics, &filter_hcv_abpos));
 	stats.emplace(IN_TREATMENT, AggregateStats(IN_TREATMENT, metrics, &filter_in_treatment));
-	stats.emplace(CURED, AggregateStats(CURED, metrics, &filter_cured));
 	stats.emplace(INFECTED_TODAY, AggregateStats(INFECTED_TODAY, metrics, &filter_infected_today));
     
     stats.emplace(IN_OPIOID_TREATMENT, AggregateStats(IN_OPIOID_TREATMENT, metrics, &filter_in_opioid_treatment));
     stats.emplace(IN_OPIOID_TREATMENT_M, AggregateStats(IN_OPIOID_TREATMENT_M, metrics, &filter_in_opioid_treatment_M));
     stats.emplace(IN_OPIOID_TREATMENT_B, AggregateStats(IN_OPIOID_TREATMENT_B, metrics, &filter_in_opioid_treatment_B));
     stats.emplace(IN_OPIOID_TREATMENT_N, AggregateStats(IN_OPIOID_TREATMENT_N, metrics, &filter_in_opioid_treatment_N));
+
+	stats.emplace(SUSCEPTIBLE, AggregateStats(SUSCEPTIBLE, metrics, &filter_hcv_state_susceptible));
+	stats.emplace(CURED, AggregateStats(CURED, metrics, &filter_hcv_state_cured));
+	stats.emplace(CHRONIC, AggregateStats(CHRONIC, metrics, &filter_hcv_state_chronic));
+	stats.emplace(ACUTE, AggregateStats(ACUTE, metrics, &filter_hcv_state_acute));
+	stats.emplace(RECOVERED, AggregateStats(RECOVERED, metrics, &filter_hcv_state_recovered));
+
+	stats.emplace(VK_NONE, AggregateStats(VK_NONE, metrics, &filter_vkprofile_none));
+	stats.emplace(VK_ACUTE_INFECT_CLEAR, AggregateStats(VK_ACUTE_INFECT_CLEAR, metrics, &filter_vkprofile_acute_infect_clear));
+	stats.emplace(VK_ACUTE_INFECT_INCOM, AggregateStats(VK_ACUTE_INFECT_INCOM, metrics, &filter_vkprofile_acute_infect_incomplete));
+	stats.emplace(VK_ACUTE_INFECT_PERSI, AggregateStats(VK_ACUTE_INFECT_PERSI, metrics, &filter_vkprofile_acute_infect_persist));
+	stats.emplace(VK_REINFECT_HIGH_CLEAR, AggregateStats(VK_REINFECT_HIGH_CLEAR, metrics, &filter_vkprofile_reinfect_high_clearance));
+	stats.emplace(VK_REINFECT_LOW_CLEAR, AggregateStats(VK_REINFECT_LOW_CLEAR, metrics, &filter_vkprofile_reinfect_low_clearance));
+	stats.emplace(VK_REINFECT_CHRONIC, AggregateStats(VK_REINFECT_CHRONIC, metrics, &filter_vkprofile_reinfect_chronic));
+	stats.emplace(VK_TREATMENT, AggregateStats(VK_TREATMENT, metrics, &filter_vkprofile_treatment));
     
 	means.reset();
 	event_counts.reset();

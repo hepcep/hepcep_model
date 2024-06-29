@@ -8,6 +8,7 @@
 
 #include "Event.h"
 #include "HCVState.h"
+#include "VKProfile.h"
 
 namespace hepcep {
 
@@ -65,13 +66,7 @@ public:
 
     virtual bool leaveAcute() = 0;
 
-    bool isAcute();
-    bool isChronic();
-    bool isCured();
-    bool isExposed();
     bool isHcvABpos();
-    bool isNaive();
-    bool isResistant();
     
     virtual bool isHcvRNA(double now) = 0;
     // virtual bool isInfectious(double now) = 0;
@@ -97,6 +92,8 @@ public:
     virtual  void purgeActions() = 0;
 
     virtual void step() = 0;
+
+    virtual VKProfile getVKProfile() = 0;
 
     /**
      * start a NATURAL infection via exposure.

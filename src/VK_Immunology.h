@@ -77,6 +77,8 @@ public:
 
     void step() override;
 
+    VKProfile getVKProfile() override;
+
     void reset_viral_load_time();
     
 };

@@ -110,6 +110,10 @@ double VK_Immunology::get_viral_load(){
     return viral_load;
 }
 
+VKProfile VK_Immunology::getVKProfile(){
+    return vk_profile;
+}
+
 bool VK_Immunology::exposePartner(std::shared_ptr<Immunology> partner_imm, double tick) {
     Statistics* stats = Statistics::instance();
     stats->logStatusChange(LogType::EXPOSED, partner_imm->idu_, "by agent " + std::to_string(idu_->id()));

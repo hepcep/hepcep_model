@@ -891,6 +891,21 @@ void HCModel::daa_treatment_all_PWID(){
     for (auto entry : local_persons) {
             PersonPtr & person = entry.second;
 
+            // TODO Finish this
+            // Consider the PWID's syring sharing behavior for screening purposes.
+            // Only need to screen at-risk PWID, which are those PWID with syring-sharing
+            //      network connections, and that have a non-zero daily injection intensity, and fraction recept sharing?
+            int num_out = network->outEdgeCount(person);
+            int num_in = network->inEdgeCount(person);
+
+            bool no_edges = ((num_out + num_in) == 0);
+            double injection_rate = person->getInjectionIntensity();
+
+            // If person has no network edges OR no injection frequency, dont screen.
+            if (no_edges || injection_rate == 0){
+                continue;
+            }
+
             // Don't consider PWID already in DAA treatment or who have been tested already within the screening interval.
             if (!person->isInTreatment() && person->is_eligible_for_hcv_screeening(tick, screening_interval_days)){
                 screen_candidates.push_back(person);
@@ -1019,6 +1034,9 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
                     // NOTE: Does not consider connected persons in screening target limit
                     std::vector<EdgePtrT<HCPerson>> inEdges;
                     std::vector<EdgePtrT<HCPerson>> outEdges;
+
+                    network->inEdges(person,inEdges);
+                    network->outEdges(person,outEdges);
 
                     for (EdgePtrT<HCPerson> edge : inEdges){
                         PersonPtr other = edge->v1();   // Other agent is edge v1

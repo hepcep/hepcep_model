@@ -20,6 +20,7 @@
 #include "repast_hpc/Random.h"
 #include "repast_hpc/Schedule.h"
 #include "chi_sim/Parameters.h"
+#include "chi_sim/file_utils.h"
 
 #include "Distributions.h"
 #include "EndRelationshipFunctor.h"
@@ -111,8 +112,8 @@ void init_opioid_treatment_drugs() {
         params->getDoubleParameter(NALTREXONE_P_CLOSE), params->getDoubleParameter(NALTREXONE_P_FAR)});
 }
 
-HCModel::HCModel(repast::Properties& props, unsigned int moved_data_size) :
-                    AbsModelT(moved_data_size, props),
+HCModel::HCModel(repast::Properties& props, MPI_Datatype mpi_person_type) :
+                    AbsModelT(props, mpi_person_type),
                     run(std::stoi(props.getProperty(RUN))) ,
                     personData(),
                     zoneMap(),
@@ -898,7 +899,10 @@ void HCModel::daa_treatment_all_PWID(){
             int num_out = network->outEdgeCount(person);
             int num_in = network->inEdgeCount(person);
 
-            bool no_edges = ((num_out + num_in) == 0);
+            bool no_edges = false;
+            if (num_out == 0 && num_in == 0){
+                no_edges = true;
+            }
             double injection_rate = person->getInjectionIntensity();
 
             // If person has no network edges OR no injection frequency, dont screen.
@@ -912,9 +916,12 @@ void HCModel::daa_treatment_all_PWID(){
             }
     }
 
-    if (screen_candidates.size() == 0){
+    if (screen_candidates.empty()){
+        std::cout << "Screen candidates empty!" << std::endl;
         return;
     }
+
+    std::cout << "Screen candidates size: " << screen_candidates.size() << std::endl;
 
     // Divide up the screen/treatment approaches based on the enrollment method.
     // NOTE We still ust the treatmentEnrollmentProb  property to split up the screening
@@ -989,6 +996,72 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
             }
         }
     }
+    else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
+        for (iter = candidates.begin(); iter != candidates.end(); ){
+            PersonPtr person = *iter;
+
+            // Continue screening if less than the target screening number.
+            if (num_screened < screening_target){
+
+                if (person == nullptr){
+                    // std::cout << "WARNING: null pointer on person in FULLNETWORK screening!" << std::endl;
+                    return;  // Means the candiates list is empty?
+
+                }
+
+                person->set_last_hcv_screen_date(tick);
+                if(person->isTreatable()) {           
+                    enrolled.push_back(person);       // Enroll person
+
+                    // Try to enroll all connected persons (if treatable)
+                    // NOTE: Does not consider connected persons in screening target limit
+                    std::vector<EdgePtrT<HCPerson>> inEdges;
+                    std::vector<EdgePtrT<HCPerson>> outEdges;
+
+                    network->inEdges(person,inEdges);
+                    network->outEdges(person,outEdges);
+
+                    for (EdgePtrT<HCPerson> edge : inEdges){
+                        PersonPtr other = edge->v1();   // Other agent is edge v1
+
+                        if (other == nullptr){
+                            std::cout << "WARNING: null pointer on in edge for person: " << person->id() << std::endl;
+                            continue;
+                        }
+
+                        other->set_last_hcv_screen_date(tick);
+                        if (other->isTreatable()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                    for (EdgePtrT<HCPerson> edge : outEdges){
+                        PersonPtr other = edge->v2();  // Other agent is edge v2
+
+                        if (other == nullptr){
+                            std::cout << "WARNING: null pointer on out edge for person: " << person->id() << std::endl;
+                            continue;
+                        }
+
+                        other->set_last_hcv_screen_date(tick);
+                        if (other->isTreatable()){
+                            enrolled.push_back(other);       // Enroll person
+                        }
+                    }
+                }
+
+                // At this point, whether the person is enrolled or not, remove the
+                // person from the candidates list, and increment the num screened counter.
+                iter = candidates.erase(iter);    // Remove person from candidates
+                ++iter;
+                num_screened++;
+            }
+            // Otherwise the screening target is met, so stop screening.
+            else{
+                break;
+            }
+        }
+    }
+
     // Here we only want to check against PWID in HRP and not check against PWID not in HRP
     else if(enrMethod == EnrollmentMethod::HRP) {
         for (iter = candidates.begin(); iter != candidates.end(); ){
@@ -1020,52 +1093,7 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
             }
         }
     }
-    else if(enrMethod == EnrollmentMethod::FULLNETWORK) {
-        for (iter = candidates.begin(); iter != candidates.end();   ){
-            PersonPtr person = *iter;
 
-            // Continue screening if less than the target screening number.
-            if (num_screened < screening_target){
-                person->set_last_hcv_screen_date(tick);
-                if(person->isTreatable()) {           
-                    enrolled.push_back(person);       // Enroll person
-
-                    // Try to enroll all connected persons (if treatable)
-                    // NOTE: Does not consider connected persons in screening target limit
-                    std::vector<EdgePtrT<HCPerson>> inEdges;
-                    std::vector<EdgePtrT<HCPerson>> outEdges;
-
-                    network->inEdges(person,inEdges);
-                    network->outEdges(person,outEdges);
-
-                    for (EdgePtrT<HCPerson> edge : inEdges){
-                        PersonPtr other = edge->v1();   // Other agent is edge v1
-                        other->set_last_hcv_screen_date(tick);
-                        if (other->isTreatable()){
-                            enrolled.push_back(other);       // Enroll person
-                        }
-                    }
-                    for (EdgePtrT<HCPerson> edge : outEdges){
-                        PersonPtr other = edge->v2();  // Other agent is edge v2
-                        other->set_last_hcv_screen_date(tick);
-                        if (other->isTreatable()){
-                            enrolled.push_back(other);       // Enroll person
-                        }
-                    }
-                }
-
-                // At this point, whether the person is enrolled or not, remove the
-                // person from the candidates list, and increment the num screened counter.
-                iter = candidates.erase(iter);    // Remove person from candidates
-                ++iter;
-                num_screened++;
-            }
-            // Otherwise the screening target is met, so stop screening.
-            else{
-                break;
-            }
-        }
-    }
     // else if(enrMethod == EnrollmentMethod::INPARTNER || enrMethod == EnrollmentMethod::OUTPARTNER) {        
     //     for (iter = candidates.begin(); iter != candidates.end();   ){
     //         PersonPtr person = *iter;

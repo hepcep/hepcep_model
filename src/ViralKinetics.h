@@ -13,6 +13,7 @@
 #include <string>
 #include <iostream>
 #include <exception>
+#include <cmath>
 
 #include "chi_sim/Parameters.h"
 #include "parameters_constants.h"

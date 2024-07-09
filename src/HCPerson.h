@@ -28,11 +28,7 @@
 
 namespace hepcep {
 
-using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, int>;
-using PersonPtr = std::shared_ptr<HCPerson>;
-
 class AttributeWriter;
-
 
 // Holds Person Data loaded from persons input file and used to create HCPerson instances.
 struct HCPersonData {
@@ -49,11 +45,18 @@ struct HCPersonData {
 	double fractionReceptSharing;
 	bool early_career;
 
+	unsigned int person_id; // Needed for chisim 0.4.2 but not used here
+	int place_id;  			// Needed for chisim 0.4.2 but not used here
+    int act_type;			// Needed for chisim 0.4.2 but not used here
+
 	// Person attributes specific to ERGM type input data
 	std::string ergm_injectionIntensity;
 	int ergm_vertex_name;
 
 };
+
+using AbsPersonT =  chi_sim::AbstractPerson<HCPlace, HCPersonData>;
+using PersonPtr = std::shared_ptr<HCPerson>;
 
 class HCPerson : public AbsPersonT {
 
@@ -108,7 +111,7 @@ public:
 	virtual ~HCPerson();
 
 	// not used in initial version
-	void fillSendData(std::vector<int>& data) {}
+	void fillSendData(HCPersonData& data) {}
 
 	// not used in initial version
 	void selectNextPlace(chi_sim::Calendar& cal, chi_sim::NextPlace<HCPlace>& next_act) {}

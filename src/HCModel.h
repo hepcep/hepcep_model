@@ -15,7 +15,6 @@
 #include "HCPerson.h"
 #include "Zone.h"
 #include "EnrollmentMethod.h"
-#include "FileSink.h"
 #include "Network.h"
 #include "Edge.h"
 #include "network_utils.h"
@@ -23,13 +22,12 @@
 
 namespace hepcep {
 
-using AbsModelT = chi_sim::AbstractModel<HCPerson, HCPlace, int>;
+using AbsModelT = chi_sim::AbstractModel<HCPerson, HCPlace, HCPersonData>;
 
 class HCModel: public AbsModelT {
 
 private:
 	int run;
-//    FileSink<double> file_sink;
 
 	std::shared_ptr<PersonCreator> personCreator;
 
@@ -76,7 +74,7 @@ protected:
 	 * @param index the index of the start of the block of data for this Person
 	 */
 	// not used in initial version
-	PersonPtr createPerson(unsigned int p_id, int index, int* data) override {
+	PersonPtr createPerson(unsigned int p_id, HCPersonData& data) override {
 		return std::shared_ptr<HCPerson>();
 	}
 
@@ -86,7 +84,7 @@ protected:
 	 * @param index the index of the start of the block of data for this Person
 	 */
 	// not used in initial version
-	virtual void updatePerson(PersonPtr& person, int index, int* data) override {
+	virtual void updatePerson(PersonPtr& person, HCPersonData& data) override {
 	}
 
 	void generateArrivingPersons();
@@ -112,7 +110,7 @@ protected:
 			std::vector<PersonPtr>& enrolled, double enrollmentTarget);
 
 public:
-	HCModel(repast::Properties& props, unsigned int moved_data_size);
+	HCModel(repast::Properties& props, MPI_Datatype mpi_person_type);
 	virtual ~HCModel();
 
 	void atEnd();

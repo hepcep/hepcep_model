@@ -20,16 +20,16 @@ check_directory_exists
 
 # TODO edit the number of processes as required.
 # 288
-export PROCS=4
+export PROCS=216
 
 # TODO edit QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME
 # as required. Note that QUEUE, WALLTIME, PPN, AND TURNBINE_JOBNAME will
 # be ignored if the MACHINE variable (see below) is not set.
 #export QUEUE=bdwall
-#export PROJECT=naerm
-export PROJECT=condo
+#export PROJECT=emews
+export PROJECT=g-DIS
 export QUEUE=dis
-export WALLTIME=01:00:00
+export WALLTIME=12:00:00
 export PPN=18
 export TURBINE_JOBNAME="${EXPID}_job"
 
@@ -46,15 +46,24 @@ MODEL_DIR=$EMEWS_PROJECT_ROOT/model
 # Root folder for all input files. e.g. population CSVs
 DATA_DIR=$EMEWS_PROJECT_ROOT/../data
 
-export TURBINE_LAUNCHER=srun
+#export TURBINE_LAUNCHER=srun
 
 # set machine to your schedule type (e.g. pbs, slurm, cobalt etc.),
 # or empty for an immediate non-queued unscheduled run
-MACHINE="slurm"
+MACHINE="pbs"
 
 if [ -n "$MACHINE" ]; then
   MACHINE="-m $MACHINE"
 fi
+
+READLINE_LIB=/gpfs/fs1/soft/bebop/software/spack-built/linux-rocky8-x86_64/gcc-8.5.0/readline-8.2-chmbmda/lib
+MKL="/gpfs/fs1/soft/bebop/software/spack-built/linux-rocky8-x86_64/oneapi-2024.1.0/intel-oneapi-mkl-2024.0.0-2ug2cu4/mkl/2024.0/lib"
+BOOST_LIB="/lcrc/project/EMEWS/bebop-2.0/sfw/gcc-11.4.0/openmpi-4.1.1/boost-1_85_0/lib"
+export LD_LIBRARY_PATH="$READLINE_LIB:$MKL:$BOOST_LIB:$LD_LIBRARY_PATH"
+
+export LD_PRELOAD="/gpfs/fs1/soft/bebop/software/custom-built/openmpi/4.1.1/gcc/8.5.0/lib/libmpi.so"
+
+export TURBINE_LAUNCH_OPTIONS="--"
 
 # Add any script variables that you want to log as
 # part of the experiment meta data to the USER_VARS array,
@@ -68,7 +77,7 @@ set -x
 
 swift-t -n $PROCS $MACHINE -p -r $MODEL_DIR -I $MODEL_DIR \
   $EMEWS_PROJECT_ROOT/swift/hepcep_sweep.swift \
-  -f="$EMEWS_PROJECT_ROOT/data/single_run.txt" \
+  -f="$EMEWS_PROJECT_ROOT/data/upf_enrollment_sweep_screen_APK_VK.txt" \
   -config_file=$CONFIG_FILE \
   -data_dir=$DATA_DIR \
   $CMD_LINE_ARGS

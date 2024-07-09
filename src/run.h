@@ -12,9 +12,10 @@
 
 #include "repast_hpc/Properties.h"
 
-#include "mpi.h"
+// #include <mpi.h>
 
-
+// typedef struct ompi_communicator_t* MPI_Comm;
+typedef long long int HepCEP_MPI_Comm;
 
 namespace hepcep {
 
@@ -27,7 +28,7 @@ void parse_parameters(repast::Properties& props, const std::string& parameters);
  * @param parameters a tab separated list of parameters where each parameter
  * is a key value pair separated by an "=".
  */
-std::string hepcep_model_run(MPI_Comm comm, const std::string& props_file, const std::string& parameters);
+std::string hepcep_model_run(HepCEP_MPI_Comm comm, const std::string& props_file, const std::string& parameters);
 
 }
 

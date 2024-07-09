@@ -12,6 +12,8 @@
 #include "HCModel.h"
 #include "run.h"
 
+#include <cstdint>
+
 namespace hepcep {
 
 const std::string OUTPUT_DIRECTORY = "output.directory";
@@ -77,7 +79,7 @@ void run_model(int rank, repast::Properties& props) {
     }
 }
 
-std::string hepcep_model_run(MPI_Comm comm, const std::string& props_file, const std::string& parameters) {
+std::string hepcep_model_run(HepCEP_MPI_Comm hc_comm, const std::string& props_file, const std::string& parameters) {
     char arg0[] = "main";
     char* argv[] = { &arg0[0], nullptr };
     int argc = (int) (sizeof(argv) / sizeof(argv[0])) - 1;
@@ -89,7 +91,7 @@ std::string hepcep_model_run(MPI_Comm comm, const std::string& props_file, const
     if (parameters.size() == 0) {
         ret = "";
     } else {
-        boost::mpi::communicator boost_comm(comm, boost::mpi::comm_attach);
+        boost::mpi::communicator boost_comm((ompi_communicator_t*)hc_comm, boost::mpi::comm_attach);
 
         repast::Properties props(props_file);
         parse_parameters(props, parameters);

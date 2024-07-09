@@ -6,8 +6,8 @@
 
 
 %{
-  typedef int MPI_Comm;
+//  typedef int MPI_Comm;
   #include "../src/run.h"
 %}
 
-typedef int MPI_Comm;
+//typedef int MPI_Comm;

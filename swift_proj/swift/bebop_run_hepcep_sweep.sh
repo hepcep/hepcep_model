@@ -56,14 +56,18 @@ if [ -n "$MACHINE" ]; then
   MACHINE="-m $MACHINE"
 fi
 
+export EQR=/lcrc/project/EMEWS/bebop-2.0/sfw/gcc-11.4.0/openmpi-4.1.1/swift-t-06252024/turbine/ext/eqr
+export EQPY=/lcrc/project/EMEWS/bebop-2.0/sfw/gcc-11.4.0/openmpi-4.1.1/swift-t-06252024/turbine/ext/eqpy
+
 READLINE_LIB=/gpfs/fs1/soft/bebop/software/spack-built/linux-rocky8-x86_64/gcc-8.5.0/readline-8.2-chmbmda/lib
 MKL="/gpfs/fs1/soft/bebop/software/spack-built/linux-rocky8-x86_64/oneapi-2024.1.0/intel-oneapi-mkl-2024.0.0-2ug2cu4/mkl/2024.0/lib"
-BOOST_LIB="/lcrc/project/EMEWS/bebop-2.0/sfw/gcc-11.4.0/openmpi-4.1.1/boost-1_85_0/lib"
-export LD_LIBRARY_PATH="$READLINE_LIB:$MKL:$BOOST_LIB:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$READLINE_LIB:$MKL:$LD_LIBRARY_PATH"
 
-export LD_PRELOAD="/gpfs/fs1/soft/bebop/software/custom-built/openmpi/4.1.1/gcc/8.5.0/lib/libmpi.so"
+#export LD_PRELOAD="/gpfs/fs1/soft/bebop/software/custom-built/openmpi/4.1.1/gcc/8.5.0/lib/libmpi.so"
 
 export TURBINE_LAUNCH_OPTIONS="--"
+
+
 
 # Add any script variables that you want to log as
 # part of the experiment meta data to the USER_VARS array,

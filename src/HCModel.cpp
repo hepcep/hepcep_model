@@ -917,11 +917,11 @@ void HCModel::daa_treatment_all_PWID(){
     }
 
     if (screen_candidates.empty()){
-        std::cout << "Screen candidates empty!" << std::endl;
+        // std::cout << tick << ": Screen candidates empty!" << std::endl;
         return;
     }
 
-    std::cout << "Screen candidates size: " << screen_candidates.size() << std::endl;
+    // std::cout << tick << ": Screen candidates size: " << screen_candidates.size() << std::endl;
 
     // Divide up the screen/treatment approaches based on the enrollment method.
     // NOTE We still ust the treatmentEnrollmentProb  property to split up the screening
@@ -945,6 +945,13 @@ void HCModel::daa_treatment_all_PWID(){
         //  This works just like the original DAA treatment enrollment, such that all persons
         //  that end up in this list are actually enrolled.
         std::vector<PersonPtr> enrolled;
+
+        // if (screen_candidates.size() < 50){
+        //      for (auto & person : screen_candidates){
+        //         cout << "\t " << person->id() << std::endl;
+
+        //      }
+        // }
 
         treatment_selection_all_PWID(mthd, screen_candidates, enrolled, screening_Target);
 
@@ -976,7 +983,15 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
     if(enrMethod == EnrollmentMethod::UNBIASED) {
         for (iter = candidates.begin(); iter != candidates.end(); ){
             PersonPtr person = *iter;
-                         
+
+            // if (tick > 519.0){
+            //     cout << "**** " << num_screened << " / " << screening_target << " : " << person->id() << std::endl;
+
+            //     if (person == nullptr){
+            //         std::cout << "WARNING: null pointer on person in screening!" << std::endl;
+            
+            //     }
+            // }
             // Continue screening if less than the target screening number.
             if (num_screened < screening_target){
                 person->set_last_hcv_screen_date(tick);
@@ -987,7 +1002,6 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
                 // At this point, whether the person is enrolled or not, remove the
                 // person from the candidates list, and increment the num screened counter.
                 iter = candidates.erase(iter);    // Remove person from candidates
-                ++iter;
                 num_screened++;
             }
             // Otherwise the screening target is met, so stop screening.
@@ -1004,7 +1018,7 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
             if (num_screened < screening_target){
 
                 if (person == nullptr){
-                    // std::cout << "WARNING: null pointer on person in FULLNETWORK screening!" << std::endl;
+                    std::cout << "WARNING: null pointer on person in FULLNETWORK screening!" << std::endl;
                     return;  // Means the candiates list is empty?
 
                 }
@@ -1052,7 +1066,6 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
                 // At this point, whether the person is enrolled or not, remove the
                 // person from the candidates list, and increment the num screened counter.
                 iter = candidates.erase(iter);    // Remove person from candidates
-                ++iter;
                 num_screened++;
             }
             // Otherwise the screening target is met, so stop screening.
@@ -1084,7 +1097,6 @@ void HCModel::treatment_selection_all_PWID(EnrollmentMethod enrMethod,
                 // At this point, whether the person is enrolled or not, remove the
                 // person from the candidates list, and increment the num screened counter.
                 iter = candidates.erase(iter);    // Remove person from candidates
-                ++iter;
                 num_screened++;
             }
             // Otherwise the screening target is met, so stop screening.

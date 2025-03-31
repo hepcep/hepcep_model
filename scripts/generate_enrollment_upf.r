@@ -8,13 +8,14 @@
 enrollmentRateStart = .075   # Enrollment start value per_PY
 enrollmentRateEnd = 0.075
 enrollmentRateStep = 0.0
-replicates <- 20          # Number of replicates per rate param value 
+replicates <- 100          # Number of replicates per rate param value 
 
 #non_adherence <- c(0.1, 0.2, 0.3, 0.4)
 non_adherence <- c(0.1)
 #max_num_daa_treatments <- c(1,2,3,4)
 #svr <- c(0.9, 0.8, 0.7, 0.6)
-immunology_types <- c("VK", "APK")
+#immunology_types <- c("VK", "APK")
+immunology_types <- c("VK")
 
 reduced_treatment_enrollment_per_PY_start = 0.025
 reduced_treatment_enrollment_per_PY_end = 0.2
@@ -27,6 +28,7 @@ i <- 0
 #treat_enroll_range <- seq(enrollmentRateStart,enrollmentRateEnd, by=enrollmentRateStep)
 
 treat_enroll_range <- c(0, 0.075, 0.2, 0.4, 0.8, 1.0, 1.25, 1.5, 0.75, 2.0)
+treat_enroll_range <- c(0, 0.75, 0.8, 1.0, 1.25, 1.5, 1.75)
 
 reduced_treat_enroll_range <- seq(reduced_treatment_enrollment_per_PY_start,reduced_treatment_enrollment_per_PY_end, by=reduced_treatment_enrollment_per_PY_step)
 
@@ -55,4 +57,4 @@ for (s in non_adherence){
   }
 }
 }
-write(x, file="upf_enrollment_sweep_reduce_APK_VK.txt")
+write(x, file="upf_enrollment_sweep_VK.txt")

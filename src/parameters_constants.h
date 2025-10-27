@@ -87,6 +87,9 @@ const std::string HCV_SCREENING_INTERVAL = "hcv_screening_interval";
 const std::string TREATMENT_ENROLLMENT_REDUCE_AT = "treatment_enrollment_reduce_at";
 const std::string MAX_NUM_DAA_TREATMENTS = "max_num_daa_treatments";
 
+const std::string PROB_DAA_HARM_REDUCTION = "prob_daa_harm_reduction";
+const std::string DAA_HARM_REDUCTION_DURATION = "daa_harm_reduction_duration";
+
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_UNBIASED = "treatment_enrollment_probability_unbiased";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_HRP = "treatment_enrollment_probability_HRP";
 const std::string TREATMENT_ENROLLMENT_PROBABILITY_FULLNETWORK = "treatment_enrollment_probability_fullnetwork";

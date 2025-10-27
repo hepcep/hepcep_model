@@ -18,7 +18,7 @@
 namespace hepcep {
 
 // used by serialization mechanism to recreate the functors for the events
-enum class EventFuncType{LEAVE_EXPOSED, LEAVE_ACUTE, END_TREATMENT};
+enum class EventFuncType{LEAVE_EXPOSED, LEAVE_ACUTE, END_TREATMENT, END_HARM_REDUCTION};
 
 class Event : public repast::Functor {
 

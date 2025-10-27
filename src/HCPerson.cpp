@@ -25,6 +25,10 @@
 
 namespace hepcep {
 
+// Schedule uses old boost::shared_ptrs so we use that here
+// for scheduling events
+using EventPtr = boost::shared_ptr<Event>;
+
 HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunology> imm) :  AbsPersonT(id),
 		gender(Gender::FEMALE), race(Race::OTHER),
 		syringeSource(HarmReduction::NON_HARM_REDUCTION),
@@ -32,7 +36,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data, std::shared_ptr<Immunolo
 		lastInfectionDate(-1.0),
 		deactivateAt(-1.0), 
         injectionIntensityMultiplier(1.0),
-        immunology(imm)        
+        immunology(imm),
+		scheduled_actions()        
 {
 	age = data.age;
 	ageStarted = data.ageStarted;
@@ -57,7 +62,8 @@ HCPerson::HCPerson(unsigned int id, HCPersonData& data) : AbsPersonT(id),
 		lastExposureDate(-1.0),
 		lastInfectionDate(-1.0),
 		deactivateAt(-1.0),
-        injectionIntensityMultiplier(1.0) {
+        injectionIntensityMultiplier(1.0),
+		scheduled_actions() {
 
 	// Initialize immunology using input switch
 	string immunology_type = chi_sim::Parameters::instance()->getStringParameter(IMMUNOLOGY_TYPE);
@@ -175,6 +181,15 @@ void HCPerson::deactivate(){
     Statistics::instance()->logStatusChange(LogType::DEACTIVATED, this, "");
     active = false;
     immunology->deactivate();
+
+	purgeActions();
+}
+
+void HCPerson::purgeActions() {
+   for (auto evt : scheduled_actions) {
+        evt->cancel();
+    }
+    scheduled_actions.clear();
 }
 
 void HCPerson::receive_equipment_or_drugs(NetworkPtr<HCPerson> network) {
@@ -283,6 +298,27 @@ void HCPerson::startTreatment() {
 	bool adherent = (roll > treatmentNonadherence);
 	double tick = repast::RepastProcess::instance()->getScheduleRunner().currentTick();
 	immunology->startTreatment(adherent,tick);
+
+	
+	// Randomly assign persons to start harm reduction that reduces the injection intensity for some time period
+	double prob_daa_harm_reduction = chi_sim::Parameters::instance()->getDoubleParameter(PROB_DAA_HARM_REDUCTION);
+	double daa_harm_reduction_duration = chi_sim::Parameters::instance()->getDoubleParameter(DAA_HARM_REDUCTION_DURATION);
+
+	roll = repast::Random::instance()->nextDouble();
+	if (roll < prob_daa_harm_reduction){
+		double harm_reduction_end_time = tick + daa_harm_reduction_duration;
+
+		// Schedule the person to reset their co-injection frequency after the harm reduction period has ended
+		EventPtr evt = boost::make_shared<Event>(harm_reduction_end_time, EventFuncType::END_HARM_REDUCTION,
+        	new EndHarmReductionFunctor(this, this->getInjectionIntensity()));
+    
+		repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+		
+		scheduled_actions.push_back(evt);
+    	runner.scheduleEvent(harm_reduction_end_time, evt);
+
+		injectionIntensity = 0;  // Stops co-injecting behavior now
+	}
 }
 
 void HCPerson::endRelationship(PersonPtr buddy, NetworkPtr<HCPerson> network){
@@ -381,6 +417,10 @@ VKProfile HCPerson::getVKProfile() const {
 
 double HCPerson::getInjectionIntensity() const {
 	return injectionIntensity;
+}
+
+void HCPerson::setInjectionIntensity(double i){
+	injectionIntensity = i;
 }
 
 double HCPerson::getFractionReceptSharing() const {

@@ -11,27 +11,27 @@ library(Publish)
 
 dt <- NULL
 dt_infections <- NULL
+dt_person_freq <- NULL
+
+base_dir <- "D:\\Projects\\HepCEP\\experiments\\treatment_duration_01_vk\\treatment_duration_01_vk"
 
 # Load all of the stats files that exist in an experiments dir
 eventsfileName <- "/events.csv"
-statsfilename <- "/stats.csv"
-dirs <- list.dirs (path=".", recursive=FALSE)
+dirs <- list.dirs (path=base_dir, recursive=FALSE)
 
 tableList <- list()
 infection_tableList <- list()
+person_freq_list <- list()
 
 for (d in dirs){
   path <- paste0(d,eventsfileName)
-  statsPath <- paste0(d,statsfilename)
   
   if (!file.exists(path)){
     print(paste0("File doesnt exist! ",path))
   }
-  else if (!file.exists(statsPath)){
-    print(paste0("File doesnt exist! ",statsPath))
-  }
+
   else{
-    print(paste0("Loading ", path, " and ", statsPath ))
+    print(paste0("Loading ", path))
     
     tryCatch({
       # Read the model.props for optional storing of parameter values
@@ -42,7 +42,6 @@ for (d in dirs){
       
       # Read the event and stats into tables
       evTable <-  fread(path)
-      statsTable <- fread(statsPath)
       
       setkey(evTable, event_type) 
       start_treat_events <- evTable[.('STARTED_TREATMENT')]
@@ -68,10 +67,21 @@ for (d in dirs){
       
       resultsTable$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
       resultsTable$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
+      resultsTable$treatment_duration <- props[Name=="treatment_duration"]$Value
       
       resultsTable$run <- props[Name=="run.number"]$Value
       
       tableList[[d]]  <- resultsTable
+      
+      # Optionally store properties in the table for this run
+      personFreq$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
+      
+      personFreq$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
+      personFreq$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
+      personFreq$treatment_duration <- props[Name=="treatment_duration"]$Value
+      personFreq$run <- props[Name=="run.number"]$Value
+      
+      person_freq_list[[d]]  <- personFreq
       
       # Get the number of new chronic infections during the DAA treatment period
       new_chronic_events <- evTable[.('CHRONIC')]
@@ -92,6 +102,7 @@ for (d in dirs){
       infection_table$treatment_enrollment_per_PY <- props[Name=="treatment_enrollment_per_PY"]$Value
       infection_table$treatment_nonadherence <- props[Name=="treatment_nonadherence"]$Value
       infection_table$max_num_daa_treatments <- props[Name=="max_num_daa_treatments"]$Value
+      infection_table$treatment_duration <- props[Name=="treatment_duration"]$Value
       infection_table$run <- props[Name=="run.number"]$Value
       
       infection_tableList[[d]]  <- infection_table
@@ -113,6 +124,9 @@ for (d in dirs){
 dt <- rbindlist(tableList, fill=TRUE)  # Stack the list of tables into a single DT
 tableList <- NULL           # clear mem
 
+dt_person_freq <- rbindlist(person_freq_list, fill=TRUE)  # Stack the list of tables into a single DT
+person_freq_list <- NULL           # clear mem
+
 dt_infections <- rbindlist(infection_tableList, fill=TRUE)  # Stack the list of tables into a single DT
 infection_tableList <- NULL           # clear mem
 
@@ -120,57 +134,78 @@ DAA_cost <- 25 # treatment cost in $1,000
 dt$Count <- as.numeric(dt$Count)
 dt[, cost := DAA_cost * Count * Freq]
 
+freq_data <- dt_person_freq[Freq <= 5]
+p <- ggplot(freq_data, aes(x=Freq, y=treatment_duration, height = stat(density))) + 
+  #geom_density_ridges() +
+  geom_density_ridges(stat = "binline", bins = 5, scale = 0.5, draw_baseline = FALSE) +
+  
+  
+  
+  labs(y="Total In Treatment", x="Year from DAA enrollment start", color="series_group", title="") +
+  theme_bw() +
+
+show(p)
+
+
 # Calculate the mean and SD number of treatements per max_num_daa_treatments, 
 #  enrollment rate, and non-adherence  
 treatmentSummary <- dt[, ci.mean(Freq), 
                                   by=list(Count, treatment_enrollment_per_PY,
-                                          treatment_nonadherence, max_num_daa_treatments)]
+                                          treatment_nonadherence, max_num_daa_treatments,
+                                          treatment_duration)]
 
 # DAA treatment costs mean & SE by number of retreatments
 treatmentSummary_costs <- dt[, ci.mean(cost), 
                        by=list(Count, treatment_enrollment_per_PY,
-                               treatment_nonadherence, max_num_daa_treatments)]
+                               treatment_nonadherence, max_num_daa_treatments,
+                               treatment_duration)]
 
-fwrite(treatmentSummary, file="treatment_counts_2.csv")
-fwrite(treatmentSummary_costs, file="treatment_counts_costs_2.csv")
+fwrite(treatmentSummary, file=paste0(base_dir,"/treatment_counts_2.csv"))
+fwrite(treatmentSummary_costs, file=paste0(base_dir,"/treatment_counts_costs_2.csv"))
 
 
 # Calculate the mean (95% CI) number of treatements per enrollment rate, and non-adherence
 # First sum by run to get the total for each run
 treatment_sums <- dt[, list(num_pwid=sum(Freq)), 
                            by=list(treatment_enrollment_per_PY,
-                                   treatment_nonadherence, max_num_daa_treatments, run)]
+                                   treatment_nonadherence, max_num_daa_treatments, 
+                                   treatment_duration, run)]
 
 treatment_sums_summary <- treatment_sums[, ci.mean(num_pwid), 
                        by=list(treatment_enrollment_per_PY,
-                               treatment_nonadherence, max_num_daa_treatments)]
+                               treatment_nonadherence, max_num_daa_treatments,
+                               treatment_duration)]
 
-fwrite(treatment_sums_summary, file="treatment_sums_2.csv")
+fwrite(treatment_sums_summary, file=paste0(base_dir,"/treatment_sums_2.csv"))
 
 # Do similar for total cost per run for DAA treatment and then get the mean and CI
 treatment_costs_total <- dt[, list(total_cost=sum(cost)), 
                           by=list(treatment_enrollment_per_PY,
-                             treatment_nonadherence, max_num_daa_treatments, run)]
+                             treatment_nonadherence, max_num_daa_treatments, treatment_duration,
+                             run)]
 
 treatment_costs_summary <- treatment_costs_total[, ci.mean(total_cost), 
                                          by=list(treatment_enrollment_per_PY,
-                                                 treatment_nonadherence, max_num_daa_treatments)]
+                                                 treatment_nonadherence, 
+                                                 max_num_daa_treatments, treatment_duration)]
 
-fwrite(treatment_costs_summary, file="treatment_costs_sums_2.csv")
+fwrite(treatment_costs_summary, file=paste0(base_dir,"/treatment_costs_sums_2.csv"))
 
 
 # Calculate the mean (95% CI) number of infections and re-infections per enrollment rate, and non-adherence
 infections_summary <- dt_infections[, ci.mean(total_infections), 
                                                  by=list(treatment_enrollment_per_PY,
-                                                         treatment_nonadherence, max_num_daa_treatments)]
+                                                         treatment_nonadherence, 
+                                                         max_num_daa_treatments, treatment_duration)]
 
-fwrite(infections_summary, file="infections_summary_2.csv")
+fwrite(infections_summary, file=paste0(base_dir,"/infections_summary_2.csv"))
 
 reinfections_summary <- dt_infections[, ci.mean(total_reinfections), 
                                     by=list(treatment_enrollment_per_PY,
-                                            treatment_nonadherence, max_num_daa_treatments)]
+                                            treatment_nonadherence, max_num_daa_treatments, 
+                                            treatment_duration)]
 
-fwrite(reinfections_summary, file="reinfections_summary_2.csv")
+fwrite(reinfections_summary, file=paste0(base_dir,"/reinfections_summary_2.csv"))
 
 
 

@@ -11,7 +11,8 @@ source("hepcep_plots.R")
 dt <- NULL
 table <- NULL
 
-base_dir <- "D:\\Projects\\HepCEP\\experiments\\vk_apk_stop_treatment\\"
+base_dir <- "D:\\Projects\\HepCEP\\experiments\\vk_apk_no_stop_treatment_01\\"
+#base_dir <- "D:\\Projects\\HepCEP\\experiments\\treatment_duration_all_daa_01\\"
 
 # Load all of the stats files that exist in an experiments dir
 fileName <- "/stats.csv"
@@ -56,6 +57,8 @@ for (d in dirs){
       # Enable this prop when comparing VK vs APK
       table$immunology_type <- props[Name=="immunology.type"]$Value
       
+      table$treatment_duration <- props[Name=='treatment_duration']$Value
+      
       tableList[[d]]  <- table  
     }, 
     warning = function(w) {
@@ -75,7 +78,7 @@ dt <- rbindlist(tableList)  # Stack the list of tables into a single DT
 tableList <- NULL           # clear mem
 
 # Optionally save the data table as an RDS
-saveRDS(dt, paste0(base_dir,"all_runs_dt.rds"))
+#saveRDS(dt, paste0(base_dir,"all_runs_dt.rds"))
 
 # NOTE can also read an existing dt from RDS here.
 dt <- readRDS(paste0(base_dir,"all_runs_dt.rds"))
@@ -107,26 +110,53 @@ dt$Month <- unlist(lapply(dt$tick, dayToMonth))
 dayToWeek <- function(day) 1 + floor((day)/7)
 dt$Week <- unlist(lapply(dt$tick, dayToWeek))
 
-years <- unlist(unique(dt$Year))
+dt$treatment_duration_weeks <- (as.numeric(dt$treatment_duration))/7
 
 # Frame the DAA enrollment in terms of total PWID treated annually instead of percent
 pwid_population_size <- 32000
 dt$treatment_enrollment_size <- as.numeric(dt$treatment_enrollment_per_PY) * pwid_population_size
 
+# Filter on treatment duration 28 56 84 168  (days)
+#data <- dt[immunology_type=="VK" & treatment_duration==84]
 data <- dt[immunology_type=="VK"]
 #data <- dt[immunology_type=="APK"]
+#data <- dt
 
-p <- new_chronic_incidence_plot(data, startYear, endYear, treatement_start_year)
-#show(p)
+# Reassign if using the DAA enrollment reduction approach
+#data$treatment_enrollment_per_PY <- data$reduced_treatment_enrollment_per_PY
+
+# The data summary interval period, e.g. annual, monthly rate
+
+interval <- 'Year'   # note - use get(interval) in referencing data frame vars
+#interval <- 'Month'
+
+p <- new_chronic_incidence_plot(data, startYear, endYear, treatement_start_year, scale_baseline=T)
+show(p)
+
 ggsave(paste0(base_dir,"New Chronic Incidence VK no stop treatment 2030 2.png"), plot=p, width=10, height=8)
+fwrite(p$data, paste0(base_dir,"New Chronic Incidence VK reduce treatment 2030.csv"))
+
+p <- new_chronic_actual_plot(data, startYear, endYear, treatement_start_year, scale_baseline=F)
+fwrite(p$data, paste0(base_dir,"New Chronic actual.csv"))
+show(p)
+
+p <- susceptible_plot(data, startYear, endYear, treatement_start_year, scale_baseline=F)
+fwrite(p$data, paste0(base_dir,"Susceptible actual.csv"))
+show(p)
+
+p <- infected_plot(data, startYear, endYear, treatement_start_year, scale_baseline=F)
+fwrite(p$data, paste0(base_dir,"infected actual.csv"))
+show(p)
+
+#fwrite(p$data[treatment_enrollment_per_PY == 0], paste0(base_dir,"New Chronic Incidence VK zero DAA enroll.csv"))
 
 # HCV RNA Prevalence Plots
 p <- prevalence_plot(data, startYear, endYear, treatement_start_year)
-#show(p)
-ggsave(paste0(base_dir,"Prevalence VK stop treatment 2030.png"), plot=p, width=10, height=8)
+show(p)
+fwrite(p$data, paste0(base_dir,"Prevalence VK no stop treatment.csv"))
+ggsave(paste0(base_dir,"Prevalence stop treatment 2030.png"), plot=p, width=10, height=8)
 
-
-
+#fwrite(p$data[treatment_enrollment_per_PY == 0], paste0(base_dir,"Prevalence VK zero DAA enroll.csv"))
 
 
 
@@ -164,7 +194,11 @@ treatedYearSummarySubset <- treatedYearSUmmary[treatment_enrollment_per_PY != 0]
 # 95% CI
 z <- 1.960
 
-legend_title <- "Screening %"
+treatedYearSummarySubset$lower_CI <- treatedYearSummarySubset$mean - z * treatedYearSummarySubset$std
+treatedYearSummarySubset$upper_CI <- treatedYearSummarySubset$mean + z * treatedYearSummarySubset$std 
+
+legend_title <- "DAA enrollment %"
+#legend_title <- "Screening %"
 
 r <- ggplot(treatedYearSummarySubset) + 
   geom_line(aes(x=Year-treatement_start_year+1, y=mean, color=series_group), size=1) +
@@ -173,7 +207,7 @@ r <- ggplot(treatedYearSummarySubset) +
   scale_x_continuous(limits = c(0, endYear-treatement_start_year), breaks=seq(0,endYear-treatement_start_year,5)) +
 #  scale_y_continuous(limits = c(0, 1000)) +
   
-  geom_ribbon(aes(x=Year-treatement_start_year+1, ymin=mean-z*std, ymax=mean+z*std, fill=series_group),alpha=0.3,colour=NA) +
+  geom_ribbon(aes(x=Year-treatement_start_year+1, ymin=lower_CI, ymax=upper_CI, fill=series_group),alpha=0.3,colour=NA) +
   
  
   labs(y="Total In Treatment", x="Year from DAA enrollment start", color="series_group", title="") +
@@ -186,6 +220,8 @@ r <- ggplot(treatedYearSummarySubset) +
   
   guides(color=guide_legend(title=legend_title),fill=guide_legend(title=legend_title))
 
-show(r)
-ggsave(paste0(base_dir,"Treatment Counts VK screen.png"), plot=r, width=10, height=8)
+#show(r)
+fwrite(r$data, paste0(base_dir,"Treatment Counts VK stop treatment 2030.csv"))
+
+ggsave(paste0(base_dir,"Treatment Counts VK.png"), plot=r, width=10, height=8)
 #fwrite(treatedYearSummarySubset, file="treatmentSummary.csv")

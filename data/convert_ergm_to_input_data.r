@@ -1,29 +1,28 @@
 library(network)
 library(data.table)
+library(qs2)
 
-setwd("E:\\ANL\\Projects\\HepCEP\\hepcep_networks\\simulate-from-ergms\\out")
+setwd("L:/HepCEP/net-ergm-v4plus/simulate-from-ergms/out")
 
-load("on-revamped-oscar-non-randomized-indeg-0-outdeg-0.RData")
+sim_results <- qs_read("edges_all_2026_may28.qs2")
 
 # Grab an edge list instance
 #class(sim_results[[1]])
-list.vertex.attributes(sim_results[[1]])
-el <- as.edgelist(sim_results[[1]])
+#list.vertex.attributes(sim_results[[1]])
+#el <- as.edgelist(sim_results[[1]])
+el <- sim_results[[1]]
 
-#net <- sim_results[[1]]
-#class(net)
-
-sim_results <- NULL  # clear huge list
+#sim_results <- NULL  # clear huge list
 
 ## vertex.att.all object is a nested list of 100 elements, 
 ## Each of the 100 lists is composed of a list of 19 elements, corresponding to the attributes below:
-vertex.att.all <- readRDS("vertex_att_all_oct122023.RDS")
+#vertex.att.all <- readRDS("vertex_att_all_2026_apr06.RDS")
 
-y <- vertex.att.all[[2]]
+#y <- vertex.att.all[[2]]
 
 # pwid_w_vertex_names is a dataframe consisting of 31,999 rows and 16 cols
 # the column names correspond to > colnames(pwid_w_vertex_names)
-pwid_w_vertex_names <- readRDS("pwid_w_vertex_names_oct122023.RDS")
+pwid_w_vertex_names <- readRDS("pwid_node_table_2026_may21.RDS")
 
 pwid_dt <- as.data.table(pwid_w_vertex_names)
 
@@ -41,7 +40,8 @@ setnames(pwid_dt, c("syringe_source"), c("Syringe_source"))
 setnames(pwid_dt, c("fraction_recept_sharing"), c("Fraction_recept_sharing"))
 setnames(pwid_dt, c("daily_injection_intensity"), c("Daily_injection_intensity"))
 
-# Network in/out degree should be the initial condition of the network
+# Network in/out degree for each PWID is calculated inside HepCEP and used when
+#  dynamically generating new PWID, so we do not need to re-calculate here.
 pwid_dt$Drug_in_degree <- 0	
 pwid_dt$Drug_out_degree <- 0	
 
@@ -69,7 +69,7 @@ setcolorder(pwid_dt, c("Age", "Age_Started", "Gender", "Race", "Syringe_source",
                       "HCV","Drug_in_degree",	"Drug_out_degree", 
                       "Daily_injection_intensity","Fraction_recept_sharing"))
 
-fwrite(pwid_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_catalog_oct122023.csv")
+fwrite(pwid_dt, "L:/HepCEP/hepcep_model/data/ergm_pwid_catalog_may212026.csv")
 
 # Convert the edge table V1 -> V2 to a table V1 -> V21, V22, V23...
 #  eg for every unique V1, create one V1 row and map all V2s to it.
@@ -77,6 +77,6 @@ edges_dt <- as.data.table(el)
 # Group by values in V1, and paste all values in other cols together separated by comma
 compact_edges_dt <- edges_dt[, lapply(.SD, paste0, collapse = ","), by=V1]
 
-fwrite(compact_edges_dt, "L:\\HepCEP\\hepcep_model\\data\\ergm_pwid_edges_oct122023.csv", quote=F)
+fwrite(compact_edges_dt, "L:/HepCEP/hepcep_model/data/ergm_pwid_edges_may282026.csv", quote=F)
 
 

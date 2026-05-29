@@ -14,6 +14,7 @@ SRC = HCPlace.cpp \
 	Event.cpp \
 	EndRelationshipFunctor.cpp \
 	EndTreatmentFunctor.cpp \
+	EndHarmReductionFunctor.cpp \
 	HCVState.cpp \
 	AggregateStats.cpp \
 	Gender.cpp \

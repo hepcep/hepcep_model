@@ -1,10 +1,11 @@
 # Properties file for general runs
 #
 
-#stop.at = 11680
-stop.at = 15330
+#stop.at = 1168
+#stop.at = 15330
+stop.at = 17155
 #stop.at = 8030
-#stop.at = 800
+#stop.at = 400
 
 # Data file containing the PWID instances from which to sample
 pwid.input.file = 100k_CNEP+_pwid_catalog_2018-11-23.csv 
@@ -34,7 +35,7 @@ viral.kinetics.reinfection.low.titer.clearance.file = viral_kinetics/reinfection
 viral.kinetics.treatment.file = viral_kinetics/treatment.csv
 
 # Immonology implementation type, values are "APK" or "VK" (no quotes)
-immunology.type = APK
+immunology.type = VK
 
 run.number = 1
 random.seed = 42
@@ -63,12 +64,13 @@ log.events = STARTED_TREATMENT, CHRONIC, CURED, FAILED_TREATMENT, ACTIVATED, DEA
 burn_in_days = 365
 treatment_enrollment_start_delay = 3650
 #treatment_enrollment_reduce_at = 7665
+#treatment_enrollment_reduce_at = 6690
 treatment_enrollment_reduce_at = 0
 initial_pwid_count = 32000
 
 # DAA treatment enrollment strategy prefilters candidates by either being infected, or any PWID
 # Options are INFECTED_ONLY or ALL_PWID
-treatment_enrollment_strategy = INFECTED_ONLY
+treatment_enrollment_strategy = ALL_PWID
 
 # Screening (testing) interval (days) for the ALL_PWID strategy
 hcv_screening_interval = 180
@@ -82,9 +84,12 @@ reduced_treatment_enrollment_per_PY = 0.075
 treatment_repeatable = true
 max_num_daa_treatments = 99999
 
-treatment_enrollment_probability_unbiased = 1.0
+prob_daa_harm_reduction = 0.15
+daa_harm_reduction_duration = 365
+
+treatment_enrollment_probability_unbiased = 0.0
 treatment_enrollment_probability_HRP = 0.0
-treatment_enrollment_probability_fullnetwork = 0.0
+treatment_enrollment_probability_fullnetwork = 1.0
 treatment_enrollment_probability_inpartner = 0.0
 treatment_enrollment_probability_outpartner = 0.0
 

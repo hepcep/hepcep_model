@@ -15,6 +15,7 @@
 #include "chi_sim/Calendar.h"
 #include "chi_sim/NextPlace.h"
 
+#include "EndHarmReductionFunctor.h"
 #include "HCPlace.h"
 #include "HCVState.h"
 #include "HarmReduction.h"
@@ -94,6 +95,8 @@ protected:
 
 	std::shared_ptr<Immunology> immunology;
 
+	std::vector<boost::shared_ptr<Event>> scheduled_actions;
+
 	bool active = false;
 	bool in_opioid_treatment = false;
     double last_opioid_treatment_start_time = 0;
@@ -123,6 +126,7 @@ public:
 	bool scheduleEnd(double residualBurninDays, double elapsedCareerDays);
 
 	void deactivate();
+	void purgeActions();
 	void receive_equipment_or_drugs(NetworkPtr<HCPerson> network);
 	void reportStatus();
 	void startTreatment();
@@ -145,6 +149,7 @@ public:
 	HCVState getHCVState() const;
 	void setHcvInitialState(HCVState hcvState, double tick);
 	double getInjectionIntensity() const;
+	void setInjectionIntensity(double i);
 	double getFractionReceptSharing() const;
 	void setLastExposureDate(double tick);
 	double getLastExposureDate() const;

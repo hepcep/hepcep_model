@@ -6,6 +6,7 @@
 #
 library(data.table)
 library(ggplot2)
+library(ggridges)
 library(scales)
 library(Publish)
 
@@ -13,7 +14,7 @@ dt <- NULL
 dt_infections <- NULL
 dt_person_freq <- NULL
 
-base_dir <- "D:\\Projects\\HepCEP\\experiments\\treatment_duration_01_vk\\treatment_duration_01_vk"
+base_dir <- "D:\\Projects\\HepCEP\\experiments\\treatment_duration_all_daa_01"
 
 # Load all of the stats files that exist in an experiments dir
 eventsfileName <- "/events.csv"
@@ -39,6 +40,11 @@ for (d in dirs){
       props <- propsRead[,1]
       props$Value <- propsRead[,3]
       colnames(props)<-c("Name", "Value")
+      
+      # Ignore zero treatment scenarios in this analysis
+      if (props[Name=="treatment_enrollment_per_PY"]$Value == 0){
+        next 
+      }
       
       # Read the event and stats into tables
       evTable <-  fread(path)
@@ -134,17 +140,17 @@ DAA_cost <- 25 # treatment cost in $1,000
 dt$Count <- as.numeric(dt$Count)
 dt[, cost := DAA_cost * Count * Freq]
 
-freq_data <- dt_person_freq[Freq <= 5]
-p <- ggplot(freq_data, aes(x=Freq, y=treatment_duration, height = stat(density))) + 
-  #geom_density_ridges() +
-  geom_density_ridges(stat = "binline", bins = 5, scale = 0.5, draw_baseline = FALSE) +
-  
-  
-  
-  labs(y="Total In Treatment", x="Year from DAA enrollment start", color="series_group", title="") +
-  theme_bw() +
-
-show(p)
+#freq_data <- dt_person_freq[Freq <= 5]
+#p <- ggplot(freq_data, aes(x=Freq, y=treatment_duration, height = stat(density))) + 
+#  #geom_density_ridges() +
+#  geom_density_ridges(stat = "binline", bins = 5, scale = 0.5, draw_baseline = FALSE) +
+#  
+#  
+#  
+#  labs(y="Total In Treatment", x="Year from DAA enrollment start", color="series_group", title="") +
+#  theme_bw() +
+#
+#show(p)
 
 
 # Calculate the mean and SD number of treatements per max_num_daa_treatments, 

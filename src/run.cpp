@@ -91,7 +91,10 @@ std::string hepcep_model_run(HepCEP_MPI_Comm hc_comm, const std::string& props_f
     if (parameters.size() == 0) {
         ret = "";
     } else {
-        boost::mpi::communicator boost_comm((ompi_communicator_t*)hc_comm, boost::mpi::comm_attach);
+        // Cast to MPI_Comm (portable across MPI implementations: OpenMPI's
+        // MPI_Comm is a pointer, MPICH's is an int) rather than hardcoding
+        // OpenMPI's ompi_communicator_t*.
+        boost::mpi::communicator boost_comm((MPI_Comm)hc_comm, boost::mpi::comm_attach);
 
         repast::Properties props(props_file);
         parse_parameters(props, parameters);

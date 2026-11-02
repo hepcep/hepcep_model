@@ -15,19 +15,26 @@ CXX_FLAGS = $(CXX_RELEASE_FLAGS) -fopenmp
 INCLUDES :=
 LIBS :=
 
-REPAST_LIB_DIR = $(HOME)/sfw/repast_hpc-2.2.0/lib
-REPAST_LIB = repast_hpc-2.2.0
-REPAST_INCLUDE = $(HOME)/sfw/repast_hpc-2.2.0/include
+REPAST_LIB_DIR = $(HOME)/sfw/repast_hpc-2.3.1/lib
+REPAST_LIB = repast_hpc-2.3.1
+REPAST_INCLUDE = $(HOME)/sfw/repast_hpc-2.3.1/include
 
-BOOST_INCLUDE =  $(HOME)/sfw/Boost/Boost_1.61/include
-BOOST_LIB_DIR =  $(HOME)/sfw/Boost/Boost_1.61/lib
-BOOST_LIBS = -lboost_mpi-mt -lboost_system-mt -lboost_filesystem-mt
+# Boost 1.85 built with the tagged layout (threading=multi, address-model=64)
+# produces the -mt-x64 library suffix.
+BOOST_INCLUDE =  $(HOME)/sfw/boost-1_85_0/include
+BOOST_LIB_DIR =  $(HOME)/sfw/boost-1_85_0/lib
+BOOST_LIBS = -lboost_mpi-mt-x64 -lboost_system-mt-x64 -lboost_filesystem-mt-x64 -lboost_atomic-mt-x64
 
 
-CHISIM_ROOT =  $(HOME)/sfw/chiSIM-0.2
+CHISIM_ROOT =  $(HOME)/sfw/chiSIM-0.4.2
 CHISIM_LIB_DIR = $(CHISIM_ROOT)/lib
 CHISIM_INCLUDE = $(CHISIM_ROOT)/include
-CHISIM_LIB = chiSIM-0.2
+CHISIM_LIB = chiSIM-0.4.2
+
+# RepastHPC links the legacy NetCDF C++ library (netcdf_c++); keep these on the
+# rpath so the built binaries find NetCDF at run time without LD_LIBRARY_PATH.
+NETCDF_LIB_DIR =     $(HOME)/sfw/NetCDF/lib
+NETCDF_CXX_LIB_DIR = $(HOME)/sfw/NetCDF-cxx/lib
 
 # these are not necessary unless you are creating a tcl wrapper
 # to use with swift/T
@@ -66,9 +73,11 @@ else
  LIB_EXT = so
 endif
 
-RPATHS += -Wl,-rpath -Wl,$(REPAST_LIB_DIR) 
+RPATHS += -Wl,-rpath -Wl,$(REPAST_LIB_DIR)
 RPATHS += -Wl,-rpath -Wl,$(CHISIM_LIB_DIR)
 RPATHS += -Wl,-rpath -Wl,$(BOOST_LIB_DIR)
+RPATHS += -Wl,-rpath -Wl,$(NETCDF_LIB_DIR)
+RPATHS += -Wl,-rpath -Wl,$(NETCDF_CXX_LIB_DIR)
 
 SRC_DIR=../src
 BUILD_DIR = ./build

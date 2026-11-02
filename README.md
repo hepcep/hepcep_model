@@ -29,26 +29,79 @@ An evolutionary multi-objective optimization approach that provides a pareto-opt
 
 ## Requirements
 
-* RepastHPC and its dependencies (boost etc.). Download: https://github.com/Repast/repast.hpc/releases/download/v2.2.0/repast_hpc-2.2.0.tgz. Note that the tar ball includes a boost distribution as well as the other dependencies.
-* chi_sim v0.2
-  ```
-  git clone git@bitbucket.org:ntcollier/chi-sim.git
-  cd chi-sim
-  git checkout tags/v0.2
-  ```
-  See the *compiling* section in `users_guide.md` for compilation instructions, and run the *install* make target.
-* gtest - google's unit testing library. https://github.com/google/googletest
+The model requires a C++11 compiler, GNU make, and an MPI implementation (MPICH or OpenMPI). The following libraries are also required:
 
-## Compiling
+* **RepastHPC 2.3.1** — https://github.com/Repast/repast.hpc/releases/tag/v2.3.1 . The release tarball bundles Boost, NetCDF, and curl under `MANUAL_INSTALL/`.
+* **chiSIM (chi_sim)** — https://github.com/Repast/chiSIM
+* **GoogleTest** — https://github.com/google/googletest . Required only for the `tests` target.
 
-1. Create a directory such as  Release or Debug.
-2. Copy Makefile.tmplt into the directory and rename to Makefile
-3. cd into the created directory
-3. Edit the Makefile for your machne.
-4. Make -- targets are model, tests, and clean.
+## Dependency installation
 
-Code will compile into an X/build directory where X is the directory
-created in step 1. Application binaries will also be created in X. Note that the directories `Release` and `Debug` are in .gitignore in order to keep compilation artifacts out of git.
+`Makefile.tmplt` expects the libraries under `$HOME/sfw`. Install them with the system `mpicxx` on the execution path. The example commands below reproduce the stack used for the local/WSL build (RepastHPC 2.3.1, Boost 1.85.0, chiSIM 0.4.2, and the legacy NetCDF).
+
+1. Boost 1.85, built with the tagged layout (which yields the `-mt-x64` library suffix):
+```
+cd ~/sfw
+curl -LO https://archives.boost.org/release/1.85.0/source/boost_1_85_0.tar.bz2
+tar xjf boost_1_85_0.tar.bz2 && cd boost_1_85_0
+./bootstrap.sh --prefix=$HOME/sfw/boost-1_85_0 --with-libraries=system,filesystem,mpi,serialization,atomic
+echo "using mpi : mpicxx ;" >> project-config.jam
+./b2 --layout=tagged variant=release threading=multi address-model=64 -j$(nproc) stage install
+```
+
+2. NetCDF and curl, from the RepastHPC tarball's `MANUAL_INSTALL` directory (RepastHPC requires the legacy NetCDF C++ API `netcdfcpp.h`):
+```
+cd ~/sfw
+curl -LO https://github.com/Repast/repast.hpc/releases/download/v2.3.1/repast_hpc-2.3.1.tgz
+tar xzf repast_hpc-2.3.1.tgz
+cd repast_hpc-2.3.1/MANUAL_INSTALL
+./install.sh curl
+./install.sh netcdf
+```
+
+3. RepastHPC 2.3.1, built against the Boost above using the manual-install Makefile. Building with gcc 11 or later first requires adding `#include <cfloat>` to `../src/repast_hpc/GridComponents.cpp` (for `DBL_MAX`):
+```
+cd ~/sfw/repast_hpc-2.3.1/MANUAL_INSTALL
+make -f Makefile -j$(nproc) \
+  CXX=mpicxx CXXLD=mpicxx REPAST_VERSION=2.3.1 BOOST_INFIX=-mt-x64 \
+  BOOST_INCLUDE_DIR=$HOME/sfw/boost-1_85_0/include BOOST_LIB_DIR=$HOME/sfw/boost-1_85_0/lib \
+  NETCDF_INCLUDE_DIR=$HOME/sfw/NetCDF/include NETCDF_LIB_DIR=$HOME/sfw/NetCDF/lib \
+  NETCDF_CXX_INCLUDE_DIR=$HOME/sfw/NetCDF-cxx/include NETCDF_CXX_LIB_DIR=$HOME/sfw/NetCDF-cxx/lib \
+  CURL_INCLUDE_DIR=$HOME/sfw/CURL/include CURL_LIB_DIR=$HOME/sfw/CURL/lib \
+  INSTALL_DIR=$HOME/sfw/repast_hpc-2.3.1 \
+  copy_includes repast_hpc
+```
+
+4. chiSIM, built against RepastHPC and Boost. Copy its `Makefile.tmplt` into a build directory, set the RepastHPC and Boost paths and `VERSION=0.4.2`, then install:
+```
+cd ~/sfw
+git clone https://github.com/Repast/chiSIM.git chiSIM-src
+cd chiSIM-src && mkdir -p Release && cp Makefile.tmplt Release/Makefile
+# edit Release/Makefile: REPAST_* -> $HOME/sfw/repast_hpc-2.3.1, BOOST -> $HOME/sfw/boost-1_85_0
+#   (-mt-x64 libs), VERSION=0.4.2, INSTALL_DIR=$HOME/sfw/chiSIM-0.4.2
+cd Release && make install
+```
+`make install` copies the library and headers to `$HOME/sfw/chiSIM-0.4.2`.
+
+## Compiling the model
+
+1. Copy `Makefile.tmplt` into a build directory (`Release` or `Debug`) as `Makefile`.
+2. Edit the dependency paths at the top of the Makefile for the machine.
+3. `cd` into the build directory and run `make`.
+
+Targets are `model` (the standalone executable), `tests` (GoogleTest unit tests), and `clean`. Objects compile into `<dir>/build`; binaries are written to `<dir>`. `Release` and `Debug` are in `.gitignore`.
+
+A ready-to-use `Release/Makefile` for a WSL build (MPICH, dependencies under `$HOME/sfw`) is included. From the `Release` directory, `make` builds the `hepcep_model-0.0` executable.
+
+## Running the model
+
+```
+./Release/hepcep_model-0.0 -props ./config/model.props -config ./config/config.props -params "data.dir=./data"
+```
+
+`-props` names the model parameter file, `-config` the logging configuration, and `-params` a tab-separated list of `key=value` overrides parsed by `hepcep::parse_parameters`. The `data.dir` parameter sets the input-data directory; it is not defined in `model.props` by default and must be supplied on the command line or added to `model.props`. `runhepcep.sh` wraps the base command.
+
+Output is written to the directory named by `output.directory` in `model.props` (`output` by default). Under MPI the model is distributed across ranks, for example `mpirun -n 4 ./Release/hepcep_model-0.0 -props ./config/model.props -config ./config/config.props -params "data.dir=./data"`.
 
 ## Acknowledgements
 This work is supported by the National Institute on Drug Abuse (NIH) grant U2CDA050098 (The Methodology and Advanced Analytics Resource Center), by the National Institute of General Medical Sciences grant R01GM121600, by the National Institute of Allergy and Infectious Diseases (NIH) grant R01AI158666, by the National Institute on Drug Abuse (NIH) grant R01DA043484, and by the U.S. Department of Energy under contract number DE-AC02-06CH11357, and was completed with resources provided by the Laboratory Computing Resource Center at Argonne National Laboratory (Bebop cluster). The research presented in this paper is that of the authors and does not necessarily reflect the position or policy of the National Institute on Drug Abuse or any other organization.
